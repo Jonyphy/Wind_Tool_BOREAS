@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BOREAS · Berichtsgenerator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    /* North-wind / wind-energy palette — grounded in BOREAS (Greek god of the north wind) */
+    --ink:#0B2540;          /* deep blueprint navy */
+    --ink-2:#13324f;
+    --gust:#0EA5B7;         /* cold cyan accent */
+    --gust-deep:#0a7c8a;
+    --steel:#5A7184;        /* muted slate */
+    --line:#D6DEE6;
+    --line-soft:#E7EDF2;
+    --paper:#EDF1F4;        /* cool work surface */
+    --panel:#FFFFFF;
+    --workbench:#15212E;    /* dark drafting table */
+    --workbench-2:#1b2c3d;
+    --signal:#C77B16;       /* warning amber */
+    --danger:#B42318;
+    --ok:#0f7a4f;
+    --txt:#16222E;
+    --muted:#73828F;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;font-family:"Inter",system-ui,"Segoe UI",Arial,sans-serif;
+    color:var(--txt);background:var(--paper);
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ============ LAYOUT ============ */
+  .shell{display:grid;grid-template-columns:430px 1fr;height:100vh;overflow:hidden;}
+
+  /* ============ CONSOLE (left) ============ */
+  .console{background:var(--panel);border-right:1px solid var(--line);height:100vh;overflow-y:auto;display:flex;flex-direction:column;}
+  .console::-webkit-scrollbar{width:10px;}
+  .console::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:3px solid var(--panel);}
+
+  .masthead{position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;padding:18px 22px;display:flex;align-items:center;gap:13px;}
+  .mark{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--gust),var(--gust-deep));display:grid;place-items:center;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);}
+  .mark svg{width:24px;height:24px;}
+  .masthead h1{font-family:"Archivo";font-weight:800;font-size:17px;letter-spacing:.02em;margin:0;line-height:1.05;}
+  .masthead p{margin:2px 0 0;font-size:11px;color:#9fc7d0;letter-spacing:.16em;text-transform:uppercase;font-weight:600;}
+
+  .steps{padding:8px 0 40px;}
+  .step{border-bottom:1px solid var(--line-soft);}
+  .step:last-child{border-bottom:none;}
+  .step > summary{
+    list-style:none;cursor:pointer;padding:16px 22px;display:flex;align-items:center;gap:13px;
+    user-select:none;transition:background .15s;
+  }
+  .step > summary::-webkit-details-marker{display:none;}
+  .step > summary:hover{background:var(--line-soft);}
+  .step[open] > summary{background:linear-gradient(90deg,rgba(14,165,183,.07),transparent);}
+  .num{
+    font-family:"Archivo";font-weight:800;font-size:12px;color:var(--gust-deep);
+    width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);
+    display:grid;place-items:center;flex:none;background:#fff;letter-spacing:.02em;
+  }
+  .step[open] .num{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .step .s-title{font-family:"Archivo";font-weight:700;font-size:14px;color:var(--ink);flex:1;}
+  .step .chev{color:var(--muted);transition:transform .2s;font-size:12px;}
+  .step[open] .chev{transform:rotate(180deg);}
+  .step .body{padding:4px 22px 22px 22px;}
+
+  label{display:block;margin:14px 0 6px;font-size:11px;font-weight:700;color:var(--ink-2);letter-spacing:.02em;text-transform:uppercase;}
+  label:first-child{margin-top:4px;}
+  .hint{margin-top:7px;color:var(--muted);font-size:11.5px;line-height:1.5;}
+  input,textarea,select{
+    width:100%;font:inherit;font-size:14px;color:var(--txt);
+    border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;background:#fff;transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--gust);box-shadow:0 0 0 3px rgba(14,165,183,.14);}
+  textarea{min-height:88px;resize:vertical;line-height:1.5;}
+  input[type=file]{padding:8px;font-size:12.5px;cursor:pointer;}
+  input[type=file]::file-selector-button{font:inherit;font-weight:700;font-size:12px;border:none;background:var(--line-soft);color:var(--ink);padding:7px 12px;border-radius:7px;margin-right:10px;cursor:pointer;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  .toggle{display:flex;align-items:center;gap:11px;margin:14px 0 0;padding:11px 13px;border:1.5px solid var(--line);border-radius:9px;cursor:pointer;background:#fcfdfe;}
+  .toggle input{width:auto;margin:0;accent-color:var(--gust-deep);width:17px;height:17px;}
+  .toggle span{font-size:13px;font-weight:600;color:var(--ink-2);}
+  .toggle small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px;text-transform:none;letter-spacing:0;}
+
+  .btn{font:inherit;font-weight:700;font-size:13px;border:none;border-radius:9px;padding:11px 16px;cursor:pointer;transition:filter .15s, transform .05s;display:inline-flex;align-items:center;gap:8px;justify-content:center;}
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--ink);color:#fff;}
+  .btn-primary:hover{filter:brightness(1.15);}
+  .btn-accent{background:linear-gradient(135deg,var(--gust),var(--gust-deep));color:#fff;}
+  .btn-accent:hover{filter:brightness(1.06);}
+  .btn-ghost{background:var(--line-soft);color:var(--ink);}
+  .btn-ghost:hover{background:#dde6ee;}
+  .btn-danger{background:#fff;color:var(--danger);border:1.5px solid #f3c9c4;}
+  .btn-danger:hover{background:#fff5f4;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .btn.block{width:100%;}
+
+  .status{margin-top:10px;font-size:12px;color:var(--muted);min-height:16px;display:flex;align-items:center;gap:7px;}
+  .status.ok{color:var(--ok);font-weight:600;}
+  .status.warn{color:var(--signal);font-weight:600;}
+
+  /* paste box */
+  .paste{
+    min-height:96px;border:2px dashed var(--line);border-radius:11px;padding:14px;background:#fafdfe;
+    outline:none;overflow:auto;cursor:text;transition:border-color .15s, background .15s;color:var(--muted);font-size:13px;
+  }
+  .paste:focus,.paste.armed{border-color:var(--gust);background:#fff;color:var(--txt);}
+  .paste .ph{text-align:center;padding:18px 6px;pointer-events:none;line-height:1.6;}
+  .paste table{border-collapse:collapse;font-size:9px;}
+  .paste td,.paste th{border:1px solid #b9c2cb;padding:2px 4px;}
+  .paste img{max-height:120px;}
+
+  /* table cards (one per table) */
+  .tcards-gap{height:2px;}
+  .tcard{border:1.5px solid var(--line);border-radius:12px;background:#fff;margin-bottom:10px;overflow:hidden;}
+  .tcard-head{display:flex;align-items:center;gap:6px;padding:9px 11px;background:#f6f9fb;border-bottom:1px solid var(--line-soft);}
+  .tcard-head b{font-family:"Archivo";font-size:12.5px;color:var(--ink);flex:1;}
+  .tcard-box{
+    min-height:70px;max-height:200px;overflow:auto;padding:12px;outline:none;cursor:text;
+    color:var(--muted);font-size:13px;background:#fafdfe;transition:background .15s;
+  }
+  .tcard-box:focus{background:#fff;}
+  .tcard-box .ph{text-align:center;padding:14px 6px;pointer-events:none;line-height:1.6;color:var(--muted);}
+  .tcard-box table{border-collapse:collapse;font-size:9px;width:auto;}
+  .tcard-box td,.tcard-box th{border:1px solid #c2ccd4;padding:1px 4px;white-space:nowrap;}
+  .tcard-status{padding:7px 11px;font-size:11.5px;border-top:1px solid var(--line-soft);}
+  .tcard-foot{padding:8px 11px;border-top:1px solid var(--line-soft);background:#fafdfe;}
+  .tcard-foot .hcrow{display:flex;align-items:center;gap:9px;margin:0;font-size:11.5px;font-weight:600;color:var(--ink-2);text-transform:none;letter-spacing:0;}
+  .tcard-foot .hc-input{width:60px;text-align:center;padding:6px 8px;font-size:13px;}
+
+  /* block list */
+  .blocks{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+  .blk{display:flex;align-items:center;gap:11px;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff;}
+  .blk .ic{width:30px;height:30px;border-radius:7px;flex:none;display:grid;place-items:center;background:var(--line-soft);color:var(--ink);font-weight:800;font-size:11px;font-family:"Archivo";}
+  .blk .meta{flex:1;min-width:0;}
+  .blk .meta b{font-size:12.5px;color:var(--ink);font-weight:700;display:block;}
+  .blk .meta small{font-size:11px;color:var(--muted);}
+  .blk .ctrls{display:flex;gap:4px;}
+  .icon-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--steel);cursor:pointer;font-size:13px;display:grid;place-items:center;padding:0;line-height:1;}
+  .icon-btn:hover{border-color:var(--gust);color:var(--gust-deep);}
+  .icon-btn.x:hover{border-color:var(--danger);color:var(--danger);}
+  .icon-btn:disabled{opacity:.35;cursor:default;}
+  .empty-note{font-size:12px;color:var(--muted);padding:10px 0 2px;font-style:italic;}
+
+  .stepper{display:flex;align-items:center;gap:10px;margin-top:4px;}
+  .stepper input{width:78px;text-align:center;}
+  .stepper .unit{font-size:13px;font-weight:700;color:var(--ink-2);}
+
+  /* editable status combobox */
+  .combo{display:flex;gap:8px;align-items:stretch;}
+  .combo input{flex:1;}
+  .combo .btn{flex:none;white-space:nowrap;}
+  .status-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+  .status-chips .schip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink-2);background:#eef3f7;border:1px solid #dce6ee;border-radius:99px;padding:4px 6px 4px 11px;}
+  .status-chips .schip button{border:none;background:none;cursor:pointer;color:var(--steel);font-size:12px;line-height:1;padding:2px 3px;border-radius:50%;}
+  .status-chips .schip button:hover{color:var(--danger);background:#fff;}
+
+  /* ============ STAGE (right) ============ */
+  .stage{background:var(--workbench);height:100vh;overflow:auto;position:relative;}
+  .stage::-webkit-scrollbar{width:12px;height:12px;}
+  .stage::-webkit-scrollbar-thumb{background:#2c3f52;border-radius:99px;border:3px solid var(--workbench);}
+  .toolbar{
+    position:sticky;top:0;z-index:4;background:rgba(21,33,46,.86);backdrop-filter:blur(8px);
+    border-bottom:1px solid #25384a;padding:12px 22px;display:flex;align-items:center;gap:14px;color:#cfe0e6;
+  }
+  .toolbar .tb-title{font-family:"Archivo";font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:#8fb6c0;}
+  .toolbar .spacer{flex:1;}
+  .chip{font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:99px;background:#22364a;color:#a9c6cf;border:1px solid #2f4961;letter-spacing:.02em;}
+  .chip b{color:#fff;font-weight:700;}
+  .fmt-select{background:#22364a;color:#fff;border:1px solid #345168;border-radius:8px;padding:8px 11px;font-size:13px;font-weight:600;cursor:pointer;}
+  .fmt-select:focus{outline:none;border-color:var(--gust);}
+
+  .pages{padding:34px 24px 80px;display:flex;flex-direction:column;align-items:center;gap:30px;}
+  .page-frame{position:relative;}
+  .page-frame::after{content:attr(data-label);position:absolute;left:0;top:-21px;font-size:10.5px;font-weight:600;color:#6d8694;letter-spacing:.08em;text-transform:uppercase;}
+
+  /* The PAGE — this is exactly what gets exported (WYSIWYG) */
+  .page{
+    background:#fff;color:#1a1a1a;position:relative;overflow:hidden;
+    width:var(--pw);height:var(--ph);
+    transform:scale(var(--scale));transform-origin:top left;
+    box-shadow:0 18px 50px rgba(0,0,0,.4);
+    font-family:"Inter",Arial,Helvetica,sans-serif;
+    display:flex;flex-direction:column;
+  }
+  .pad{padding:var(--mt) var(--mx);display:flex;flex-direction:column;flex:1;min-height:0;}
+
+  .rpt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;border-bottom:2.5px solid var(--ink);padding-bottom:14px;}
+  .rpt-head .eyebrow{color:var(--gust-deep);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;}
+  .rpt-head h1{font-family:"Archivo";color:var(--ink);font-size:27px;font-weight:800;margin:6px 0 0;line-height:1.12;letter-spacing:-.01em;}
+  .rpt-head .sub{color:var(--muted);font-size:12px;margin-top:6px;font-weight:500;}
+  .rpt-head .rhs{text-align:right;flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+  .rpt-head .logo{height:58px;max-width:240px;object-fit:contain;}
+  .rpt-head .rhs .when{font-size:11px;color:var(--muted);font-weight:600;}
+  .tag-row{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
+  .tag{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:99px;background:#eef3f7;color:var(--ink-2);border:1px solid #dce6ee;}
+  .tag.accent{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:22px;}
+  .meta .cell{background:#fff;padding:13px 16px;}
+  .meta .cell small{display:block;color:var(--gust-deep);font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
+  .meta .cell span{font-weight:600;font-size:14px;color:var(--ink);}
+
+  .sec{margin-top:26px;}
+  .sec > h2{font-family:"Archivo";color:var(--ink);font-size:16px;font-weight:800;margin:0 0 12px;display:flex;align-items:center;gap:11px;}
+  .sec > h2::before{content:"";width:5px;height:18px;background:var(--gust);border-radius:2px;display:inline-block;}
+  .prose{font-size:13.5px;line-height:1.65;color:#26323d;white-space:pre-wrap;}
+  .prose.empty{color:#9aa7b2;font-style:italic;}
+  .figure{margin-top:14px;text-align:center;}
+  .figure img{max-width:100%;border:1px solid var(--line);border-radius:10px;}
+
+  .fill{flex:1;min-height:0;display:flex;flex-direction:column;}
+  .center-media{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;}
+  .center-media img{max-width:100%;max-height:100%;object-fit:contain;border:1px solid var(--line);border-radius:10px;}
+
+  /* table name / heading printed above a calc table */
+  .calc-title{font-family:"Archivo","Inter",sans-serif;font-size:13.5px;line-height:1.3;margin:0 0 5px;}
+
+  /* multiple site plans on one page */
+  .lp-grid{flex:1;min-height:0;display:grid;gap:14px;margin-top:4px;}
+  .lp-grid.one,.lp-grid.two{grid-template-columns:1fr;}
+  .lp-grid.many{grid-template-columns:1fr 1fr;grid-auto-rows:1fr;}
+  .lp-grid .lp-cell{min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .lp-grid .lp-cell img{max-width:100%;max-height:100%;object-fit:contain;border:1px solid var(--line);border-radius:8px;}
+
+  /* calc body region (the part we paginate into) */
+  .calc-body{flex:1;min-height:0;margin-top:18px;}
+  .calc-table{border-collapse:collapse;width:auto;}
+  .calc-table td,.calc-table th{border:1px solid #9aa7b2;padding:1px 4px;vertical-align:middle;white-space:nowrap;line-height:1.2;}
+  .calc-table th{background:#e4e9ee;font-weight:700;}
+  .calc-img-block{margin-bottom:14px;text-align:center;}
+  .calc-img-block img{max-width:100%;border:1px solid var(--line);border-radius:8px;}
+  /* full-page calc: slim chrome so the table/image gets the most room */
+  .page.calc-full .rpt-head{padding-bottom:9px;border-bottom-width:2px;}
+  .page.calc-full .rpt-head h1{font-size:19px;margin-top:3px;}
+  .page.calc-full .rpt-head .sub{margin-top:3px;}
+  .page.calc-full .calc-body{margin-top:9px;}
+
+  /* console: document rows */
+  .doc-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;}
+  .doc-row input{font-size:13px;padding:8px 10px;}
+  .doc-row .icon-btn{width:32px;height:34px;}
+
+  /* report: Verwendete Unterlagen */
+  .doc-list{margin-top:6px;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .doc-item{display:grid;grid-template-columns:1fr 1.2fr;gap:0;border-bottom:1px solid var(--line-soft);}
+  .doc-item:last-child{border-bottom:none;}
+  .doc-item .k{padding:11px 16px;font-size:13px;font-weight:600;color:var(--ink);background:#f7fafc;border-right:1px solid var(--line-soft);}
+  .doc-item .v{padding:11px 16px;font-size:13px;display:flex;align-items:center;}
+  .doc-link{color:var(--gust-deep);text-decoration:none;font-weight:600;border-bottom:1.5px solid rgba(14,165,183,.4);}
+  .doc-link::before{content:"📁 ";}
+  .doc-plain{color:var(--muted);}
+
+  .rpt-foot{border-top:1px solid var(--line);padding-top:9px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:10px;font-weight:500;}
+  .rpt-foot .pg{font-weight:700;color:var(--ink-2);}
+
+  .stage-empty{color:#6d8694;text-align:center;padding:120px 20px;font-size:14px;}
+
+  /* overlay while exporting */
+  .veil{position:fixed;inset:0;background:rgba(11,37,64,.72);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:50;}
+  .veil.on{display:flex;}
+  .veil .card{background:#fff;border-radius:16px;padding:30px 38px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.4);}
+  .spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--gust);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 14px;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+  .veil .card b{font-family:"Archivo";color:var(--ink);font-size:15px;}
+  .veil .card p{margin:6px 0 0;color:var(--muted);font-size:12.5px;}
+
+  .lang-switch{margin-left:auto;display:flex;border:1px solid rgba(255,255,255,.28);border-radius:8px;overflow:hidden;align-self:flex-start;}
+  .lang-switch button{background:transparent;color:#9fc7d0;border:none;font:inherit;font-weight:700;font-size:11px;letter-spacing:.04em;padding:6px 11px;cursor:pointer;}
+  .lang-switch button.on{background:var(--gust);color:#fff;}
+
+  @media (max-width:1080px){
+    .shell{grid-template-columns:1fr;height:auto;overflow:visible;}
+    .console{height:auto;border-right:none;border-bottom:1px solid var(--line);}
+    .stage{height:auto;min-height:80vh;}
+  }
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important;} }
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- ============ CONSOLE ============ -->
+  <aside class="console">
+    <div class="masthead">
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 8h9a3 3 0 1 0-3-3"/><path d="M3 12h13a3 3 0 1 1-3 3"/><path d="M3 16h7"/>
+        </svg>
+      </div>
+      <div>
+        <h1 data-i18n="app_title">Berichtsgenerator</h1>
+        <p>BOREAS</p>
+      </div>
+      <div class="lang-switch">
+        <button type="button" data-lang="de" onclick="setLang('de')">DE</button>
+        <button type="button" data-lang="en" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+
+    <div class="steps">
+      <!-- 1 PROJEKT -->
+      <details class="step" open>
+        <summary><span class="num">01</span><span class="s-title" data-i18n="s_project">Projekt &amp; Kopfdaten</span><span class="chev">&#9660;</span></summary>
+        <div class="body">
+          <label for="company" data-i18n="l_company">Firma / Abteilung</label>
+          <input id="company" value="BOREAS / Abt. Projektidee">
+          <label for="project" data-i18n="l_project">Projektname</label>
+          <input id="project" data-i18n-ph="ph_project" placeholder="z. B. BERT-0988 Ertragsverlustberechnung">
+          <label for="subtitle" data-i18n="l_subtitle">Untertitel</label>
+          <input id="subtitle" value="Technischer Bericht · Ertragsverlustberechnung">
+          <div class="grid2">
+            <div><label for="worked" data-i18n="l_worked">Bearbeitet von</label><input id="worked" placeholder="Jony"></div>
+            <div><label for="checked" data-i18n="l_checked">Geprüft von</label><input id="checked" placeholder="Dietmar"></div>
+          </div>
+          <label for="rdate" data-i18n="l_date">Datum</label>
+          <input id="rdate" type="date">
+          <label for="status" data-i18n="l_status">Status</label>
+          <div class="combo">
+            <input id="status" list="statusList" value="Optimierung" data-i18n-ph="ph_status" placeholder="Status wählen oder eingeben …" autocomplete="off">
+            <button class="btn btn-ghost" type="button" onclick="addStatus()" data-i18n-title="tt_save_status" title="Aktuellen Status dauerhaft zur Liste hinzufügen" data-i18n="b_save_status">＋ Speichern</button>
+          </div>
+          <datalist id="statusList"></datalist>
+          <div id="statusChips" class="status-chips"></div>
+          <p class="hint" data-i18n="h_status">Frei eingeben oder aus der Liste wählen. Mit <b>＋ Speichern</b> wird ein neuer Status dauerhaft gespeichert; eigene Einträge lassen sich unten mit ✕ entfernen.</p>
+
+          <label class="toggle" for="useReportNo">
+            <input type="checkbox" id="useReportNo">
+            <span data-i18n="t_reportno">Berichtsnummer anzeigen<small>Standardmäßig aus — nur einschalten, wenn benötigt.</small></span>
+          </label>
+          <div id="reportNoWrap" style="display:none;">
+            <label for="reportNo" data-i18n="l_reportno">Berichtsnummer</label>
+            <input id="reportNo" data-i18n-ph="ph_reportno" placeholder="z. B. 2026-014">
+          </div>
+        </div>
+      </details>
+
+      <!-- 2 LOGO -->
+      <details class="step">
+        <summary><span class="num">02</span><span class="s-title" data-i18n="s_logo">Logo</span><span class="chev">&#9660;</span></summary>
+        <div class="body">
+          <p class="hint" style="margin-top:0;" data-i18n="h_logo">Das BOREAS-Standardlogo ist bereits gesetzt. Du kannst ein eigenes Logo hochladen oder das Standardlogo wiederherstellen.</p>
+          <label for="logoUpload" data-i18n="l_logoupload">Eigenes Logo hochladen (optional)</label>
+          <input id="logoUpload" type="file" accept="image/*">
+          <div class="btn-row">
+            <button class="btn btn-ghost" type="button" onclick="useDefaultLogo()" data-i18n="b_logo_default">Standardlogo wiederherstellen</button>
+            <button class="btn btn-danger" type="button" onclick="removeLogo()" data-i18n="b_logo_remove">Logo entfernen</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- 3 AUFGABE -->
+      <details class="step">
+        <summary><span class="num">03</span><span class="s-title" data-i18n="s_task">Aufgabe</span><span class="chev">&#9660;</span></summary>
+        <div class="body">
+          <label for="taskText" data-i18n="l_task_text">Aufgabe als Text</label>
+          <textarea id="taskText" data-i18n-ph="ph_task" placeholder="Beschreibung der Aufgabenstellung …"></textarea>
+          <label for="taskImg" data-i18n="l_task_img">Aufgabe als Bild (optional)</label>
+          <input id="taskImg" type="file" accept="image/*">
+          <button class="btn btn-danger" type="button" style="margin-top:10px;" onclick="clearImg('task')" data-i18n="b_task_img_remove">Aufgaben-Bild entfernen</button>
+        </div>
+      </details>
+
+      <!-- 4 LAGEPLAN -->
+      <details class="step">
+        <summary><span class="num">04</span><span class="s-title" data-i18n="s_layout">Lageplan</span><span class="chev">&#9660;</span></summary>
+        <div class="body">
+          <label for="layoutImg" data-i18n="l_layout_upload">Lageplan hochladen</label>
+          <input id="layoutImg" type="file" accept="image/*" multiple>
+          <p class="hint" data-i18n="h_layout_multi">Mehrere Lagepläne möglich — mehrere Dateien auf einmal oder nacheinander auswählen.</p>
+          <div id="layoutList" class="blocks"></div>
+
+          <label style="margin-top:16px;" data-i18n="l_layout_mode">Anordnung</label>
+          <select id="layoutMode">
+            <option value="each" data-i18n="opt_layout_each">Jeder Lageplan auf eigener Seite</option>
+            <option value="combined" data-i18n="opt_layout_combined">Alle Lagepläne auf einer Seite</option>
+          </select>
+
+          <button class="btn btn-danger block" type="button" style="margin-top:12px;" onclick="clearImg('layout')" data-i18n="b_layout_remove">Alle Lagepläne entfernen</button>
+        </div>
+      </details>
+
+      <!-- 5 BERECHNUNG -->
+      <details class="step" open>
+        <summary><span class="num">05</span><span class="s-title" data-i18n="s_calc">Berechnung</span><span class="chev">&#9660;</span></summary>
+        <div class="body">
+          <p class="hint" style="margin-top:0;" data-i18n="h_calc_intro">Pro Tabelle eine Karte: aus <b>Excel kopieren</b> und in eine Karte einfügen (Strg + V). <b>Farben &amp; Formatierung bleiben erhalten.</b> Für eine weitere Tabelle unten auf <b>＋ Weitere Tabelle</b>. Mehrere auf einmal kopierte Tabellen werden automatisch auf eigene Karten verteilt.</p>
+
+          <div id="cards"></div>
+          <button class="btn btn-accent block" type="button" style="margin-top:8px;" onclick="addCard()" data-i18n="b_add_table">＋ Weitere Tabelle</button>
+
+          <label style="margin-top:18px;" data-i18n="l_fontsize">Schriftgröße der Tabellen</label>
+          <div class="stepper">
+            <input id="fontPt" type="number" min="8" max="16" step="0.5" value="8">
+            <span class="unit">pt</span>
+          </div>
+          <p class="hint" data-i18n="h_fontsize">Zielgröße für Tabellen. <b>Alle Spalten bleiben immer sichtbar</b> — ist eine Tabelle breiter als die Seite, wird sie auf Seitenbreite eingepasst (die Schrift wird dabei automatisch kleiner). Sehr breite Tabellen (viele Spalten) erreichen so ca. 6–7 pt; größer geht nur mit weniger Spalten.</p>
+
+          <label class="toggle" for="calcFull" style="margin-top:14px;">
+            <input type="checkbox" id="calcFull" checked>
+            <span data-i18n="t_calcfull">Berechnung seitenfüllend<small>Ränder &amp; Kopf schrumpfen — die Tabelle bekommt maximalen Platz.</small></span>
+          </label>
+
+          <label class="toggle" for="keepTogether" style="margin-top:10px;">
+            <input type="checkbox" id="keepTogether" checked>
+            <span data-i18n="t_keep">Tabellen zusammenhalten<small>Passt eine Tabelle nicht mehr auf die Seite, kommt sie komplett auf die nächste — nur wenn sie höher als eine ganze Seite ist, wird sie geteilt (mit wiederholtem Kopf).</small></span>
+          </label>
+
+          <label class="toggle" for="numFmtDE" style="margin-top:10px;">
+            <input type="checkbox" id="numFmtDE">
+            <span data-i18n="t_numfmt">Zahlenformat EN → DE<small>Komma (,) wird zu Punkt (.) und Punkt (.) zu Komma (,) — z. B. 18,039.50 → 18.039,50</small></span>
+          </label>
+
+          <label for="calcImg" style="margin-top:16px;" data-i18n="l_calc_img">Berechnung als Bild (optional)</label>
+          <input id="calcImg" type="file" accept="image/*">
+          <div id="imgList" class="blocks"></div>
+
+          <button class="btn btn-danger block" type="button" style="margin-top:14px;" onclick="clearAllCalc()" data-i18n="b_clear_calc">Alle Tabellen &amp; Bilder entfernen</button>
+        </div>
+      </details>
+
+      <!-- 6 VERWENDETE UNTERLAGEN -->
+      <details class="step">
+        <summary><span class="num">06</span><span class="s-title" data-i18n="s_docs">Verwendete Unterlagen</span><span class="chev">&#9660;</span></summary>
+        <div class="body">
+          <p class="hint" style="margin-top:0;" data-i18n="h_docs_intro">Liste verwendeter Unterlagen mit anklickbarem Link. Im PDF öffnet ein Klick das angegebene Ziel (Ordner/Datei).</p>
+          <label for="docBase" data-i18n="l_docbase">Basis-Ordner (optional)</label>
+          <input id="docBase" data-i18n-ph="ph_docbase" placeholder="z. B. S:\Projekte\BERT-0988">
+          <p class="hint" data-i18n="h_docs_path">Wird jedem Ziel ohne eigenen Pfad vorangestellt. Lokale Ordner: als <code>file:///…</code> oder Laufwerkspfad. Hinweis: Ob ein lokaler Ordner-Link sich öffnet, hängt vom PDF-Betrachter/Browser ab (Sicherheitseinstellungen).</p>
+          <label style="margin-top:14px;" data-i18n="l_docs_entries">Einträge</label>
+          <div id="docRows"></div>
+          <button class="btn btn-ghost block" type="button" style="margin-top:10px;" onclick="addDocRow()" data-i18n="b_add_row">＋ Zeile hinzufügen</button>
+        </div>
+      </details>
+
+      <!-- 7 BEMERKUNGEN -->
+      <details class="step">
+        <summary><span class="num">07</span><span class="s-title" data-i18n="s_remarks">Bemerkungen</span><span class="chev">&#9660;</span></summary>
+        <div class="body">
+          <label for="notes" data-i18n="l_remarks">Bemerkungen</label>
+          <textarea id="notes" data-i18n-ph="ph_remarks" placeholder="Zusätzliche Anmerkungen …"></textarea>
+          <p class="hint" data-i18n="h_remarks">Wird nur als eigene Seite ausgegeben, wenn Text vorhanden ist.</p>
+        </div>
+      </details>
+
+      <!-- 8 EXPORT -->
+      <details class="step" open>
+        <summary><span class="num">08</span><span class="s-title" data-i18n="s_export">Export</span><span class="chev">&#9660;</span></summary>
+        <div class="body">
+          <button id="pdfBtn" class="btn btn-accent block" type="button" onclick="exportPdf()" data-i18n="b_export_pdf">PDF exportieren</button>
+          <div class="btn-row">
+            <button class="btn btn-ghost" type="button" onclick="render()" data-i18n="b_refresh">Vorschau aktualisieren</button>
+            <button class="btn btn-danger" type="button" onclick="resetAll()" data-i18n="b_reset">Zurücksetzen</button>
+          </div>
+          <div id="saveStatus" class="status" data-i18n="st_autosave">Automatisch gespeichert.</div>
+        </div>
+      </details>
+    </div>
+  </aside>
+
+  <!-- ============ STAGE ============ -->
+  <main class="stage">
+    <div class="toolbar">
+      <span class="tb-title" data-i18n="tb_preview">Vorschau</span>
+      <span class="chip" id="pgChip"><b>0</b> Seiten</span>
+      <span class="chip" id="warnChip" style="display:none;background:#5a3d10;border-color:#7a5a1e;color:#ffd591;cursor:help;">⚠ Tabelle zu breit</span>
+      <span class="spacer"></span>
+      <span class="tb-title" style="color:#6d8694;" data-i18n="tb_format">Seitenformat</span>
+      <select id="format" class="fmt-select">
+        <option value="a3l" selected data-i18n="opt_a3l">A3 Querformat</option>
+        <option value="a3p" data-i18n="opt_a3p">A3 Hochformat</option>
+        <option value="a4l" data-i18n="opt_a4l">A4 Querformat</option>
+        <option value="a4p" data-i18n="opt_a4p">A4 Hochformat</option>
+      </select>
+    </div>
+    <div class="pages" id="pages"></div>
+  </main>
+</div>
+
+<div class="veil" id="veil">
+  <div class="card"><div class="spin"></div><b data-i18n="v_creating">PDF wird erstellt …</b><p id="veilMsg" data-i18n="v_rendering">Seiten werden gerendert</p></div>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const PX = 96/72;                 // pt -> px at 96dpi
+const STORE = "boreas_report_v1";
+const STATUS_STORE = "boreas_statuses_v1";   // persisted custom status entries (global, survives reset)
+const DEFAULT_STATUSES = ["Optimierung","Projektänderungsantrag","Vergleichsberechnung","Nach Erhalt des Gutachtens","Nach Erhalt der Genehmigung","Ertrag für Ausschreibungen","Ertrag für Finanzierung","Allgemeine Berechnung","Wirtschaftlichkeitsprüfung"];
+
+/* ============ i18n — UI language only (the REPORT always stays German) ============ */
+let LANG = localStorage.getItem("boreas_lang") || "de";
+const I18N_BASE={}, I18N_BASE_PH={}, I18N_BASE_TT={};   // captured German baseline (source of truth for DE)
+const EN = {
+  app_title:"Report Generator",
+  s_project:"Project &amp; header", s_logo:"Logo", s_task:"Task", s_layout:"Site plan",
+  s_calc:"Calculation", s_docs:"Source documents", s_remarks:"Remarks", s_export:"Export",
+  l_company:"Company / department", l_project:"Project name", l_subtitle:"Subtitle",
+  l_worked:"Prepared by", l_checked:"Checked by", l_date:"Date", l_status:"Status",
+  b_save_status:"＋ Save",
+  h_status:'Type freely or pick from the list. With <b>＋ Save</b> a new status is stored permanently; remove your own entries below with ✕.',
+  t_reportno:"Show report number<small>Off by default — switch on only if needed.</small>",
+  l_reportno:"Report number",
+  h_logo:"The BOREAS default logo is already set. You can upload your own logo or restore the default.",
+  l_logoupload:"Upload your own logo (optional)", b_logo_default:"Restore default logo", b_logo_remove:"Remove logo",
+  l_task_text:"Task as text", l_task_img:"Task as image (optional)", b_task_img_remove:"Remove task image",
+  l_layout_upload:"Upload site plan", b_layout_remove:"Remove all site plans",
+  h_layout_multi:"Several site plans possible — pick multiple files at once or upload one after another.",
+  l_layout_mode:"Arrangement", opt_layout_each:"Each site plan on its own page", opt_layout_combined:"All site plans on one page",
+  h_calc_intro:'One card per table: <b>copy from Excel</b> and paste into a card (Ctrl + V). <b>Colours &amp; formatting are kept.</b> For another table, use <b>＋ Add table</b> below. Several tables copied at once are split onto their own cards automatically.',
+  b_add_table:"＋ Add table", l_fontsize:"Table font size",
+  h_fontsize:'Target size for tables. <b>All columns always stay visible</b> — if a table is wider than the page it is fitted to the page width (the font then shrinks automatically). Very wide tables (many columns) reach about 6–7 pt this way; larger is only possible with fewer columns.',
+  t_calcfull:"Calculation full-page<small>Margins &amp; header shrink — the table gets maximum space.</small>",
+  t_keep:"Keep tables together<small>If a table no longer fits the page, it moves entirely to the next one — only if it is taller than a whole page is it split (with the header repeated).</small>",
+  t_numfmt:"Number format EN → DE<small>Comma (,) becomes dot (.) and dot (.) becomes comma (,) — e.g. 18,039.50 → 18.039,50</small>",
+  l_calc_img:"Calculation as image (optional)", b_clear_calc:"Remove all tables &amp; images",
+  h_docs_intro:"List of source documents with a clickable link. In the PDF a click opens the given target (folder/file).",
+  l_docbase:"Base folder (optional)",
+  h_docs_path:'Prepended to every target without its own path. Local folders: as <code>file:///…</code> or a drive path. Note: whether a local folder link opens depends on the PDF viewer/browser (security settings).',
+  l_docs_entries:"Entries", b_add_row:"＋ Add row",
+  l_remarks:"Remarks", h_remarks:"Only added as its own page if text is present.",
+  b_export_pdf:"Export PDF", b_refresh:"Refresh preview", b_reset:"Reset", st_autosave:"Saved automatically.",
+  tb_preview:"Preview", tb_format:"Page format",
+  opt_a3l:"A3 landscape", opt_a3p:"A3 portrait", opt_a4l:"A4 landscape", opt_a4p:"A4 portrait",
+  v_creating:"Creating PDF …", v_rendering:"Rendering pages"
+};
+const EN_PH = {
+  ph_status:"Choose or type a status …", ph_reportno:"e.g. 2026-014",
+  ph_project:"e.g. BERT-0988 yield-loss calculation", ph_task:"Description of the task …",
+  ph_docbase:"e.g. S:\\Projekte\\BERT-0988", ph_remarks:"Additional remarks …"
+};
+const EN_TT = { tt_save_status:"Add the current status to the list permanently" };
+const DYN = {
+  card_filled:{de:"✓ {total} Zeilen × {cols} Spalten — Farben übernommen", en:"✓ {total} rows × {cols} columns — colours kept"},
+  card_empty:{de:"Leer — Excel hier einfügen (Strg + V)", en:"Empty — paste Excel here (Ctrl + V)"},
+  table_n:{de:"Tabelle {n}", en:"Table {n}"},
+  layout_n:{de:"Lageplan {n}", en:"Site plan {n}"},
+  tbl_name:{de:"Tabellenname:", en:"Table name:"},
+  tbl_name_ph:{de:"z. B. Ertragsverluste", en:"e.g. Yield losses"},
+  tbl_color:{de:"Farbe", en:"Colour"},
+  tbl_bold:{de:"Fett", en:"Bold"},
+  space_after:{de:"Abstand danach:", en:"Space after:"},
+  header_rows:{de:"Kopfzeilen (werden auf jeder Seite wiederholt):", en:"Header rows (repeated on every page):"},
+  no_table:{de:"Keine Tabelle erkannt — Zellen in Excel markieren & kopieren.", en:"No table detected — select the cells in Excel and copy."},
+  image_n:{de:"Bild {n}", en:"Image {n}"},
+  confirm_clear_calc:{de:"Alle Tabellen und Bilder entfernen?", en:"Remove all tables and images?"},
+  confirm_reset:{de:"Alle Eingaben zurücksetzen?", en:"Reset all entries?"},
+  page:{de:"Seite", en:"page"}, pages:{de:"Seiten", en:"pages"},
+  chip_tables:{de:"Tabellen ≈ {pt} pt · alle Spalten", en:"Tables ≈ {pt} pt · all columns"},
+  chip_tables_title:{de:"Die Tabelle wird auf Seitenbreite eingepasst, damit alle Spalten sichtbar bleiben. Größer ist nur mit Spaltenaufteilung oder weniger Spalten möglich.", en:"The table is fitted to the page width so all columns stay visible. Larger is only possible by splitting columns or showing fewer columns."},
+  v_page:{de:"Seite {i} von {n}", en:"Page {i} of {n}"},
+  saved:{de:"Gespeichert:", en:"Saved:"},
+  save_failed:{de:"Speichern fehlgeschlagen (evtl. zu große Bilder).", en:"Save failed (images may be too large)."},
+  custom_label:{de:"Eigene:", en:"Custom:"},
+  ph_doc_label:{de:"Bezeichnung", en:"Label"}, ph_doc_target:{de:"Ziel/Ordner", en:"Target/folder"}
+};
+function tt(key,vars){ const e=DYN[key]; let s=e?(LANG==="en"?e.en:e.de):key; if(vars) for(const k in vars) s=s.split("{"+k+"}").join(vars[k]); return s; }
+function captureBase(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.getAttribute("data-i18n"); if(!(k in I18N_BASE)) I18N_BASE[k]=el.innerHTML;});
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{const k=el.getAttribute("data-i18n-ph"); if(!(k in I18N_BASE_PH)) I18N_BASE_PH[k]=el.getAttribute("placeholder")||"";});
+  document.querySelectorAll("[data-i18n-title]").forEach(el=>{const k=el.getAttribute("data-i18n-title"); if(!(k in I18N_BASE_TT)) I18N_BASE_TT[k]=el.getAttribute("title")||"";});
+}
+function applyLang(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.getAttribute("data-i18n"); el.innerHTML = LANG==="en"?(EN[k]!=null?EN[k]:I18N_BASE[k]):I18N_BASE[k];});
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{const k=el.getAttribute("data-i18n-ph"); el.setAttribute("placeholder", LANG==="en"?(EN_PH[k]!=null?EN_PH[k]:I18N_BASE_PH[k]):I18N_BASE_PH[k]);});
+  document.querySelectorAll("[data-i18n-title]").forEach(el=>{const k=el.getAttribute("data-i18n-title"); el.setAttribute("title", LANG==="en"?(EN_TT[k]!=null?EN_TT[k]:I18N_BASE_TT[k]):I18N_BASE_TT[k]);});
+  document.querySelectorAll(".lang-switch button").forEach(b=>b.classList.toggle("on", b.dataset.lang===LANG));
+  document.documentElement.lang = LANG;
+  renderCards(); renderImages(); renderLayouts(); renderDocRows(); renderStatusList(); render();
+}
+function setLang(l){ LANG=l; try{localStorage.setItem("boreas_lang",l);}catch(e){} applyLang(); }
+
+/* ---- page formats (points = jsPDF unit) ---- */
+const FORMATS = {
+  a3l:{w:1190.55,h:841.89, js:"a3", o:"landscape", label:"A3 Querformat"},
+  a3p:{w:841.89, h:1190.55,js:"a3", o:"portrait",  label:"A3 Hochformat"},
+  a4l:{w:841.89, h:595.28, js:"a4", o:"landscape", label:"A4 Querformat"},
+  a4p:{w:595.28, h:841.89, js:"a4", o:"portrait",  label:"A4 Hochformat"},
+};
+const MARGIN_PT = 42;             // page margin
+
+/* ---- state ---- */
+const state = {
+  logo: "",          // data url or "" ; default set on load
+  logoCustom: false, // true only when the user uploaded their own logo
+  taskImg: "",
+  layout: "",        // legacy single plan (kept for old saves; migrated into layouts on load)
+  layouts: [],       // multiple site plans: { id, src, natW, natH }
+  layoutMode: "each",// "each" = one page per plan, "combined" = all plans on one page
+  tables: [],        // one card per entry: { id, thead, rows:[], cols, total, html, title, titleColor, titleBold, spaceAfter }  (empty card: thead/rows null)
+  images: [],        // { id, src, natW, natH }
+  docs: [            // Verwendete Unterlagen { label, target }
+    {label:"Wake_2e_Berichte_mjon", target:"Wake2e"},
+    {label:"Wake2e (Modell)", target:"Wake2e_Modell"},
+    {label:"Schatten_mjon", target:"Schatten_berichte"},
+    {label:"WAsP_IBK (20250417)", target:"WAsP_Modell"},
+    {label:"Schallvorabbetrachtung_mjon", target:"Schall_Berichte"},
+    {label:"Schatten_mjon", target:"Schatten_berichte"},
+    {label:"Lageplan", target:""},
+  ],
+};
+let blockSeq = 1;
+let saveTimer = null;
+
+/* ============ DEFAULT LOGO (BOREAS wordmark) ============ */
+function defaultLogo(){
+  return "data:image/png;base64,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";
+}
+
+/* ============ helpers ============ */
+function safe(v,f="—"){ return v && String(v).trim() ? String(v).trim() : f; }
+function esc(v){ return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function fmtDate(iso){
+  if(!iso) return "—";
+  const [y,m,d]=iso.split("-"); if(!y||!m||!d) return iso;
+  return `${d}.${m}.${y}`;
+}
+function getFmt(){ return FORMATS[$("format").value] || FORMATS.a3l; }
+function getFontPt(){ return Math.max(8, Math.min(16, parseFloat($("fontPt").value)||8)); }
+
+/* ============ editable / saveable status list ============ */
+function loadCustomStatuses(){
+  try{ const a=JSON.parse(localStorage.getItem(STATUS_STORE)); return Array.isArray(a)?a:[]; }catch(e){ return []; }
+}
+function saveCustomStatuses(arr){
+  try{ localStorage.setItem(STATUS_STORE, JSON.stringify(arr)); }catch(e){}
+}
+function allStatuses(){
+  const custom=loadCustomStatuses();
+  const seen=new Set(), out=[];
+  [...DEFAULT_STATUSES, ...custom].forEach(s=>{ const k=s.trim(); if(k && !seen.has(k.toLowerCase())){ seen.add(k.toLowerCase()); out.push(k); } });
+  return out;
+}
+function renderStatusList(){
+  const list=$("statusList"); if(list) list.innerHTML = allStatuses().map(s=>`<option value="${esc(s)}"></option>`).join("");
+  const chips=$("statusChips"); if(!chips) return;
+  const custom=loadCustomStatuses();
+  chips.innerHTML = custom.length
+    ? `<span class="hint" style="margin:0 4px 0 0;align-self:center;">${tt("custom_label")}</span>` + custom.map(s=>`<span class="schip">${esc(s)}<button type="button" title="Entfernen" onclick="removeStatus('${esc(s).replace(/'/g,"\\'")}')">✕</button></span>`).join("")
+    : "";
+}
+function addStatus(){
+  const v=($("status").value||"").trim();
+  if(!v) return;
+  const custom=loadCustomStatuses();
+  if(DEFAULT_STATUSES.some(d=>d.toLowerCase()===v.toLowerCase()) || custom.some(c=>c.toLowerCase()===v.toLowerCase())){
+    renderStatusList(); return;   // already known
+  }
+  custom.push(v); saveCustomStatuses(custom); renderStatusList();
+}
+function removeStatus(s){
+  const custom=loadCustomStatuses().filter(c=>c.toLowerCase()!==String(s).toLowerCase());
+  saveCustomStatuses(custom); renderStatusList();
+}
+
+/* ============ image loading ============ */
+function loadFile(input, cb){
+  const f = input.files && input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e => cb(e.target.result);
+  r.readAsDataURL(f);
+}
+function imgSize(src){
+  return new Promise(res=>{
+    const im = new Image();
+    im.onload = ()=>res({w:im.naturalWidth||1, h:im.naturalHeight||1});
+    im.onerror = ()=>res({w:1,h:1});
+    im.src = src;
+  });
+}
+
+/* ============ table capture — preserves Excel colours via computed styles ============ */
+function captureExcelTable(fullHtml){
+  // fullHtml may contain Excel's <style> block + a <table>. Render hidden so the
+  // browser resolves class-based fills/colours, then bake them in as inline styles.
+  const sandbox=document.createElement("div");
+  sandbox.style.cssText="position:absolute;left:-99999px;top:0;visibility:hidden;";
+  sandbox.innerHTML=fullHtml;
+  document.body.appendChild(sandbox);
+  const src=sandbox.querySelector("table");
+  if(!src){ sandbox.remove(); return null; }
+  const out=document.createElement("table");
+  out.className="calc-table";
+  [...src.rows].forEach(r=>{
+    const cells=[...r.cells];
+    if(cells.length<=1 && cells.every(c=>!c.textContent.trim())) return;  // skip blank spacer rows
+    const tr=out.insertRow();
+    cells.forEach(c=>{
+      const cs=window.getComputedStyle(c);
+      const cell=document.createElement(c.tagName==="TH"?"th":"td");
+      if(c.colSpan>1) cell.colSpan=c.colSpan;
+      if(c.rowSpan>1) cell.rowSpan=c.rowSpan;
+      cell.textContent=(c.textContent||"").replace(/\u00a0/g," ").replace(/\s+/g," ").trim();
+      const sty=[];
+      const bg=cs.backgroundColor||"";
+      if(bg && !/rgba\(0,\s*0,\s*0,\s*0\)|transparent/i.test(bg) && bg!=="rgb(255, 255, 255)") sty.push("background:"+bg);
+      const col=cs.color||"";
+      if(col && col!=="rgb(0, 0, 0)") sty.push("color:"+col);
+      const fw=cs.fontWeight; if(fw==="bold"||parseInt(fw)>=600) sty.push("font-weight:700");
+      if(cs.fontStyle==="italic") sty.push("font-style:italic");
+      const ta=cs.textAlign; if(ta && ta!=="start" && ta!=="left") sty.push("text-align:"+ta);
+      if(sty.length) cell.setAttribute("style", sty.join(";"));
+      tr.appendChild(cell);
+    });
+  });
+  sandbox.remove();
+  return out.rows.length ? out : null;
+}
+function textToTableEl(text){
+  const lines = text.replace(/\r/g,"").split("\n").filter(l=>l.trim().length);
+  if(!lines.length) return null;
+  const sep = lines[0].includes("\t") ? "\t" : /\s{2,}/;
+  const rows = lines.map(l=> l.split(sep));
+  const cols = Math.max(...rows.map(r=>r.length));
+  const t = document.createElement("table"); t.className="calc-table";
+  const tb = document.createElement("tbody");
+  rows.forEach((r,i)=>{
+    const tr=document.createElement("tr");
+    for(let c=0;c<cols;c++){
+      const cell=document.createElement(i===0?"th":"td");
+      cell.textContent=r[c]!==undefined?r[c]:"";
+      tr.appendChild(cell);
+    }
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  return t;
+}
+function detectHeaderRows(el){
+  const rows=[...el.rows];
+  if(rows.length<=1) return 1;
+  // header height = how far the top merged structure reaches.
+  // A rowspan=R cell in the top row => R header rows. A colspan>1 cell implies a sub-header row below.
+  let h=1, hasColspan=false, maxRowspan=1;
+  [...rows[0].cells].forEach(c=>{ if((c.colSpan||1)>1) hasColspan=true; maxRowspan=Math.max(maxRowspan, c.rowSpan||1); });
+  h=Math.max(maxRowspan, hasColspan?2:1);
+  // if a deeper header row still carries a colspan>1 (nested headers), extend one more
+  if(h>=2 && rows[1] && [...rows[1].cells].some(c=>(c.colSpan||1)>1)) h=Math.max(h,2);
+  return Math.min(h, Math.max(1, rows.length-1), 4);
+}
+function blockFromTable(el){
+  const trs=[...el.querySelectorAll("tr")];
+  if(!trs.length) return null;
+  const cols=Math.max(...trs.map(r=>[...r.cells].reduce((a,c)=>a+(c.colSpan||1),0)));
+  return {
+    id: blockSeq++,
+    allRows: trs.map(r=>r.outerHTML),     // every row (header + data) kept verbatim
+    headerCount: detectHeaderRows(el),    // how many top rows are the (repeating) header
+    cols,
+    total: trs.length,
+    html: el.outerHTML
+  };
+}
+// ensure older saved blocks (with thead/rows) get the new shape
+function normTable(t){
+  if(t.allRows) { if(!t.headerCount) t.headerCount=1; return t; }
+  const all=(t.thead?[t.thead]:[]).concat(t.rows||[]);
+  t.allRows=all; t.headerCount=t.headerCount||1; t.total=all.length;
+  if(!t.cols) t.cols=1;
+  return t;
+}
+function tableHead(t){ return normTable(t).allRows.slice(0, t.headerCount).join(""); }
+function tableBody(t){ return normTable(t).allRows.slice(t.headerCount); }
+
+/* ============ table cards (one card = one table; ＋ adds another) ============ */
+const PASTE_PH='<div class="ph">📋 Klicken &amp; <b>Strg + V</b><br>Excel-Tabelle hier einfügen</div>';
+function ensureOneCard(){ if(!state.tables.length) state.tables.push({id:blockSeq++}); }
+function renderCards(){
+  ensureOneCard();
+  const wrap=$("cards"); if(!wrap) return; wrap.innerHTML="";
+  state.tables.forEach((t,i)=>{
+    const filled=!!t.allRows;
+    const hc=filled?(t.headerCount||1):1;
+    const card=document.createElement("div"); card.className="tcard";
+    card.innerHTML=`
+      <div class="tcard-head">
+        <b>${tt("table_n",{n:i+1})}</b>
+        <button class="icon-btn" title="nach oben" ${i===0?"disabled":""} data-act="up" data-id="${t.id}">▲</button>
+        <button class="icon-btn" title="nach unten" ${i===state.tables.length-1?"disabled":""} data-act="down" data-id="${t.id}">▼</button>
+        <button class="icon-btn x" title="entfernen" data-act="del" data-id="${t.id}">✕</button>
+      </div>
+      <div class="tcard-box" contenteditable="true" data-id="${t.id}">${filled?t.html:PASTE_PH}</div>
+      <div class="tcard-status status ${filled?"ok":""}">${filled?tt("card_filled",{total:t.total,cols:t.cols}):tt("card_empty")}</div>
+      ${filled?`<div class="tcard-foot">
+        <label class="hcrow" style="margin-bottom:8px;">${tt("tbl_name")}
+          <input class="tt-name" type="text" placeholder="${tt('tbl_name_ph')}" value="${esc(t.title||'')}" data-id="${t.id}" style="flex:1;padding:6px 8px;font-size:13px;"></label>
+        <div class="hcrow" style="margin-bottom:8px;gap:16px;">
+          <label class="hcrow" style="margin:0;gap:6px;">${tt("tbl_color")}
+            <input class="tt-color" type="color" value="${t.titleColor||'#0B2540'}" data-id="${t.id}" style="width:40px;height:28px;padding:2px;cursor:pointer;"></label>
+          <label class="hcrow" style="margin:0;gap:6px;cursor:pointer;">
+            <input class="tt-bold" type="checkbox" ${t.titleBold?'checked':''} data-id="${t.id}" style="width:16px;height:16px;accent-color:var(--gust-deep);">${tt("tbl_bold")}</label>
+        </div>
+        <label class="hcrow" style="margin-bottom:8px;">${tt("header_rows")}
+          <input class="hc-input" type="number" min="1" max="5" value="${hc}" data-id="${t.id}"></label>
+        <label class="hcrow" style="margin:0;">${tt("space_after")}
+          <input class="sp-input hc-input" type="number" min="0" max="10" step="1" value="${t.spaceAfter||0}" data-id="${t.id}"></label>
+      </div>`:""}`;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll(".tcard-box").forEach(box=>{
+    box.addEventListener("paste", e=>onCardPaste(e, +box.dataset.id));
+    box.addEventListener("focus", function(){ if(this.querySelector(".ph")) this.innerHTML=""; });
+  });
+  wrap.querySelectorAll(".hc-input:not(.sp-input)").forEach(inp=>{
+    inp.addEventListener("change", ()=>setHeaderCount(+inp.dataset.id, parseInt(inp.value)||1));
+  });
+  wrap.querySelectorAll(".tt-name").forEach(inp=>{
+    inp.addEventListener("input", ()=>{ const t=state.tables.find(x=>x.id===+inp.dataset.id); if(t){ t.title=inp.value; render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll(".tt-color").forEach(inp=>{
+    inp.addEventListener("input", ()=>{ const t=state.tables.find(x=>x.id===+inp.dataset.id); if(t){ t.titleColor=inp.value; render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll(".tt-bold").forEach(inp=>{
+    inp.addEventListener("change", ()=>{ const t=state.tables.find(x=>x.id===+inp.dataset.id); if(t){ t.titleBold=inp.checked; render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll(".sp-input").forEach(inp=>{
+    inp.addEventListener("input", ()=>{ const t=state.tables.find(x=>x.id===+inp.dataset.id); if(t){ t.spaceAfter=Math.max(0,Math.min(10,parseInt(inp.value)||0)); render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll("button[data-act]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id=+b.dataset.id;
+      if(b.dataset.act==="del") delCard(id); else moveCard(id, b.dataset.act==="up"?-1:1);
+    });
+  });
+}
+function addCard(){ state.tables.push({id:blockSeq++}); renderCards(); saveLocal(); }
+function delCard(id){ state.tables=state.tables.filter(t=>t.id!==id); renderCards(); render(); saveLocal(); }
+function moveCard(id,dir){
+  const i=state.tables.findIndex(t=>t.id===id); if(i<0) return;
+  const j=i+dir; if(j<0||j>=state.tables.length) return;
+  [state.tables[i],state.tables[j]]=[state.tables[j],state.tables[i]];
+  renderCards(); render(); saveLocal();
+}
+function setCardStatus(id,msg,cls){
+  const idx=state.tables.findIndex(t=>t.id===id);
+  const card=$("cards").children[idx]; if(!card) return;
+  const s=card.querySelector(".tcard-status"); if(s){ s.textContent=msg; s.className="tcard-status status "+(cls||""); }
+}
+function onCardPaste(e, id){
+  e.preventDefault();
+  const cd=e.clipboardData||window.clipboardData; if(!cd){ return; }
+  const html=cd.getData("text/html")||"";
+  const text=cd.getData("text/plain")||"";
+  let captured=[];
+  if(/<table|<tr/i.test(html)){
+    const wrap=document.createElement("div"); wrap.innerHTML=html;
+    const styleHtml=[...wrap.querySelectorAll("style")].map(s=>s.outerHTML).join("");
+    [...wrap.querySelectorAll("table")].forEach(tb=>{
+      const el=captureExcelTable(styleHtml+tb.outerHTML); if(el) captured.push(el);
+    });
+  } else if(text.includes("\t")){
+    const el=textToTableEl(text); if(el) captured.push(el);
+  }
+  if(!captured.length){ setCardStatus(id,tt("no_table"),"warn"); return; }
+  const blocks=captured.map(blockFromTable).filter(Boolean);
+  const idx=state.tables.findIndex(t=>t.id===id); if(idx<0) return;
+  blocks[0].id=id;
+  state.tables.splice(idx,1,blocks[0]);
+  for(let k=1;k<blocks.length;k++) state.tables.splice(idx+k,0,blocks[k]);
+  renderCards(); render(); saveLocal();
+}
+
+/* ============ calc images ============ */
+async function addImage(src){
+  const {w,h}=await imgSize(src);
+  state.images.push({id:blockSeq++, src, natW:w, natH:h});
+  renderImages(); render(); saveLocal();
+}
+function removeImage(id){ state.images=state.images.filter(i=>i.id!==id); renderImages(); render(); saveLocal(); }
+function renderImages(){
+  const wrap=$("imgList"); if(!wrap) return; wrap.innerHTML="";
+  state.images.forEach((im,i)=>{
+    const row=document.createElement("div"); row.className="blk";
+    row.innerHTML=`<div class="ic">▣</div><div class="meta"><b>${tt("image_n",{n:i+1})}</b><small>${im.natW}×${im.natH}px</small></div>
+      <div class="ctrls"><button class="icon-btn x" title="Entfernen" onclick="removeImage(${im.id})">✕</button></div>`;
+    wrap.appendChild(row);
+  });
+}
+function clearAllCalc(){
+  if((state.tables.some(t=>t.allRows)||state.images.length) && !confirm(tt("confirm_clear_calc"))) return;
+  state.tables=[{id:blockSeq++}]; state.images=[];
+  renderCards(); renderImages(); render(); saveLocal();
+}
+function setHeaderCount(id, n){
+  const t=state.tables.find(x=>x.id===id); if(!t||!t.allRows) return;
+  t.headerCount=Math.max(1, Math.min(n||1, t.allRows.length-1 || 1, 5));
+  render(); saveLocal();
+}
+
+/* ordered list of calc items for the report (tables first in card order, then images) */
+function calcItems(){
+  const items=[];
+  state.tables.forEach(t=>{ if(t.allRows){ normTable(t); items.push({type:"table", thead:tableHead(t), rows:tableBody(t), headerCount:t.headerCount, cols:t.cols, total:t.total, title:t.title||"", titleColor:t.titleColor||"#0B2540", titleBold:!!t.titleBold, spaceAfter:t.spaceAfter||0}); } });
+  state.images.forEach(im=>items.push({type:"image", src:im.src, natW:im.natW, natH:im.natH}));
+  return items;
+}
+
+/* ============ Verwendete Unterlagen ============ */
+function resolveHref(target){
+  let t=(target||"").trim();
+  if(!t) return "";
+  if(/^[a-z]+:\/\//i.test(t)) return t;                 // already a URL (http, file, …)
+  const base=($("docBase")?$("docBase").value:"").trim();
+  let full = base ? (base.replace(/[\\/]+$/,"") + "\\" + t) : t;
+  // build a file URL from a windows/unc/posix path
+  let p=full.replace(/\\/g,"/");
+  if(/^[a-z]:\//i.test(p)) return "file:///"+p;          // C:/...
+  if(p.startsWith("//")) return "file:"+p;               // \\server\share
+  if(p.startsWith("/")) return "file://"+p;              // /mnt/...
+  return "file:///"+p;                                   // bare folder name
+}
+function renderDocRows(){
+  const wrap=$("docRows"); if(!wrap) return; wrap.innerHTML="";
+  state.docs.forEach((d,i)=>{
+    const row=document.createElement("div"); row.className="doc-row";
+    row.innerHTML=`
+      <input data-i="${i}" data-k="label" placeholder="${tt('ph_doc_label')}" value="${esc(d.label)}">
+      <input data-i="${i}" data-k="target" placeholder="${tt('ph_doc_target')}" value="${esc(d.target)}">
+      <button class="icon-btn x" title="Entfernen" onclick="removeDocRow(${i})">✕</button>`;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input",e=>{
+      const i=+e.target.dataset.i, k=e.target.dataset.k;
+      if(state.docs[i]){ state.docs[i][k]=e.target.value; render(); saveLocal(); }
+    });
+  });
+}
+function addDocRow(){ state.docs.push({label:"",target:""}); renderDocRows(); render(); saveLocal(); }
+function removeDocRow(i){ state.docs.splice(i,1); renderDocRows(); render(); saveLocal(); }
+
+/* ============ logo / images ============ */
+function useDefaultLogo(){ state.logo=defaultLogo(); state.logoCustom=false; afterChange(); }
+function removeLogo(){ state.logo=""; state.logoCustom=false; afterChange(); }
+function clearImg(which){ if(which==="task") state.taskImg=""; if(which==="layout"){ state.layout=""; state.layouts=[]; renderLayouts(); } afterChange(); }
+
+/* ============ site plans (Lagepläne) — multiple ============ */
+function addLayouts(input){
+  const files=[...(input.files||[])]; if(!files.length) return;
+  let pending=files.length;
+  const done=()=>{ if(--pending===0){ input.value=""; renderLayouts(); render(); saveLocal(); } };
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=async ev=>{ const src=ev.target.result; const {w,h}=await imgSize(src);
+      state.layouts.push({id:blockSeq++, src, natW:w, natH:h}); done(); };
+    r.onerror=done;
+    r.readAsDataURL(f);
+  });
+}
+function removeLayout(id){ state.layouts=state.layouts.filter(l=>l.id!==id); renderLayouts(); render(); saveLocal(); }
+function moveLayout(id,dir){
+  const i=state.layouts.findIndex(l=>l.id===id); if(i<0) return;
+  const j=i+dir; if(j<0||j>=state.layouts.length) return;
+  [state.layouts[i],state.layouts[j]]=[state.layouts[j],state.layouts[i]];
+  renderLayouts(); render(); saveLocal();
+}
+function renderLayouts(){
+  const wrap=$("layoutList"); if(!wrap) return; wrap.innerHTML="";
+  state.layouts.forEach((lp,i)=>{
+    const row=document.createElement("div"); row.className="blk";
+    row.innerHTML=`<div class="ic">▤</div><div class="meta"><b>${tt("layout_n",{n:i+1})}</b><small>${lp.natW}×${lp.natH}px</small></div>
+      <div class="ctrls">
+        <button class="icon-btn" title="nach oben" ${i===0?"disabled":""} onclick="moveLayout(${lp.id},-1)">▲</button>
+        <button class="icon-btn" title="nach unten" ${i===state.layouts.length-1?"disabled":""} onclick="moveLayout(${lp.id},1)">▼</button>
+        <button class="icon-btn x" title="Entfernen" onclick="removeLayout(${lp.id})">✕</button>
+      </div>`;
+    wrap.appendChild(row);
+  });
+}
+
+$("logoUpload").addEventListener("change",e=>loadFile(e.target,src=>{state.logo=src;state.logoCustom=true;afterChange();}));
+$("taskImg").addEventListener("change",e=>loadFile(e.target,src=>{state.taskImg=src;afterChange();}));
+$("layoutImg").addEventListener("change",e=>addLayouts(e.target));
+$("layoutMode").addEventListener("change",()=>{ state.layoutMode=$("layoutMode").value; afterChange(); });
+$("calcImg").addEventListener("change",e=>loadFile(e.target,src=>{addImage(src);e.target.value="";}));
+
+/* report-number toggle */
+$("useReportNo").addEventListener("change",function(){ $("reportNoWrap").style.display=this.checked?"block":"none"; afterChange(); });
+
+/* ============ PAGE TEMPLATE ============ */
+function pageChrome(title, opts={}){
+  const company = esc(safe($("company").value,"BOREAS / Abt. Projektidee"));
+  const date = fmtDate($("rdate").value);
+  const logo = state.logo ? `<img class="logo" src="${state.logo}" alt="Logo">` : "";
+  const tags = [];
+  tags.push(`<span class="tag accent">${esc(safe($("status").value,"Bericht"))}</span>`);
+  if($("useReportNo").checked && $("reportNo").value.trim())
+    tags.push(`<span class="tag">Nr. ${esc($("reportNo").value.trim())}</span>`);
+  return `
+    <div class="rpt-head">
+      <div class="lhs">
+        <div class="eyebrow">${company}</div>
+        <h1>${esc(title)}</h1>
+        ${opts.sub?`<div class="sub">${esc(opts.sub)}</div>`:""}
+      </div>
+      <div class="rhs">
+        ${logo}
+        <div class="tag-row">${tags.join("")}</div>
+        <div class="when">${date}</div>
+      </div>
+    </div>`;
+}
+function pageFooter(){
+  const project = esc(safe($("project").value,"Projektbericht"));
+  const company = esc(safe($("company").value,"BOREAS"));
+  return `<div class="rpt-foot"><span>${project}</span><span class="pg"></span><span>${company} · Vertraulich</span></div>`;
+}
+function makePage(label, marginPt, cls){
+  const f=getFmt();
+  const m = (marginPt==null?MARGIN_PT:marginPt);
+  const frame=document.createElement("div"); frame.className="page-frame"; frame.dataset.label=label;
+  const page=document.createElement("article"); page.className="page"+(cls?(" "+cls):"");
+  page.style.setProperty("--pw", f.w*PX+"px");
+  page.style.setProperty("--ph", f.h*PX+"px");
+  page.style.setProperty("--mt", m*PX+"px");
+  page.style.setProperty("--mx", m*PX+"px");
+  const pad=document.createElement("div"); pad.className="pad";
+  page.appendChild(pad);
+  frame.appendChild(page);
+  return {frame,page,pad};
+}
+
+/* ============ MAIN RENDER (single source of truth = WYSIWYG) ============ */
+let warnMsg="";
+let calcEffPt=null;   // smallest effective table font size (pt) in the current render, or null
+function render(){
+  warnMsg="";
+  const pages=$("pages"); pages.innerHTML="";
+  const f=getFmt();
+
+  const project = safe($("project").value,"Projektbericht");
+  const subtitle = $("subtitle").value.trim();
+
+  /* ---- Page 1: Kopf + Aufgabe ---- */
+  {
+    const {frame,page,pad}=makePage("Seite — Übersicht");
+    let meta=`
+      <div class="meta">
+        <div class="cell"><small>Projekt</small><span>${esc(project)}</span></div>
+        <div class="cell"><small>Bearbeitet von</small><span>${esc(safe($("worked").value))}</span></div>
+        <div class="cell"><small>Geprüft von</small><span>${esc(safe($("checked").value))}</span></div>
+        <div class="cell"><small>${$("useReportNo").checked?"Berichtsnummer":"Datum"}</small><span>${$("useReportNo").checked?esc(safe($("reportNo").value)):fmtDate($("rdate").value)}</span></div>
+      </div>`;
+    const taskTxt=$("taskText").value.trim();
+    let taskBlock=`<div class="sec"><h2>Aufgabe</h2>
+        <div class="prose ${taskTxt?"":"empty"}">${taskTxt?esc(taskTxt):"Noch keine Aufgabe eingetragen."}</div>
+        ${state.taskImg?`<div class="figure"><img src="${state.taskImg}" alt="Aufgabe"></div>`:""}
+      </div>`;
+    pad.innerHTML = pageChrome(project,{sub:subtitle}) + meta + `<div class="fill">${taskBlock}</div>` + pageFooter();
+    pages.appendChild(frame);
+  }
+
+  /* ---- Lagepläne (only if any image) ---- */
+  if(state.layouts.length){
+    if(state.layoutMode==="combined"){
+      const {frame,pad}=makePage("Seite — Lagepläne");
+      const n=state.layouts.length;
+      const cls = n===1?"one":(n===2?"two":"many");
+      const grid = state.layouts.map(lp=>`<div class="lp-cell"><img src="${lp.src}" alt="Lageplan"></div>`).join("");
+      pad.innerHTML = pageChrome(n>1?"Lagepläne":"Lageplan",{sub:"Standortübersicht"})
+        + `<div class="fill"><div class="lp-grid ${cls}">${grid}</div></div>`
+        + pageFooter();
+      pages.appendChild(frame);
+    } else {
+      const n=state.layouts.length;
+      state.layouts.forEach((lp,idx)=>{
+        const {frame,pad}=makePage("Seite — Lageplan");
+        const sub = n>1 ? `Standortübersicht · ${idx+1} / ${n}` : "Standortübersicht";
+        pad.innerHTML = pageChrome("Lageplan",{sub})
+          + `<div class="fill"><div class="center-media"><img src="${lp.src}" alt="Lageplan"></div></div>`
+          + pageFooter();
+        pages.appendChild(frame);
+      });
+    }
+  }
+
+  /* ---- Berechnung (paginated) ---- */
+  if(calcItems().length){
+    paginateCalc(pages);
+  }
+
+  /* ---- Verwendete Unterlagen (only if any non-empty entry) ---- */
+  const docs=state.docs.filter(d=>(d.label||"").trim()||(d.target||"").trim());
+  if(docs.length){
+    const {frame,pad}=makePage("Seite — Verwendete Unterlagen");
+    const items=docs.map(d=>{
+      const href=resolveHref(d.target);
+      const right = href
+        ? `<a class="doc-link" href="${esc(href)}" data-href="${esc(href)}" target="_blank" rel="noopener">${esc(d.target||href)}</a>`
+        : `<span class="doc-plain">${esc(d.target)||"—"}</span>`;
+      return `<div class="doc-item"><div class="k">${esc(d.label)||"—"}</div><div class="v">${right}</div></div>`;
+    }).join("");
+    pad.innerHTML = pageChrome("Verwendete Unterlagen",{sub:"Datengrundlage / Quellen"})
+      + `<div class="fill"><div class="sec"><div class="doc-list">${items}</div></div></div>`
+      + pageFooter();
+    pages.appendChild(frame);
+  }
+
+  /* ---- Bemerkungen (only if text) ---- */
+  const notes=$("notes").value.trim();
+  if(notes){
+    const {frame,pad}=makePage("Seite — Bemerkungen");
+    pad.innerHTML = pageChrome("Bemerkungen",{sub:"Zusätzliche Anmerkungen"})
+      + `<div class="fill"><div class="sec"><div class="prose">${esc(notes)}</div></div></div>`
+      + pageFooter();
+    pages.appendChild(frame);
+  }
+
+  numberAndScale();
+}
+
+/* ---- paginate calculation blocks across real pages ---- */
+function expandGrid(tableEl){
+  const rows=[...tableEl.rows]; const grid=[];
+  rows.forEach((tr,r)=>{
+    grid[r]=grid[r]||[]; let c=0;
+    [...tr.cells].forEach(td=>{
+      while(grid[r][c]!==undefined) c++;
+      const rs=td.rowSpan||1, cs=td.colSpan||1;
+      const data={html:td.innerHTML, style:td.getAttribute("style")||"", th:td.tagName==="TH"};
+      for(let dr=0;dr<rs;dr++){ grid[r+dr]=grid[r+dr]||[]; for(let dc=0;dc<cs;dc++) grid[r+dr][c+dc]=data; }
+      c+=cs;
+    });
+  });
+  const nCols=Math.max(0,...grid.map(g=>g.length));
+  for(let r=0;r<grid.length;r++){ grid[r]=grid[r]||[]; for(let c=0;c<nCols;c++) if(grid[r][c]===undefined) grid[r][c]={html:"",style:"",th:false}; }
+  return {grid, nCols, nRows:grid.length};
+}
+
+/* ---- swap EN→DE number formatting in table cells: , ↔ . ---- */
+function swapNumFmt(tableEl){
+  // A cell is treated as numeric if (after trimming) it matches:
+  //   optional sign, then digits mixed with commas/dots/spaces, optional trailing %/€/$
+  const NUM_RE = /^[−\-+]?\s*[\d,.\s]+[%€$]?$/;
+  tableEl.querySelectorAll("td, th").forEach(cell=>{
+    const txt = cell.textContent.trim();
+    if(!txt || !NUM_RE.test(txt)) return;          // skip non-numeric cells
+    // swap: comma→placeholder→dot→comma→placeholder→dot
+    const swapped = txt.replace(/[.,]/g, m => m === ',' ? '.' : ',');
+    // only replace the text node, preserve child elements (rare but safe)
+    const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+    let node;
+    while(node = walker.nextNode()){
+      const nt = node.textContent.trim();
+      if(nt && NUM_RE.test(nt)){
+        node.textContent = node.textContent.replace(/[.,]/g, m => m === ',' ? '.' : ',');
+      }
+    }
+  });
+}
+
+function paginateCalc(pages){
+  const fontPt=getFontPt();                 // target size; auto-shrinks only if a table is too wide
+  const full = $("calcFull").checked;
+  const numSwap = $("numFmtDE") ? $("numFmtDE").checked : false;   // EN→DE number swap
+  const calcMargin = full ? 14 : MARGIN_PT; // narrow margins in full mode -> more width for the table
+  const ROW_GAP   = 8;                       // gap between continuation chunks of the same table
+  const BLOCK_GAP = full ? 30 : 34;          // breathing room between separate tables / images
+  const SPACE_UNIT= 20;                      // px added per manual "space" unit chosen after a table
+  calcEffPt = null;                          // smallest effective table font this run (for the info chip)
+
+  let pad=null, body=null, availH=0, bodyW=0, used=0, isFirst=true;
+  function openPage(){
+    const m=makePage(isFirst?"Seite — Berechnung":"Seite — Berechnung (Forts.)", calcMargin, full?"calc-full":"");
+    m.pad.innerHTML = pageChrome(isFirst?"Berechnung":"Berechnung (Fortsetzung)",{sub:"Ergebnis- / Berechnungstabelle"})
+      + `<div class="fill"><div class="calc-body"></div></div>` + pageFooter();
+    pages.appendChild(m.frame);
+    pad=m.pad; body=m.pad.querySelector(".calc-body");
+    availH = body.clientHeight; bodyW = body.clientWidth; used=0; isFirst=false;
+  }
+  function spaceBeforeBlock(){ if(used>0) used += BLOCK_GAP; }   // add separation before a new item
+  openPage();
+
+  const items=calcItems();
+  items.forEach((b, bi)=>{
+    if(b.type==="image"){
+      const fitW=bodyW, fullH=b.natH*(fitW/b.natW);
+      if(fullH<=availH){
+        spaceBeforeBlock();
+        if(used>0 && used+fullH>availH){ openPage(); }
+        const div=document.createElement("div"); div.className="calc-img-block";
+        const im=document.createElement("img"); im.src=b.src;
+        im.style.width=fitW+"px"; im.style.height=fullH+"px"; im.style.display="block"; im.style.margin="0 auto";
+        div.appendChild(im); body.appendChild(div); used+=fullH;
+      } else {
+        if(used>0) openPage();
+        let drawn=0;
+        while(drawn<fullH-0.5){
+          const sliceH=Math.min(availH, fullH-drawn); if(sliceH<=0) break;
+          const win=document.createElement("div");
+          win.style.cssText=`width:${fitW}px;height:${sliceH}px;overflow:hidden;margin:0 auto;`;
+          const im=document.createElement("img"); im.src=b.src;
+          im.style.width=fitW+"px"; im.style.height=fullH+"px"; im.style.display="block"; im.style.marginTop=(-drawn)+"px";
+          win.appendChild(im); body.appendChild(win);
+          drawn+=sliceH; used=sliceH;
+          if(drawn<fullH-0.5) openPage();
+        }
+      }
+      return;
+    }
+
+    // ---------- TABLE — show ALL columns, scaled to fit the page width ----------
+    // (font auto-shrinks if the table is wider than the page; merged headers preserved)
+    const meas=document.createElement("table");
+    meas.className="calc-table"; meas.style.fontSize=fontPt+"pt";
+    meas.style.visibility="hidden"; meas.style.position="absolute";
+    meas.innerHTML=b.thead + b.rows.join("");
+    body.appendChild(meas);
+    const trs=[...meas.querySelectorAll("tr")];
+    const hc=Math.max(1, Math.min(b.headerCount||1, trs.length));   // header rows (repeated each page)
+    const headH=trs.slice(0,hc).reduce((a,r)=>a+r.getBoundingClientRect().height,0);
+    const rowH=trs.slice(hc).map(r=>r.getBoundingClientRect().height);
+    const natW=meas.getBoundingClientRect().width;
+    let rep=trs[0]; trs.forEach(tr=>{ if(tr.cells.length>rep.cells.length) rep=tr; });
+    const colW=[...rep.cells].map(c=>c.getBoundingClientRect().width);
+    body.removeChild(meas);
+
+    const colgroup="<colgroup>"+colW.map(w=>`<col style="width:${w}px">`).join("")+"</colgroup>";
+    const wScale = natW>bodyW ? bodyW/natW : 1;     // shrink to fit width; never enlarge
+    if(wScale<1){ const eff=fontPt*wScale; calcEffPt = calcEffPt==null?eff:Math.min(calcEffPt,eff); }
+
+    // --- placement: keep the whole table together when it fits; split only when unavoidable ---
+    const keep = $("keepTogether") ? $("keepTogether").checked : true;
+    const MIN_ROWS = 4;                              // widow/orphan control
+    const headHs = headH*wScale;
+    const rowHs  = rowH.map(h=>(h||headH)*wScale);
+    const n = b.rows.length;
+    const H = headHs + rowHs.reduce((a,x)=>a+x,0);   // full scaled table height
+
+    function renderFragment(start, end){
+      const t=document.createElement("table");
+      t.className="calc-table"; t.style.fontSize=fontPt+"pt"; t.style.tableLayout="fixed"; t.style.width=natW+"px";
+      t.innerHTML=colgroup + b.thead + b.rows.slice(start,end).join("");
+      if(numSwap) swapNumFmt(t);
+      if(wScale<1){ t.style.transform=`scale(${wScale})`; t.style.transformOrigin="top left"; }
+      const fragH = headHs + rowHs.slice(start,end).reduce((a,x)=>a+x,0);
+      const wrap=document.createElement("div");
+      wrap.style.cssText=`height:${fragH}px;overflow:hidden;margin-bottom:${ROW_GAP}px;`;
+      wrap.appendChild(t); body.appendChild(wrap);
+      used += fragH + ROW_GAP;
+    }
+
+    // --- optional table name/heading (printed once, above the first fragment) ---
+    let titleH=0;
+    if(b.title && b.title.trim()){
+      const m2=document.createElement("div"); m2.className="calc-title";
+      m2.style.cssText="visibility:hidden;position:absolute;width:"+bodyW+"px;";
+      m2.style.fontWeight=b.titleBold?"700":"400"; m2.textContent=b.title;
+      body.appendChild(m2); titleH=m2.getBoundingClientRect().height+5; body.removeChild(m2);
+    }
+    function emitTitle(){
+      if(!(b.title && b.title.trim())) return;
+      const d=document.createElement("div"); d.className="calc-title";
+      d.style.color=b.titleColor; d.style.fontWeight=b.titleBold?"700":"400"; d.textContent=b.title;
+      body.appendChild(d); used += titleH;
+    }
+
+    spaceBeforeBlock();
+    const R = availH - used;                         // free space remaining on the current page
+
+    if(keep && titleH + H <= R + 0.5){
+      emitTitle(); renderFragment(0, n);             // case 1: title + table fit the space that's left
+    } else if(keep && titleH + H <= availH + 0.5){
+      openPage(); emitTitle(); renderFragment(0, n); // case 2: fits a page, just not this one -> move whole table
+    } else {
+      // case 3: genuinely taller than a page -> split, repeating the header, with a row minimum
+      if(keep && used>0){
+        const need = titleH + headHs + rowHs.slice(0, Math.min(MIN_ROWS, n)).reduce((a,x)=>a+x,0);
+        if((availH-used) < Math.min(need, availH)) openPage();   // don't start a long table on a thin sliver
+      }
+      emitTitle();
+      let i=0, firstFrag=true;
+      while(i<n){
+        const cap = (firstFrag ? (availH-used) : availH);
+        let h=headHs, j=i;
+        while(j<n && h+rowHs[j] <= cap){ h+=rowHs[j]; j++; }
+        if(j===i) j=i+1;                             // force at least one row (row taller than page)
+        const rem = n - j;
+        if(rem>0 && rem<MIN_ROWS){ j -= Math.min(MIN_ROWS-rem, (j-i)-1); }  // avoid a lonely tail
+        renderFragment(i, j);
+        i=j; firstFrag=false;
+        if(i<n) openPage();
+      }
+    }
+
+    // --- manual space after this table (user-chosen units; 1 unit ≈ one blank line) ---
+    if(b.spaceAfter>0){
+      const gap=b.spaceAfter*SPACE_UNIT;
+      const sp=document.createElement("div"); sp.style.cssText=`width:100%;height:${gap}px;`;
+      body.appendChild(sp); used+=gap;
+    }
+  });
+}
+
+/* ---- number footers + fit-to-width scaling ---- */
+function numberAndScale(){
+  const frames=[...$("pages").querySelectorAll(".page-frame")];
+  const n=frames.length;
+  $("pgChip").innerHTML=`<b>${n}</b> ${tt(n===1?"page":"pages")}`;
+  const wc=$("warnChip");
+  if(calcEffPt!=null && calcEffPt < 7.95){
+    wc.style.display=""; wc.textContent=tt("chip_tables",{pt:calcEffPt.toFixed(1)});
+    wc.style.background="#1e3a2b"; wc.style.borderColor="#2f5a44"; wc.style.color="#bfe6cf";
+    wc.title=tt("chip_tables_title");
+  } else { wc.style.display="none"; wc.title=""; }
+
+  // available width in the stage
+  const stage=document.querySelector(".stage");
+  const avail=Math.max(280, stage.clientWidth - 48);
+  const f=getFmt();
+  const pageWpx=f.w*PX, pageHpx=f.h*PX;
+  const scale=Math.min(1, avail/pageWpx);
+
+  frames.forEach((fr,i)=>{
+    const page=fr.querySelector(".page");
+    page.style.setProperty("--scale", scale);
+    // frame must reserve scaled box so pages don't overlap
+    fr.style.width = pageWpx*scale + "px";
+    fr.style.height = pageHpx*scale + "px";
+    const pg=fr.querySelector(".rpt-foot .pg");
+    if(pg) pg.textContent = `Seite ${i+1} / ${n}`;
+  });
+}
+window.addEventListener("resize", numberAndScale);
+
+/* ============ PDF EXPORT (renders the exact preview pages) ============ */
+async function exportPdf(){
+  render();
+
+  const veil=$("veil"); veil.classList.add("on");
+  const btn=$("pdfBtn"); btn.disabled=true;
+
+  try{
+    const f=getFmt();
+    const { jsPDF }=window.jspdf;
+    const pdf=new jsPDF({orientation:f.o, unit:"pt", format:f.js});
+    const pw=pdf.internal.pageSize.getWidth();
+    const ph=pdf.internal.pageSize.getHeight();
+
+    const frames=[...$("pages").querySelectorAll(".page-frame")];
+    for(let i=0;i<frames.length;i++){
+      $("veilMsg").textContent=tt("v_page",{i:i+1,n:frames.length});
+      const page=frames[i].querySelector(".page");
+      // temporarily render at full scale for crisp capture
+      const prev=page.style.getPropertyValue("--scale");
+      page.style.setProperty("--scale","1");
+      await new Promise(r=>setTimeout(r,30));
+
+      const canvas=await html2canvas(page,{
+        scale:2, useCORS:true, backgroundColor:"#ffffff", logging:false,
+        width: f.w*PX, height: f.h*PX, windowWidth: f.w*PX
+      });
+
+      if(i>0) pdf.addPage(f.js, f.o);
+      pdf.addImage(canvas.toDataURL("image/jpeg",0.93),"JPEG",0,0,pw,ph);
+
+      // overlay clickable links (measured while --scale is 1) — converts px -> pt
+      const pr=page.getBoundingClientRect();
+      page.querySelectorAll("[data-href]").forEach(a=>{
+        const url=a.getAttribute("data-href"); if(!url) return;
+        const r=a.getBoundingClientRect();
+        const x=(r.left-pr.left)/PX, y=(r.top-pr.top)/PX, w=r.width/PX, h=r.height/PX;
+        try{ pdf.link(x, y, w, h, {url}); }catch(_){}
+      });
+
+      page.style.setProperty("--scale", prev||"1");
+    }
+    numberAndScale();
+
+    const name=safe($("project").value,"Bericht").replace(/[^\w\-äöüßÄÖÜ ]/gi,"_").trim()||"Bericht";
+    pdf.save(name+".pdf");
+  }catch(err){
+    alert("Export-Fehler: "+err.message);
+    console.error(err);
+  }finally{
+    veil.classList.remove("on");
+    btn.disabled=false;
+  }
+}
+
+/* ============ persistence ============ */
+function afterChange(){ render(); saveLocal(); }
+function saveLocal(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{
+      const d={
+        fields:{}, format:$("format").value, fontPt:$("fontPt").value,
+        useReportNo:$("useReportNo").checked, calcFull:$("calcFull").checked, keepTogether:$("keepTogether").checked,
+        numFmtDE:$("numFmtDE").checked,
+        docBase:$("docBase").value, docs:state.docs,
+        logo:state.logo, logoCustom:state.logoCustom, taskImg:state.taskImg, layout:state.layout,
+        layouts:state.layouts, layoutMode:state.layoutMode,
+        tables:state.tables, images:state.images, blockSeq
+      };
+      ["company","project","subtitle","worked","checked","rdate","status","reportNo","taskText","notes"]
+        .forEach(k=>d.fields[k]=$(k).value);
+      localStorage.setItem(STORE, JSON.stringify(d));
+      $("saveStatus").textContent=tt("saved")+" "+new Date().toLocaleTimeString();
+      $("saveStatus").className="status ok";
+    }catch(e){ $("saveStatus").textContent=tt("save_failed"); $("saveStatus").className="status warn"; }
+  },400);
+}
+function loadLocal(){
+  const raw=localStorage.getItem(STORE); if(!raw) return false;
+  try{
+    const d=JSON.parse(raw);
+    if(d.fields) Object.keys(d.fields).forEach(k=>{ if($(k)) $(k).value=d.fields[k]; });
+    if(d.format) $("format").value=d.format;
+    if(d.fontPt) $("fontPt").value=d.fontPt;
+    $("useReportNo").checked=!!d.useReportNo;
+    $("reportNoWrap").style.display=d.useReportNo?"block":"none";
+    if(d.calcFull!==undefined) $("calcFull").checked=!!d.calcFull;
+    if(d.keepTogether!==undefined) $("keepTogether").checked=!!d.keepTogether;
+    if(d.numFmtDE!==undefined) $("numFmtDE").checked=!!d.numFmtDE;
+    if(d.docBase!==undefined) $("docBase").value=d.docBase;
+    if(Array.isArray(d.docs)) state.docs=d.docs;
+    state.logoCustom = !!d.logoCustom;
+    state.logo = state.logoCustom ? (d.logo||defaultLogo()) : defaultLogo();
+    state.taskImg=d.taskImg||""; state.layout=d.layout||"";
+    state.layouts=Array.isArray(d.layouts)?d.layouts:[];
+    state.layoutMode=d.layoutMode||"each";
+    state.tables=Array.isArray(d.tables)?d.tables:[];
+    state.images=Array.isArray(d.images)?d.images:[];
+    const ids=[...state.tables,...state.images,...state.layouts].map(x=>x.id||0);
+    blockSeq=d.blockSeq||((ids.length?Math.max(...ids):0)+1);
+    // migrate a legacy single site plan into the new list
+    if(d.layout && !state.layouts.length){ state.layouts.push({id:blockSeq++, src:d.layout, natW:1, natH:1}); }
+    if($("layoutMode")) $("layoutMode").value=state.layoutMode;
+    return true;
+  }catch(e){ console.warn(e); return false; }
+}
+function resetAll(){
+  if(!confirm(tt("confirm_reset"))) return;
+  localStorage.removeItem(STORE);
+  location.reload();
+}
+
+/* ============ init ============ */
+$("format").addEventListener("change", render);
+$("fontPt").addEventListener("change", afterChange);
+// any console input updates everything (covers issue: preview not refreshing)
+document.querySelector(".console").addEventListener("input", e=>{
+  if(e.target.type==="file") return;
+  render(); saveLocal();
+});
+
+(function init(){
+  const had=loadLocal();
+  if(!had){
+    state.logo=defaultLogo();
+    $("rdate").value=new Date().toISOString().slice(0,10);
+  }else if(!$("rdate").value){
+    $("rdate").value=new Date().toISOString().slice(0,10);
+  }
+  captureBase();
+  applyLang();
+})();
+if(document.fonts && document.fonts.ready){ document.fonts.ready.then(()=>render()); }
+</script>
+</body>
+</html>
