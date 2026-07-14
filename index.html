@@ -3,205 +3,306 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title data-i18n="title">Wind Analysis Tools</title>
+<title data-i18n="title">BOREAS · Wind Tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f7f8fa;--surface:#ffffff;--surface2:#f0f2f6;--border:#e2e5ec;--border-strong:#c8ccda;
-  --text:#111827;--text-2:#4b5563;--text-3:#9ca3af;
-  --blue:#2563eb;--blue-bg:#eff4ff;--blue-border:#bfcfff;
-  --violet:#7c3aed;--violet-bg:#f5f1ff;--violet-border:#d6c7fb;
-  --teal:#0e7c8a;--teal-bg:#e3f6f8;--teal-border:#a9dce3;
-  --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
-  --r-lg:16px;--shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
-  --shadow-hover:0 4px 12px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.08);
+  --bg:#eef2f6;--panel:#ffffff;--panel-2:#f3f6f9;
+  --border:#dce4ec;--border-strong:#c3cfda;
+  --ink:#0B2540;--text:#243441;--text-2:#5a6b79;--text-3:#8695a2;
+  --gust:#0a7c8a;--gust-2:#0EA5B7;
+  --sans:'Inter',system-ui,sans-serif;--disp:'Syne',var(--sans);--mono:'JetBrains Mono',monospace;
+  --r:16px;--maxw:1080px;
+  --shadow:0 1px 2px rgba(11,37,64,.05),0 10px 30px rgba(11,37,64,.06);
+  --shadow-h:0 6px 16px rgba(11,37,64,.10),0 20px 46px rgba(11,37,64,.12);
+  --grid-line:rgba(11,37,64,.035);--stream:rgba(10,124,138,.16);
 }
 html[data-theme=dark]{
-  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;--border-strong:#484f58;
-  --text:#e6edf3;--text-2:#8b949e;--text-3:#6e7681;
-  --blue:#4d90fe;--blue-bg:#1c2538;--blue-border:#2d4a8a;
-  --violet:#a78bfa;--violet-bg:#221a38;--violet-border:#4c3a80;
-  --teal:#3bc9db;--teal-bg:#122a30;--teal-border:#1f5a66;
-  --shadow:0 1px 3px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
-  --shadow-hover:0 4px 12px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.45);
+  --bg:#081019;--panel:#0f1b28;--panel-2:#13202e;
+  --border:#1e3243;--border-strong:#2c4457;
+  --ink:#eaf3f8;--text:#cddce7;--text-2:#8ba0b1;--text-3:#5f7482;
+  --gust:#22b8cf;--gust-2:#3bc9db;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.35);
+  --shadow-h:0 8px 20px rgba(0,0,0,.5),0 24px 54px rgba(0,0,0,.5);
+  --grid-line:rgba(120,180,210,.05);--stream:rgba(56,201,219,.14);
 }
-body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border)}
-.topbar-inner{max-width:1000px;margin:0 auto;height:56px;display:flex;align-items:center;gap:12px;padding:0 24px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-.02em}
-.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--blue),var(--violet));border-radius:8px;display:grid;place-items:center}
-.logo-icon svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
-.lang-switch{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.lang-switch button{background:none;border:none;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.03em;padding:6px 10px;cursor:pointer;color:var(--text-3)}
-.lang-switch button:hover{background:var(--surface2)}
-.lang-switch button.on{background:var(--blue);color:#fff}
-.theme-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--text-2);font-family:var(--sans);font-size:12px}
-.theme-btn:hover{background:var(--surface2)}
-.hero{max-width:1000px;margin:0 auto;padding:56px 24px 8px;width:100%}
-.hero h1{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.2}
-.hero p{color:var(--text-2);margin-top:8px;max-width:560px}
-.grid{max-width:1000px;margin:0 auto;padding:32px 24px 64px;width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
-.tool-card{display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;box-shadow:var(--shadow);text-decoration:none;color:var(--text);transition:box-shadow .15s,transform .15s,border-color .15s;position:relative;overflow:hidden}
-.tool-card:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px)}
-.tool-card:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.tool-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center}
-.tool-icon svg{width:22px;height:22px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.tc-blue .tool-icon{background:var(--blue-bg);border:1px solid var(--blue-border)}
-.tc-blue .tool-icon svg{stroke:var(--blue)}
-.tc-blue:hover{border-color:var(--blue-border)}
-.tc-violet .tool-icon{background:var(--violet-bg);border:1px solid var(--violet-border)}
-.tc-violet .tool-icon svg{stroke:var(--violet)}
-.tc-violet:hover{border-color:var(--violet-border)}
-.tc-teal .tool-icon{background:var(--teal-bg);border:1px solid var(--teal-border)}
-.tc-teal .tool-icon svg{stroke:var(--teal)}
-.tc-teal:hover{border-color:var(--teal-border)}
-.tool-card h2{font-size:16px;font-weight:600;letter-spacing:-.01em}
-.tool-card p{font-size:13px;color:var(--text-2);flex:1}
-.tool-open{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
-.tc-blue .tool-open{color:var(--blue)}
-.tc-violet .tool-open{color:var(--violet)}
-.tc-teal .tool-open{color:var(--teal)}
-.tool-open svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
-.tool-card:hover .tool-open svg{transform:translateX(3px)}
-.tool-tags{display:flex;gap:6px;flex-wrap:wrap}
-.tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);color:var(--text-2)}
-.placeholder-card{border-style:dashed;border-color:var(--border-strong);background:transparent;box-shadow:none;align-items:center;justify-content:center;text-align:center;color:var(--text-3);min-height:220px}
-.placeholder-card:hover{transform:none;box-shadow:none}
-.placeholder-card svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round}
-.placeholder-card p{flex:0}
-footer{margin-top:auto;border-top:1px solid var(--border);background:var(--surface)}
-footer .inner{max-width:1000px;margin:0 auto;padding:16px 24px;font-size:12px;color:var(--text-3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+
+/* ---------- accents per tool ---------- */
+.a-violet{--a:#7c3aed;--a-bg:#f2ecfe;--a-bd:#ddcefb}
+.a-cyan{--a:#0a7c8a;--a-bg:#e0f4f7;--a-bd:#a9dde5}
+.a-green{--a:#0f7a4f;--a-bg:#e4f5ec;--a-bd:#aedcc4}
+.a-amber{--a:#a9690a;--a-bg:#fbefda;--a-bd:#efd3a0}
+html[data-theme=dark] .a-violet{--a:#a78bfa;--a-bg:#1d1733;--a-bd:#3b2f60}
+html[data-theme=dark] .a-cyan{--a:#38c9db;--a-bg:#0e2a32;--a-bd:#1f5661}
+html[data-theme=dark] .a-green{--a:#34d08a;--a-bg:#0d2b21;--a-bd:#1d5741}
+html[data-theme=dark] .a-amber{--a:#f0b34a;--a-bg:#2a2210;--a-bd:#5b451d}
+
+/* ---------- header ---------- */
+.topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.topbar-in{max-width:var(--maxw);margin:0 auto;height:62px;display:flex;align-items:center;gap:14px;padding:0 24px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand-mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(140deg,var(--ink),var(--gust));display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.brand-mark svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.brand-name{font-family:var(--disp);font-weight:800;font-size:19px;letter-spacing:.01em;color:var(--ink);line-height:1}
+.brand-sub{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-3);margin-top:3px}
+.actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.lang{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--panel)}
+.lang button{background:none;border:none;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.05em;padding:7px 11px;cursor:pointer;color:var(--text-3);transition:color .15s,background .15s}
+.lang button:hover{color:var(--text)}
+.lang button.on{background:var(--gust);color:#fff}
+.icon-btn{width:36px;height:36px;border:1px solid var(--border);border-radius:9px;background:var(--panel);color:var(--text-2);cursor:pointer;display:grid;place-items:center;transition:border-color .15s,color .15s}
+.icon-btn:hover{border-color:var(--gust);color:var(--gust)}
+.icon-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+html[data-theme=dark] .sun{display:block}
+html[data-theme=dark] .moon{display:none}
+.sun{display:none}.moon{display:block}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--border)}
+.hero-bg{position:absolute;inset:0;z-index:0;background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);background-size:38px 38px}
+.hero-streams{position:absolute;inset:0;z-index:0;width:100%;height:100%}
+.hero-streams path{fill:none;stroke:var(--stream);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:8 22;animation:drift 9s linear infinite}
+.hero-streams path:nth-child(2){animation-duration:12s}
+.hero-streams path:nth-child(3){animation-duration:10.5s}
+.hero-streams path:nth-child(4){animation-duration:13.5s}
+.hero-streams path:nth-child(5){animation-duration:11s}
+@keyframes drift{to{stroke-dashoffset:-300}}
+.hero-in{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:64px 24px 56px;width:100%}
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--gust);display:inline-flex;align-items:center;gap:9px}
+.eyebrow::before{content:"";width:22px;height:1.5px;background:var(--gust);display:inline-block}
+.hero h1{font-family:var(--disp);font-weight:800;font-size:clamp(30px,5vw,46px);line-height:1.08;letter-spacing:-.015em;color:var(--ink);margin:16px 0 0;max-width:15ch}
+.hero p{color:var(--text-2);font-size:16px;margin-top:16px;max-width:56ch}
+
+/* ---------- tool sections ---------- */
+main{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:40px 24px 56px;width:100%;flex:1}
+.grouphead{display:flex;align-items:center;gap:16px;margin:26px 0 18px}
+.grouphead:first-child{margin-top:6px}
+.grouphead span{font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);white-space:nowrap}
+.grouphead .rule{height:1px;background:var(--border);flex:1}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+.card{display:flex;flex-direction:column;gap:15px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:26px;text-decoration:none;color:var(--text);box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .18s,box-shadow .18s,border-color .18s;opacity:0;transform:translateY(10px);animation:rise .5s ease forwards}
+.card::before{content:"";position:absolute;left:0;top:0;height:3px;width:100%;background:var(--a);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-h);border-color:var(--a-bd)}
+.card:hover::before{transform:scaleX(1)}
+.card:focus-visible{outline:2px solid var(--a);outline-offset:3px}
+.card:nth-child(2){animation-delay:.06s}
+@keyframes rise{to{opacity:1;transform:translateY(0)}}
+.card-top{display:flex;align-items:center;justify-content:space-between}
+.tool-icon{width:46px;height:46px;border-radius:12px;background:var(--a-bg);border:1px solid var(--a-bd);display:grid;place-items:center}
+.tool-icon svg{width:23px;height:23px;stroke:var(--a);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.cat{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--a)}
+.card h2{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:-.01em;color:var(--ink);line-height:1.2}
+.card p{font-size:13.5px;color:var(--text-2);line-height:1.6;flex:1}
+.tags{display:flex;gap:7px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:10.5px;padding:3px 9px;border-radius:999px;background:var(--panel-2);border:1px solid var(--border);color:var(--text-2)}
+.open{font-size:13px;font-weight:600;color:var(--a);display:inline-flex;align-items:center;gap:7px}
+.open svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s}
+.card:hover .open svg{transform:translateX(4px)}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--border);background:var(--panel)}
+.foot-in{max-width:var(--maxw);margin:0 auto;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--text-3)}
+.foot-in .fb{font-family:var(--disp);font-weight:700;color:var(--text-2);letter-spacing:.02em}
+
+@media(max-width:720px){
+  .grid{grid-template-columns:1fr}
+  .hero-in{padding:48px 22px 40px}
+  main{padding:32px 22px 44px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .card{opacity:1;transform:none}
+}
 </style>
 </head>
 <body>
+
 <header class="topbar">
-  <div class="topbar-inner">
-    <div class="logo">
-      <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg></div>
-      <span data-i18n="brand">Wind Analysis Tools</span>
-    </div>
-    <div class="topbar-actions">
-      <div class="lang-switch">
+  <div class="topbar-in">
+    <a class="brand" href="./" aria-label="BOREAS home">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24"><path d="M3 8h9a3 3 0 1 0-3-3"/><path d="M3 12h13a3 3 0 1 1-3 3"/><path d="M3 16h7"/></svg>
+      </span>
+      <span>
+        <span class="brand-name">BOREAS</span>
+        <span class="brand-sub" data-i18n="brand_sub">Wind Tools</span>
+      </span>
+    </a>
+    <div class="actions">
+      <div class="lang" role="group" aria-label="Language">
         <button type="button" data-lang="en" onclick="setLang('en')">EN</button>
         <button type="button" data-lang="de" onclick="setLang('de')">DE</button>
       </div>
-      <button class="theme-btn" id="themeBtn" data-i18n="theme">Theme</button>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">
+        <svg class="moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
     </div>
   </div>
 </header>
 
 <section class="hero">
-  <h1 data-i18n="hero_h1">Curtailment loss calculators</h1>
-  <p data-i18n="hero_p">Browser-based tools for wind farm curtailment analysis. All computation runs locally &mdash; no data leaves your machine.</p>
+  <div class="hero-bg" aria-hidden="true"></div>
+  <svg class="hero-streams" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M-40 70 C 250 30, 520 120, 800 70 S 1240 60, 1260 90"/>
+    <path d="M-40 150 C 220 110, 560 210, 860 150 S 1240 140, 1260 170"/>
+    <path d="M-40 240 C 260 200, 540 300, 820 240 S 1240 230, 1260 250"/>
+    <path d="M-40 320 C 240 290, 580 370, 880 320 S 1240 300, 1260 330"/>
+    <path d="M-40 390 C 280 360, 520 430, 840 390 S 1240 370, 1260 400"/>
+  </svg>
+  <div class="hero-in">
+    <span class="eyebrow" data-i18n="hero_eyebrow">Internal toolkit</span>
+    <h1 data-i18n="hero_h1">Wind-farm tools, all in one place.</h1>
+    <p data-i18n="hero_p">Curtailment-loss calculators, a report generator and shared-account coordination — all running right in your browser.</p>
+  </div>
 </section>
 
-<main class="grid">
+<main>
 
-  <a class="tool-card tc-violet" href="fledermaus.html">
-    <div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 9 9 9 9 0 1 1-9-9z"/><path d="M15 8h.01M17 11h.01"/></svg></div>
-    <h2 data-i18n="c1_h2">Fledermaus &middot; Bat Curtailment</h2>
-    <p data-i18n="c1_p">Bat protection shutdown losses per turbine using night-tenth (NZ) time windows, monthly wind speed thresholds and temperature filters. Sector-Weibull or full time-series method.</p>
-    <div class="tool-tags" data-i18n="c1_tags"><span class="tag">Weibull</span><span class="tag">Time series</span><span class="tag">NZ0&ndash;NZ10</span><span class="tag">.xlsx export</span></div>
-    <span class="tool-open"><span data-i18n="open_calc">Open calculator</span> <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-  </a>
+  <div class="grouphead"><span data-i18n="grp1">Curtailment losses</span><div class="rule"></div></div>
+  <div class="grid">
 
-  <a class="tool-card tc-blue" href="turbulence.html">
-    <div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg></div>
-    <h2 data-i18n="c2_h2">Turbulence Curtailment</h2>
-    <p data-i18n="c2_p">Sector-wise energy losses from turbulence curtailment. Compare full vs. curtailed datasets across multiple scenarios with wrap-around sector ranges.</p>
-    <div class="tool-tags" data-i18n="c2_tags"><span class="tag">Sector overlap</span><span class="tag">Multi-scenario</span><span class="tag">EN/DE</span><span class="tag">.xlsx export</span></div>
-    <span class="tool-open"><span data-i18n="open_calc">Open calculator</span> <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-  </a>
+    <a class="card a-violet" href="fledermaus.html">
+      <div class="card-top">
+        <span class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 9 9 9 9 0 1 1-9-9z"/><path d="M15 8h.01M17 11h.01"/></svg></span>
+        <span class="cat" data-i18n="c1_cat">Curtailment</span>
+      </div>
+      <h2 data-i18n="c1_h2">Fledermaus · Bat protection</h2>
+      <p data-i18n="c1_p">Bat-protection shutdown losses per turbine — night-tenth windows, monthly wind thresholds and a temperature filter. Sector-Weibull or full time-series.</p>
+      <div class="tags" data-i18n="c1_tags"><span class="tag">Weibull</span><span class="tag">Time series</span><span class="tag">NZ0–NZ10</span><span class="tag">.xlsx</span></div>
+      <span class="open"><span data-i18n="open">Open</span><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    </a>
 
-  <a class="tool-card tc-teal" href="bericht.html">
-    <div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/></svg></div>
-    <h2 data-i18n="c3_h2">BOREAS &middot; Report Generator</h2>
-    <p data-i18n="c3_p">Build a print-ready technical report (PDF): header data, site plans, Excel tables with colours preserved, source documents and remarks. A3/A4, EN/DE.</p>
-    <div class="tool-tags" data-i18n="c3_tags"><span class="tag">PDF export</span><span class="tag">Excel paste</span><span class="tag">A3 &middot; A4</span><span class="tag">EN/DE</span></div>
-    <span class="tool-open"><span data-i18n="open_gen">Open generator</span> <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-  </a>
+    <a class="card a-cyan" href="turbulence.html">
+      <div class="card-top">
+        <span class="tool-icon"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg></span>
+        <span class="cat" data-i18n="c2_cat">Curtailment</span>
+      </div>
+      <h2 data-i18n="c2_h2">Turbulence curtailment</h2>
+      <p data-i18n="c2_p">Sector-wise energy losses from turbulence curtailment. Compare full and curtailed datasets across scenarios with wrap-around sectors.</p>
+      <div class="tags" data-i18n="c2_tags"><span class="tag">Sector overlap</span><span class="tag">Multi-scenario</span><span class="tag">.xlsx</span></div>
+      <span class="open"><span data-i18n="open">Open</span><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    </a>
 
-  <div class="tool-card placeholder-card">
-    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    <p data-i18n="ph_card">Next tool goes here.<br/>Copy a page, adjust the logic, add a card.</p>
+  </div>
+
+  <div class="grouphead"><span data-i18n="grp2">Reporting &amp; coordination</span><div class="rule"></div></div>
+  <div class="grid">
+
+    <a class="card a-green" href="bericht.html">
+      <div class="card-top">
+        <span class="tool-icon"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/></svg></span>
+        <span class="cat" data-i18n="c3_cat">Reporting</span>
+      </div>
+      <h2 data-i18n="c3_h2">BOREAS · Report generator</h2>
+      <p data-i18n="c3_p">Assemble a print-ready technical report as PDF: header data, site plans, Excel tables with colours kept, sources and remarks. A3 or A4.</p>
+      <div class="tags" data-i18n="c3_tags"><span class="tag">PDF</span><span class="tag">Excel paste</span><span class="tag">A3 · A4</span></div>
+      <span class="open"><span data-i18n="open">Open</span><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    </a>
+
+    <a class="card a-amber" href="konto.html">
+      <div class="card-top">
+        <span class="tool-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <span class="cat" data-i18n="c4_cat">Coordination</span>
+      </div>
+      <h2 data-i18n="c4_h2">Account tracker</h2>
+      <p data-i18n="c4_p">Live view of the shared Wake2e accounts. See who's on which, start a session and release it when you're done — with a full usage log.</p>
+      <div class="tags" data-i18n="c4_tags"><span class="tag">Live status</span><span class="tag">Shared logins</span><span class="tag">Usage log</span></div>
+      <span class="open"><span data-i18n="open">Open</span><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    </a>
+
   </div>
 
 </main>
 
-<footer><div class="inner"><span data-i18n="foot_left">Wind Analysis Tools</span><span data-i18n="foot_right">Runs fully client-side &middot; suitable for GitHub Pages</span></div></footer>
+<footer>
+  <div class="foot-in">
+    <span class="fb">© 2026 BOREAS</span>
+    <span data-i18n="foot_right">Internal engineering tools</span>
+  </div>
+</footer>
 
 <script>
-/* ---------- theme ---------- */
-const root=document.documentElement;
-const savedTheme=localStorage.getItem('wt_theme');
+/* ---- safe storage (won't break if blocked) ---- */
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+
+/* ---- theme ---- */
+var root=document.documentElement;
+var savedTheme=lsGet('wt_theme');
 if(savedTheme==='dark'||(savedTheme===null&&matchMedia('(prefers-color-scheme:dark)').matches))root.dataset.theme='dark';
-document.getElementById('themeBtn').addEventListener('click',()=>{
-  const d=root.dataset.theme==='dark';
+document.getElementById('themeBtn').addEventListener('click',function(){
+  var d=root.dataset.theme==='dark';
   root.dataset.theme=d?'':'dark';
-  localStorage.setItem('wt_theme',d?'light':'dark');
+  lsSet('wt_theme',d?'light':'dark');
 });
 
-/* ---------- language (EN / DE) ---------- */
-const T={
-  en:{
-    title:"Wind Analysis Tools",
-    brand:"Wind Analysis Tools",
-    theme:"Theme",
-    hero_h1:"Curtailment loss calculators",
-    hero_p:"Browser-based tools for wind farm curtailment analysis. All computation runs locally \u2014 no data leaves your machine.",
-    c1_h2:"Fledermaus \u00b7 Bat Curtailment",
-    c1_p:"Bat protection shutdown losses per turbine using night-tenth (NZ) time windows, monthly wind speed thresholds and temperature filters. Sector-Weibull or full time-series method.",
-    c1_tags:'<span class="tag">Weibull</span><span class="tag">Time series</span><span class="tag">NZ0\u2013NZ10</span><span class="tag">.xlsx export</span>',
-    c2_h2:"Turbulence Curtailment",
-    c2_p:"Sector-wise energy losses from turbulence curtailment. Compare full vs. curtailed datasets across multiple scenarios with wrap-around sector ranges.",
-    c2_tags:'<span class="tag">Sector overlap</span><span class="tag">Multi-scenario</span><span class="tag">EN/DE</span><span class="tag">.xlsx export</span>',
-    c3_h2:"BOREAS \u00b7 Report Generator",
-    c3_p:"Build a print-ready technical report (PDF): header data, site plans, Excel tables with colours preserved, source documents and remarks. A3/A4, EN/DE.",
-    c3_tags:'<span class="tag">PDF export</span><span class="tag">Excel paste</span><span class="tag">A3 \u00b7 A4</span><span class="tag">EN/DE</span>',
-    open_calc:"Open calculator",
-    open_gen:"Open generator",
-    ph_card:"Next tool goes here.<br>Copy a page, adjust the logic, add a card.",
-    foot_left:"Wind Analysis Tools",
-    foot_right:"Runs fully client-side \u00b7 suitable for GitHub Pages"
-  },
-  de:{
-    title:"Windanalyse-Tools",
-    brand:"Windanalyse-Tools",
-    theme:"Ansicht",
-    hero_h1:"Rechner f\u00fcr Abschaltverluste",
-    hero_p:"Browserbasierte Werkzeuge zur Analyse von Abschaltverlusten in Windparks. Alle Berechnungen laufen lokal \u2014 es werden keine Daten \u00fcbertragen.",
-    c1_h2:"Fledermaus \u00b7 Abschaltung Fledermausschutz",
-    c1_p:"Abschaltverluste durch Fledermausschutz je Anlage \u2013 mit Nachtzehntel-Zeitfenstern (NZ), monatlichen Windgeschwindigkeits-Schwellen und Temperaturfiltern. Sektor-Weibull- oder Zeitreihen-Methode.",
-    c1_tags:'<span class="tag">Weibull</span><span class="tag">Zeitreihe</span><span class="tag">NZ0\u2013NZ10</span><span class="tag">.xlsx-Export</span>',
-    c2_h2:"Turbulenz-Abschaltung",
-    c2_p:"Sektorweise Energieverluste durch Turbulenz-Abschaltung. Vergleich von vollst\u00e4ndigen und abgeschalteten Datens\u00e4tzen \u00fcber mehrere Szenarien mit Sektor\u00fcberlappung.",
-    c2_tags:'<span class="tag">Sektor\u00fcberlappung</span><span class="tag">Mehr-Szenarien</span><span class="tag">EN/DE</span><span class="tag">.xlsx-Export</span>',
-    c3_h2:"BOREAS \u00b7 Berichtsgenerator",
-    c3_p:"Erstelle einen druckfertigen technischen Bericht (PDF): Kopfdaten, Lagepl\u00e4ne, Excel-Tabellen mit erhaltenen Farben, verwendete Unterlagen und Bemerkungen. A3/A4, EN/DE.",
-    c3_tags:'<span class="tag">PDF-Export</span><span class="tag">Excel einf\u00fcgen</span><span class="tag">A3 \u00b7 A4</span><span class="tag">EN/DE</span>',
-    open_calc:"Rechner \u00f6ffnen",
-    open_gen:"Generator \u00f6ffnen",
-    ph_card:"N\u00e4chstes Tool kommt hierhin.<br>Eine Seite kopieren, Logik anpassen, Karte hinzuf\u00fcgen.",
-    foot_left:"Windanalyse-Tools",
-    foot_right:"L\u00e4uft vollst\u00e4ndig im Browser \u00b7 geeignet f\u00fcr GitHub Pages"
-  }
+/* ---- language ---- */
+var T={
+ en:{
+  title:"BOREAS · Wind Tools",
+  brand_sub:"Wind Tools",
+  hero_eyebrow:"Internal toolkit",
+  hero_h1:"Wind-farm tools, all in one place.",
+  hero_p:"Curtailment-loss calculators, a report generator and shared-account coordination — all running right in your browser.",
+  grp1:"Curtailment losses",
+  grp2:"Reporting &amp; coordination",
+  c1_cat:"Curtailment", c1_h2:"Fledermaus \u00b7 Bat protection",
+  c1_p:"Bat-protection shutdown losses per turbine \u2014 night-tenth windows, monthly wind thresholds and a temperature filter. Sector-Weibull or full time-series.",
+  c1_tags:'<span class="tag">Weibull</span><span class="tag">Time series</span><span class="tag">NZ0\u2013NZ10</span><span class="tag">.xlsx</span>',
+  c2_cat:"Curtailment", c2_h2:"Turbulence curtailment",
+  c2_p:"Sector-wise energy losses from turbulence curtailment. Compare full and curtailed datasets across scenarios with wrap-around sectors.",
+  c2_tags:'<span class="tag">Sector overlap</span><span class="tag">Multi-scenario</span><span class="tag">.xlsx</span>',
+  c3_cat:"Reporting", c3_h2:"BOREAS \u00b7 Report generator",
+  c3_p:"Assemble a print-ready technical report as PDF: header data, site plans, Excel tables with colours kept, sources and remarks. A3 or A4.",
+  c3_tags:'<span class="tag">PDF</span><span class="tag">Excel paste</span><span class="tag">A3 \u00b7 A4</span>',
+  c4_cat:"Coordination", c4_h2:"Account tracker",
+  c4_p:"Live view of the shared Wake2e accounts. See who's on which, start a session and release it when you're done \u2014 with a full usage log.",
+  c4_tags:'<span class="tag">Live status</span><span class="tag">Shared logins</span><span class="tag">Usage log</span>',
+  open:"Open",
+  foot_right:"Internal engineering tools"
+ },
+ de:{
+  title:"BOREAS \u00b7 Windwerkzeuge",
+  brand_sub:"Windwerkzeuge",
+  hero_eyebrow:"Interne Werkzeuge",
+  hero_h1:"Windpark-Werkzeuge, alle an einem Ort.",
+  hero_p:"Rechner f\u00fcr Abschaltverluste, ein Berichtsgenerator und die Kontoverwaltung \u2014 alles direkt im Browser.",
+  grp1:"Abschaltverluste",
+  grp2:"Berichte &amp; Koordination",
+  c1_cat:"Abschaltung", c1_h2:"Fledermaus \u00b7 Fledermausschutz",
+  c1_p:"Abschaltverluste durch Fledermausschutz je Anlage \u2014 Nachtzehntel-Fenster, monatliche Windschwellen und Temperaturfilter. Sektor-Weibull oder volle Zeitreihe.",
+  c1_tags:'<span class="tag">Weibull</span><span class="tag">Zeitreihe</span><span class="tag">NZ0\u2013NZ10</span><span class="tag">.xlsx</span>',
+  c2_cat:"Abschaltung", c2_h2:"Turbulenz-Abschaltung",
+  c2_p:"Sektorweise Energieverluste durch Turbulenz-Abschaltung. Vergleiche volle und abgeschaltete Datens\u00e4tze \u00fcber Szenarien mit Sektor\u00fcberlappung.",
+  c2_tags:'<span class="tag">Sektor\u00fcberlappung</span><span class="tag">Mehr-Szenarien</span><span class="tag">.xlsx</span>',
+  c3_cat:"Bericht", c3_h2:"BOREAS \u00b7 Berichtsgenerator",
+  c3_p:"Stelle einen druckfertigen technischen Bericht als PDF zusammen: Kopfdaten, Lagepl\u00e4ne, Excel-Tabellen mit erhaltenen Farben, Quellen und Bemerkungen. A3 oder A4.",
+  c3_tags:'<span class="tag">PDF</span><span class="tag">Excel einf\u00fcgen</span><span class="tag">A3 \u00b7 A4</span>',
+  c4_cat:"Koordination", c4_h2:"Kontoverwaltung",
+  c4_p:"Live-\u00dcbersicht der gemeinsamen Wake2e-Konten. Sieh wer welches nutzt, starte eine Sitzung und gib sie frei \u2014 mit vollst\u00e4ndigem Protokoll.",
+  c4_tags:'<span class="tag">Live-Status</span><span class="tag">Gemeinsame Konten</span><span class="tag">Protokoll</span>',
+  open:"\u00d6ffnen",
+  foot_right:"Interne Engineering-Werkzeuge"
+ }
 };
 function applyLang(lang){
-  const dict=T[lang]||T.en;
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const k=el.getAttribute('data-i18n');
-    if(dict[k]!=null) el.innerHTML=dict[k];
+  var d=T[lang]||T.en;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var k=el.getAttribute('data-i18n'); if(d[k]!=null) el.innerHTML=d[k];
   });
-  document.title=dict.title;
-  document.documentElement.lang=lang;
-  document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('on', b.dataset.lang===lang));
+  document.title=d.title.replace(/&amp;/g,'&');
+  root.lang=lang;
+  document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.dataset.lang===lang)});
 }
-function setLang(lang){ localStorage.setItem('wt_lang',lang); applyLang(lang); }
-const savedLang=localStorage.getItem('wt_lang') || (navigator.language && navigator.language.toLowerCase().startsWith('de') ? 'de' : 'en');
-applyLang(savedLang);
+function setLang(lang){lsSet('wt_lang',lang);applyLang(lang)}
+applyLang(lsGet('wt_lang')||((navigator.language||'en').toLowerCase().indexOf('de')===0?'de':'en'));
 </script>
 </body>
 </html>
