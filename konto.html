@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Boreas – Kontoverwaltung</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0b0e14; --surface: #13171f; --surface2: #1a1f2b;
+      --border: #252b38; --accent: #3d8ef8; --accent2: #5ba3ff;
+      --green: #22c97a; --red: #f85c5c; --orange: #f8a93d;
+      --text: #e8ecf4; --text2: #8b93a8; --text3: #555e72;
+      --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+      --radius: 14px; --shadow: 0 8px 32px rgba(0,0,0,0.45);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(61,142,248,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(61,142,248,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+    .glow { position: fixed; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(61,142,248,0.07) 0%, transparent 70%); top: -200px; left: -100px; pointer-events: none; z-index: 0; }
+    header { position: relative; z-index: 10; padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(11,14,20,0.85); backdrop-filter: blur(12px); }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent), #6a5af9); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .logo-text { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+    .logo-sub { font-size: 11px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .live-badge { display: flex; align-items: center; gap: 7px; background: rgba(34,201,122,0.1); border: 1px solid rgba(34,201,122,0.25); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--green); font-weight: 500; }
+    .live-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)} }
+    .btn-admin { background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 8px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: var(--font-body); transition: all .2s; }
+    .btn-admin:hover { border-color: var(--accent); color: var(--accent); }
+    main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 48px 24px; }
+    .page-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, var(--text) 40%, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .page-sub { color: var(--text2); font-size: 15px; margin-bottom: 16px; }
+    .sync-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text3); margin-bottom: 28px; }
+    .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); flex-shrink: 0; transition: background .3s; }
+    .sync-dot.synced { background: var(--green); }
+    .sync-dot.syncing { background: var(--orange); animation: pulse 1s infinite; }
+    .sync-dot.error { background: var(--red); }
+    .accounts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+    @media(max-width:700px){ .accounts-grid{grid-template-columns:1fr} header{padding:16px 20px} .page-title{font-size:26px} }
+    .account-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; transition: border-color .3s; position: relative; overflow: hidden; }
+    .account-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; opacity:0; transition:opacity .3s; }
+    .account-card.free::before { background:linear-gradient(90deg,var(--green),#1aab6a); opacity:1; }
+    .account-card.occupied::before { background:linear-gradient(90deg,var(--orange),var(--red)); opacity:1; }
+    .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .account-name { font-family:var(--font-display); font-size:17px; font-weight:700; }
+    .status-pill { padding:5px 12px; border-radius:20px; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; }
+    .status-pill.free { background:rgba(34,201,122,.12); color:var(--green); border:1px solid rgba(34,201,122,.25); }
+    .status-pill.occupied { background:rgba(248,169,61,.12); color:var(--orange); border:1px solid rgba(248,169,61,.25); }
+    .card-email { font-size:13px; color:var(--text3); margin-bottom:16px; font-family:monospace; }
+    .usage-info { background:var(--surface2); border-radius:10px; padding:14px 16px; margin-bottom:20px; min-height:64px; }
+    .usage-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; }
+    .usage-label { color:var(--text3); } .usage-value { color:var(--text); font-weight:500; }
+    .usage-timer { color:var(--accent2); font-weight:600; font-size:15px; font-family:monospace; }
+    .usage-empty { color:var(--text3); font-size:13px; text-align:center; padding:4px 0; }
+    .btn-use { width:100%; background:linear-gradient(135deg,var(--accent),#6a5af9); color:#fff; border:none; border-radius:10px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; font-family:var(--font-body); transition:opacity .2s,transform .1s; }
+    .btn-use:hover { opacity:.9; transform:translateY(-1px); }
+    .btn-release { width:100%; background:transparent; color:var(--red); border:1px solid rgba(248,92,92,.35); border-radius:10px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; font-family:var(--font-body); transition:all .2s; }
+    .btn-release:hover { background:rgba(248,92,92,.08); }
+    .log-section { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:32px; }
+    .section-title { font-family:var(--font-display); font-size:20px; font-weight:700; margin-bottom:6px; }
+    .section-sub { color:var(--text2); font-size:13px; margin-bottom:24px; }
+    .log-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .log-table th { text-align:left; color:var(--text3); font-size:11px; text-transform:uppercase; letter-spacing:.8px; padding:0 0 12px; border-bottom:1px solid var(--border); font-weight:500; }
+    .log-table td { padding:12px 0; border-bottom:1px solid rgba(37,43,56,.5); color:var(--text2); }
+    .log-table tr:last-child td { border-bottom:none; }
+    .log-account-tag { display:inline-block; background:rgba(61,142,248,.1); color:var(--accent2); border-radius:6px; padding:3px 9px; font-size:11px; font-weight:600; }
+    .log-empty { text-align:center; color:var(--text3); padding:24px 0; font-size:14px; }
+    .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:100; backdrop-filter:blur(4px); align-items:center; justify-content:center; }
+    .overlay.show { display:flex; }
+    .modal { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:36px; width:100%; max-width:460px; box-shadow:var(--shadow); animation:slideUp .25s ease; max-height:90vh; overflow-y:auto; }
+    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .modal-title { font-family:var(--font-display); font-size:22px; font-weight:700; margin-bottom:6px; }
+    .modal-sub { color:var(--text2); font-size:13px; margin-bottom:24px; }
+    .modal-actions { display:flex; gap:12px; margin-top:24px; }
+    .btn-primary { flex:1; background:linear-gradient(135deg,var(--accent),#6a5af9); color:#fff; border:none; border-radius:10px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; font-family:var(--font-body); transition:opacity .2s; }
+    .btn-primary:hover { opacity:.9; }
+    .btn-secondary { flex:1; background:transparent; color:var(--text2); border:1px solid var(--border); border-radius:10px; padding:13px; font-size:14px; cursor:pointer; font-family:var(--font-body); transition:all .2s; }
+    .btn-secondary:hover { border-color:var(--text2); color:var(--text); }
+    .form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+    .form-group label { font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:.8px; font-weight:500; }
+    .form-group input { background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:12px 14px; color:var(--text); font-size:14px; font-family:var(--font-body); outline:none; transition:border-color .2s; }
+    .form-group input:focus { border-color:var(--accent); }
+    .duration-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:4px; }
+    .dur-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text2); border-radius:8px; padding:10px 6px; font-size:13px; cursor:pointer; font-family:var(--font-body); transition:all .2s; text-align:center; }
+    .dur-btn:hover,.dur-btn.selected { border-color:var(--accent); color:var(--accent); background:rgba(61,142,248,.08); }
+    .custom-dur { display:flex; align-items:center; gap:8px; margin-top:8px; }
+    .custom-dur input { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-size:13px; font-family:var(--font-body); outline:none; }
+    .custom-dur input:focus { border-color:var(--accent); }
+    .custom-dur span { font-size:13px; color:var(--text3); white-space:nowrap; }
+    .warning-note { background:rgba(248,169,61,.08); border:1px solid rgba(248,169,61,.2); border-radius:8px; padding:10px 14px; font-size:12px; color:var(--orange); margin-top:16px; }
+    /* Admin styles */
+    .cred-box { background:var(--surface2); border-radius:10px; padding:16px 18px; margin-bottom:12px; border:1px solid var(--border); }
+    .cred-title { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:10px; font-weight:600; }
+    .cred-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px; }
+    .cred-label { font-size:12px; color:var(--text2); }
+    .cred-val { font-family:monospace; font-size:13px; color:var(--text); background:rgba(61,142,248,.1); padding:2px 8px; border-radius:5px; word-break:break-all; }
+    .cred-pw { display:flex; align-items:center; gap:8px; }
+    .cred-pw-val { font-family:monospace; font-size:13px; color:var(--text); background:rgba(61,142,248,.1); padding:2px 8px; border-radius:5px; letter-spacing:2px; }
+    .btn-eye { background:transparent; border:none; color:var(--text3); cursor:pointer; font-size:15px; padding:2px 4px; }
+    .admin-section { margin-top:20px; border-top:1px solid var(--border); padding-top:20px; }
+    .admin-section-title { font-size:13px; color:var(--text2); font-weight:600; margin-bottom:12px; }
+    .admin-action-btn { width:100%; background:rgba(248,92,92,.1); color:var(--red); border:1px solid rgba(248,92,92,.25); border-radius:9px; padding:11px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-body); transition:all .2s; margin-bottom:8px; }
+    .admin-action-btn:hover { background:rgba(248,92,92,.2); }
+    .admin-action-btn.neutral { color:var(--text3); border-color:var(--border); background:var(--surface2); }
+    .pw-edit-row { display:flex; gap:8px; margin-top:8px; }
+    .pw-edit-row input { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; color:var(--text); font-size:13px; font-family:var(--font-body); outline:none; }
+    .pw-edit-row input:focus { border-color:var(--accent); }
+    .pw-edit-row button { background:linear-gradient(135deg,var(--accent),#6a5af9); color:#fff; border:none; border-radius:8px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-body); white-space:nowrap; }
+    .divider { height:1px; background:var(--border); margin:16px 0; }
+    .toast { position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 20px; font-size:13px; color:var(--text); box-shadow:var(--shadow); z-index:200; transform:translateY(80px); opacity:0; transition:all .3s; }
+    .toast.show { transform:translateY(0); opacity:1; }
+    .toast.success { border-color:rgba(34,201,122,.4); }
+    .toast.error { border-color:rgba(248,92,92,.4); }
+  </style>
+</head>
+<body>
+<div class="glow"></div>
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌬</div>
+    <div>
+      <div class="logo-text">Boreas</div>
+      <div class="logo-sub">Kontoverwaltung</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot"></div>Live-Status</div>
+    <button class="btn-admin" onclick="openAdmin()">🔐 Admin</button>
+  </div>
+</header>
+
+<main>
+  <div class="page-title">Wake2e Konten</div>
+  <div class="page-sub">Wähle ein verfügbares Konto und starte deine Sitzung.</div>
+  <div class="sync-bar">
+    <div class="sync-dot syncing" id="syncDot"></div>
+    <span id="syncText">Verbinde mit Firebase…</span>
+  </div>
+
+  <div class="accounts-grid">
+    <div class="account-card free" id="card0">
+      <div class="card-header">
+        <div class="account-name">Konto 1 – d.lafeld</div>
+        <div class="status-pill free" id="pill0">Verfügbar</div>
+      </div>
+      <div class="card-email">d.lafeld@boreas.de</div>
+      <div class="usage-info" id="usageInfo0"><div class="usage-empty">Gerade niemand eingeloggt</div></div>
+      <button class="btn-use" id="btn0" onclick="openLogin(0)">▶ Konto verwenden</button>
+    </div>
+    <div class="account-card free" id="card1">
+      <div class="card-header">
+        <div class="account-name">Konto 2 – rn.jony</div>
+        <div class="status-pill free" id="pill1">Verfügbar</div>
+      </div>
+      <div class="card-email">rn.jony@boreas.de</div>
+      <div class="usage-info" id="usageInfo1"><div class="usage-empty">Gerade niemand eingeloggt</div></div>
+      <button class="btn-use" id="btn1" onclick="openLogin(1)">▶ Konto verwenden</button>
+    </div>
+  </div>
+
+  <div class="log-section">
+    <div class="section-title">📋 Nutzungsprotokoll</div>
+    <div class="section-sub">Übersicht aller abgeschlossenen Sitzungen.</div>
+    <table class="log-table">
+      <thead><tr><th>Zeit</th><th>Benutzer</th><th>Konto</th><th>Dauer</th></tr></thead>
+      <tbody id="logBody"><tr><td colspan="4" class="log-empty">Noch keine abgeschlossenen Sitzungen</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- LOGIN MODAL -->
+<div class="overlay" id="loginOverlay">
+  <div class="modal">
+    <div class="modal-title" id="loginTitle">Konto verwenden</div>
+    <div class="modal-sub">Bitte gib deinen Namen ein und wähle, wie lange du das Konto nutzen möchtest.</div>
+    <div class="form-group">
+      <label>Dein Name *</label>
+      <input type="text" id="loginName" placeholder="Vor- und Nachname" />
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label>Geplante Nutzungsdauer</label>
+      <div class="duration-grid">
+        <div class="dur-btn" onclick="selectDur(this,'15 Minuten')">15 Min</div>
+        <div class="dur-btn" onclick="selectDur(this,'30 Minuten')">30 Min</div>
+        <div class="dur-btn" onclick="selectDur(this,'1 Stunde')">1 Std</div>
+        <div class="dur-btn" onclick="selectDur(this,'2 Stunden')">2 Std</div>
+        <div class="dur-btn" onclick="selectDur(this,'3 Stunden')">3 Std</div>
+        <div class="dur-btn selected" onclick="selectDur(this,'Unbekannt')">Unbekannt</div>
+      </div>
+      <div class="custom-dur">
+        <input type="text" id="customDurInput" placeholder="Eigene Angabe…" />
+        <span>z. B. 45 Min</span>
+      </div>
+    </div>
+    <div class="warning-note">⚠️ Bitte gib das Konto frei, sobald du fertig bist.</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeLogin()">Abbrechen</button>
+      <button class="btn-primary" onclick="confirmLogin()">✓ Sitzung starten</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="overlay" id="adminOverlay">
+  <div class="modal">
+    <div class="modal-title">🔐 Admin-Zugang</div>
+    <div class="modal-sub" id="adminModalSub">Gib das Admin-Passwort ein.</div>
+
+    <!-- Step 1: password input -->
+    <div id="adminLoginStep">
+      <div class="form-group">
+        <label>Admin-Passwort</label>
+        <input type="password" id="adminPwInput" placeholder="Passwort…" onkeydown="if(event.key==='Enter')checkAdmin()" />
+      </div>
+      <div id="adminError" style="display:none;color:var(--red);font-size:13px;margin-bottom:8px;">❌ Falsches Passwort</div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeAdmin()">Schließen</button>
+        <button class="btn-primary" onclick="checkAdmin()">Einloggen</button>
+      </div>
+    </div>
+
+    <!-- Step 2: admin panel (shown after correct password) -->
+    <div id="adminPanel" style="display:none;">
+
+      <!-- Account credentials (loaded from Firebase, only visible here) -->
+      <div class="cred-box" id="credBox0">
+        <div class="cred-title">Konto 1 — d.lafeld@boreas.de</div>
+        <div class="cred-row">
+          <span class="cred-label">Passwort</span>
+          <div class="cred-pw">
+            <span class="cred-pw-val" id="pw0Val">••••••••</span>
+            <button class="btn-eye" onclick="togglePw(0)" title="Anzeigen">👁</button>
+          </div>
+        </div>
+        <div class="pw-edit-row">
+          <input type="password" id="pw0Input" placeholder="Neues Passwort eingeben…" />
+          <button onclick="savePassword(0)">Speichern</button>
+        </div>
+      </div>
+
+      <div class="cred-box" id="credBox1">
+        <div class="cred-title">Konto 2 — rn.jony@boreas.de</div>
+        <div class="cred-row">
+          <span class="cred-label">Passwort</span>
+          <div class="cred-pw">
+            <span class="cred-pw-val" id="pw1Val">••••••••</span>
+            <button class="btn-eye" onclick="togglePw(1)" title="Anzeigen">👁</button>
+          </div>
+        </div>
+        <div class="pw-edit-row">
+          <input type="password" id="pw1Input" placeholder="Neues Passwort eingeben…" />
+          <button onclick="savePassword(1)">Speichern</button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <div class="admin-section-title">⚙️ Sitzungen verwalten</div>
+        <button class="admin-action-btn" onclick="adminForceRelease(0)">🔓 Konto 1 zwangsweise freigeben</button>
+        <button class="admin-action-btn" onclick="adminForceRelease(1)">🔓 Konto 2 zwangsweise freigeben</button>
+        <button class="admin-action-btn neutral" onclick="adminClearLog()">🗑 Protokoll löschen</button>
+      </div>
+
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn-secondary" onclick="closeAdmin()">Schließen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ═══════════════════════════════════════════════
+  // FIREBASE — hardcoded, no user setup needed
+  // ═══════════════════════════════════════════════
+  const FB_URL = 'https://boreas-konto-f2e-default-rtdb.europe-west1.firebasedatabase.app';
+  const ADMIN_PASSWORD = '12345'; // change this to your preferred admin password
+
+  const ACCOUNT_EMAILS = ['d.lafeld@boreas.de', 'rn.jony@boreas.de'];
+
+  // Passwords are stored ONLY in Firebase under /passwords/
+  // They are never in the HTML file — only visible after admin login
+  let cachedPasswords = [null, null];
+  let pwVisible = [false, false];
+
+  // ═══════════════════════════════════════════════
+  // FIREBASE REST
+  // ═══════════════════════════════════════════════
+  async function fbGet(path) {
+    const res = await fetch(`${FB_URL}/${path}.json`);
+    if (!res.ok) throw new Error('GET ' + res.status);
+    return res.json();
+  }
+  async function fbSet(path, value) {
+    const res = await fetch(`${FB_URL}/${path}.json`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(value)
+    });
+    if (!res.ok) throw new Error('PUT ' + res.status);
+    return res.json();
+  }
+  async function fbDelete(path) {
+    const res = await fetch(`${FB_URL}/${path}.json`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('DELETE ' + res.status);
+  }
+  async function fbPush(path, value) {
+    const res = await fetch(`${FB_URL}/${path}.json`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(value)
+    });
+    if (!res.ok) throw new Error('POST ' + res.status);
+    return res.json();
+  }
+
+  // ═══════════════════════════════════════════════
+  // TIMERS
+  // ═══════════════════════════════════════════════
+  const timers = [null, null];
+
+  function formatElapsed(ms) {
+    const s = Math.floor(ms/1000), m = Math.floor(s/60), h = Math.floor(m/60);
+    return h > 0
+      ? `${h}h ${String(m%60).padStart(2,'0')}m ${String(s%60).padStart(2,'0')}s`
+      : `${String(m).padStart(2,'0')}m ${String(s%60).padStart(2,'0')}s`;
+  }
+
+  function startLocalTimer(idx, startMs) {
+    stopLocalTimer(idx);
+    timers[idx] = setInterval(() => {
+      const el = document.getElementById(`timer${idx}`);
+      if (el) el.textContent = formatElapsed(Date.now() - startMs);
+    }, 1000);
+  }
+
+  function stopLocalTimer(idx) {
+    if (timers[idx]) { clearInterval(timers[idx]); timers[idx] = null; }
+  }
+
+  // ═══════════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════════
+  function renderCard(idx, session) {
+    const card    = document.getElementById(`card${idx}`);
+    const pill    = document.getElementById(`pill${idx}`);
+    const infoBox = document.getElementById(`usageInfo${idx}`);
+    const btn     = document.getElementById(`btn${idx}`);
+
+    if (session && session.user) {
+      card.className = 'account-card occupied';
+      pill.className = 'status-pill occupied'; pill.textContent = 'Belegt';
+      infoBox.innerHTML = `
+        <div class="usage-row"><span class="usage-label">👤 Benutzer</span><span class="usage-value">${session.user}</span></div>
+        <div class="usage-row" style="margin-top:8px"><span class="usage-label">⏱ Geplant</span><span class="usage-value">${session.duration}</span></div>
+        <div class="usage-row" style="margin-top:8px"><span class="usage-label">🕐 Aktiv seit</span><span class="usage-timer" id="timer${idx}">…</span></div>
+      `;
+      btn.textContent = '✕ Sitzung beenden & Konto freigeben';
+      btn.className = 'btn-release';
+      btn.onclick = () => releaseAccount(idx);
+      startLocalTimer(idx, session.start);
+    } else {
+      card.className = 'account-card free';
+      pill.className = 'status-pill free'; pill.textContent = 'Verfügbar';
+      infoBox.innerHTML = '<div class="usage-empty">Gerade niemand eingeloggt</div>';
+      btn.textContent = '▶ Konto verwenden';
+      btn.className = 'btn-use';
+      btn.onclick = () => openLogin(idx);
+      stopLocalTimer(idx);
+    }
+  }
+
+  function renderLog(log) {
+    const tbody = document.getElementById('logBody');
+    if (!log) { tbody.innerHTML = '<tr><td colspan="4" class="log-empty">Noch keine abgeschlossenen Sitzungen</td></tr>'; return; }
+    const entries = Array.isArray(log) ? log : Object.values(log);
+    if (!entries.length) { tbody.innerHTML = '<tr><td colspan="4" class="log-empty">Noch keine abgeschlossenen Sitzungen</td></tr>'; return; }
+    tbody.innerHTML = entries.slice().reverse().slice(0,50).map(e => `
+      <tr>
+        <td>${e.time}</td><td>${e.user}</td>
+        <td><span class="log-account-tag">${e.account}</span></td>
+        <td>${e.duration}</td>
+      </tr>`).join('');
+  }
+
+  // ═══════════════════════════════════════════════
+  // LOAD + POLL
+  // ═══════════════════════════════════════════════
+  async function loadAll() {
+    setSyncStatus('syncing', 'Lade Daten…');
+    try {
+      const [s0, s1, log] = await Promise.all([
+        fbGet('sessions/0'), fbGet('sessions/1'), fbGet('log')
+      ]);
+      renderCard(0, s0);
+      renderCard(1, s1);
+      renderLog(log);
+      setSyncStatus('synced', 'Live-Status aktiv – alle sehen denselben Status');
+    } catch(e) {
+      setSyncStatus('error', 'Verbindungsfehler – prüfe deine Internetverbindung');
+    }
+  }
+
+  setInterval(loadAll, 8000);
+
+  // ═══════════════════════════════════════════════
+  // LOGIN
+  // ═══════════════════════════════════════════════
+  let currentLoginIdx = null;
+  let selectedDuration = 'Unbekannt';
+
+  function openLogin(idx) {
+    currentLoginIdx = idx;
+    selectedDuration = 'Unbekannt';
+    document.getElementById('loginName').value = '';
+    document.getElementById('customDurInput').value = '';
+    document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.dur-btn')[5].classList.add('selected');
+    document.getElementById('loginTitle').textContent = `Konto ${idx+1} – ${ACCOUNT_EMAILS[idx]}`;
+    document.getElementById('loginOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('loginName').focus(), 100);
+  }
+
+  function closeLogin() {
+    document.getElementById('loginOverlay').classList.remove('show');
+    currentLoginIdx = null;
+  }
+
+  function selectDur(el, val) {
+    document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected'); selectedDuration = val;
+    document.getElementById('customDurInput').value = '';
+  }
+
+  async function confirmLogin() {
+    const name = document.getElementById('loginName').value.trim();
+    if (!name) { showToast('❗ Bitte gib deinen Namen ein.', 'error'); return; }
+    const custom = document.getElementById('customDurInput').value.trim();
+    const duration = custom || selectedDuration;
+    const idx = currentLoginIdx;
+    setSyncStatus('syncing', 'Speichert…');
+    try {
+      const existing = await fbGet(`sessions/${idx}`);
+      if (existing && existing.user) {
+        showToast(`⚠️ Konto ${idx+1} wurde gerade von ${existing.user} belegt!`, 'error');
+        closeLogin(); await loadAll(); return;
+      }
+      await fbSet(`sessions/${idx}`, { user: name, duration, start: Date.now() });
+      await loadAll();
+      closeLogin();
+      showToast(`✅ Sitzung für ${name} gestartet!`, 'success');
+    } catch(e) {
+      setSyncStatus('error', 'Fehler beim Speichern');
+      showToast('❌ Fehler – prüfe deine Verbindung.', 'error');
+    }
+  }
+
+  // ═══════════════════════════════════════════════
+  // RELEASE
+  // ═══════════════════════════════════════════════
+  async function releaseAccount(idx) {
+    setSyncStatus('syncing', 'Speichert…');
+    try {
+      const session = await fbGet(`sessions/${idx}`);
+      if (!session || !session.user) { await loadAll(); return; }
+      const elapsed = formatElapsed(Date.now() - session.start);
+      await Promise.all([
+        fbPush('log', { time: new Date().toLocaleTimeString('de-DE'), user: session.user, account: ACCOUNT_EMAILS[idx], duration: elapsed }),
+        fbDelete(`sessions/${idx}`)
+      ]);
+      await loadAll();
+      showToast(`✅ Konto ${idx+1} wurde freigegeben.`, 'success');
+    } catch(e) {
+      setSyncStatus('error', 'Fehler');
+      showToast('❌ Fehler – prüfe deine Verbindung.', 'error');
+    }
+  }
+
+  // ═══════════════════════════════════════════════
+  // ADMIN
+  // ═══════════════════════════════════════════════
+  function openAdmin() {
+    document.getElementById('adminPwInput').value = '';
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('adminLoginStep').style.display = 'block';
+    document.getElementById('adminError').style.display = 'none';
+    document.getElementById('adminOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('adminPwInput').focus(), 100);
+  }
+
+  function closeAdmin() {
+    document.getElementById('adminOverlay').classList.remove('show');
+    // Hide passwords again on close for security
+    pwVisible = [false, false];
+    document.getElementById('pw0Val').textContent = '••••••••';
+    document.getElementById('pw1Val').textContent = '••••••••';
+  }
+
+  async function checkAdmin() {
+    if (document.getElementById('adminPwInput').value !== ADMIN_PASSWORD) {
+      document.getElementById('adminError').style.display = 'block';
+      return;
+    }
+    document.getElementById('adminLoginStep').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    // Load passwords from Firebase (only visible here, never in page source)
+    try {
+      const pws = await fbGet('passwords');
+      cachedPasswords[0] = (pws && pws['0']) ? pws['0'] : '(noch nicht gesetzt)';
+      cachedPasswords[1] = (pws && pws['1']) ? pws['1'] : '(noch nicht gesetzt)';
+    } catch(e) {
+      cachedPasswords = ['(Fehler beim Laden)', '(Fehler beim Laden)'];
+    }
+  }
+
+  function togglePw(idx) {
+    pwVisible[idx] = !pwVisible[idx];
+    const el = document.getElementById(`pw${idx}Val`);
+    el.textContent = pwVisible[idx] ? (cachedPasswords[idx] || '(nicht gesetzt)') : '••••••••';
+  }
+
+  async function savePassword(idx) {
+    const input = document.getElementById(`pw${idx}Input`);
+    const val = input.value.trim();
+    if (!val) { showToast('❗ Passwort darf nicht leer sein.', 'error'); return; }
+    try {
+      await fbSet(`passwords/${idx}`, val);
+      cachedPasswords[idx] = val;
+      if (pwVisible[idx]) document.getElementById(`pw${idx}Val`).textContent = val;
+      input.value = '';
+      showToast(`✅ Passwort für Konto ${idx+1} gespeichert.`, 'success');
+    } catch(e) {
+      showToast('❌ Fehler beim Speichern.', 'error');
+    }
+  }
+
+  async function adminForceRelease(idx) {
+    if (!confirm(`Konto ${idx+1} wirklich zwangsweise freigeben?`)) return;
+    try {
+      await fbDelete(`sessions/${idx}`);
+      await loadAll();
+      showToast(`🔓 Konto ${idx+1} wurde freigegeben.`, 'success');
+    } catch(e) { showToast('❌ Fehler.', 'error'); }
+  }
+
+  async function adminClearLog() {
+    if (!confirm('Protokoll wirklich löschen?')) return;
+    try {
+      await fbDelete('log');
+      renderLog(null);
+      showToast('🗑 Protokoll gelöscht.', 'success');
+    } catch(e) { showToast('❌ Fehler.', 'error'); }
+  }
+
+  // ═══════════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════════
+  function setSyncStatus(state, msg) {
+    document.getElementById('syncDot').className = `sync-dot ${state}`;
+    document.getElementById('syncText').textContent = msg;
+  }
+
+  function showToast(msg, type='') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast show ${type}`;
+    setTimeout(() => { t.className = 'toast'; }, 3500);
+  }
+
+  document.getElementById('loginOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeLogin(); });
+  document.getElementById('adminOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeAdmin(); });
+
+  loadAll();
+</script>
+</body>
+</html>
