@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Fledermaus Curtailment Loss Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f8fa;--surface:#ffffff;--surface2:#f0f2f6;--border:#e2e5ec;--border-strong:#c8ccda;
+  --text:#111827;--text-2:#4b5563;--text-3:#9ca3af;
+  --accent:#7c3aed;--accent-hover:#6d28d9;--accent-bg:#f5f1ff;--accent-border:#d6c7fb;
+  --warn:#d97706;--warn-bg:#fffbeb;--warn-border:#fcd34d;
+  --success:#059669;--success-bg:#ecfdf5;--danger:#dc2626;--danger-bg:#fef2f2;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
+  --r:10px;--r-lg:14px;--shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+}
+html[data-theme=dark]{
+  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;--border-strong:#484f58;
+  --text:#e6edf3;--text-2:#8b949e;--text-3:#6e7681;
+  --accent:#a78bfa;--accent-hover:#c4b5fd;--accent-bg:#221a38;--accent-border:#4c3a80;
+  --warn:#f59e0b;--warn-bg:#1a1500;--warn-border:#78460a;
+  --success:#34d399;--success-bg:#0a1f17;--danger:#f87171;--danger-bg:#1c0a0a;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px}
+.topbar-inner{max-width:1280px;margin:0 auto;height:56px;display:flex;align-items:center;gap:12px}
+.back-link{display:flex;align-items:center;gap:5px;color:var(--text-2);text-decoration:none;font-size:13px;padding:6px 10px;border-radius:8px}
+.back-link:hover{background:var(--surface2);color:var(--text)}
+.back-link svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.logo{display:flex;align-items:center;gap:10px;color:var(--text)}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:grid;place-items:center;flex-shrink:0}
+.logo-icon svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.logo-text{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.logo-text span{color:var(--text-2);font-weight:400}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.main{max-width:1280px;margin:0 auto;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:20px;align-items:start}
+@media(max-width:1000px){.main{grid-template-columns:1fr;padding:16px}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.card-title svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;color:var(--text-2)}
+.card-body{padding:14px 18px}
+button{font-family:var(--sans);cursor:pointer;border:none;background:none;font-size:13px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:background .12s;border:1px solid transparent;white-space:nowrap}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-secondary{background:var(--surface2);color:var(--text);border-color:var(--border)}
+.btn-secondary:hover{background:var(--border)}
+.btn-ghost{background:transparent;color:var(--text-2);padding:6px 8px}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-danger{background:var(--danger-bg);color:var(--danger)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-sm svg{width:13px;height:13px}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.field{margin-bottom:12px}
+.label{display:block;font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:5px}
+textarea,input[type=text],input[type=number]{font-family:var(--mono);font-size:12px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 11px;width:100%;resize:vertical;outline:none;line-height:1.5}
+textarea:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+textarea::placeholder{color:var(--text-3);font-size:11px}
+select{font-family:var(--sans);font-size:12px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 9px;outline:none;cursor:pointer;max-width:100%}
+select:focus{border-color:var(--accent)}
+.hint{font-size:11px;color:var(--text-3);margin-top:5px}
+.seg{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:3px;gap:3px;flex-wrap:wrap}
+.seg label{flex:1;min-width:100px}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;text-align:center;font-size:12px;font-weight:500;padding:7px 10px;border-radius:7px;color:var(--text-2);cursor:pointer;transition:background .12s,color .12s}
+.seg input:checked+span{background:var(--surface);color:var(--accent);box-shadow:var(--shadow)}
+.seg input:focus-visible+span{outline:2px solid var(--accent)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:520px){.grid-3{grid-template-columns:1fr}}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500}
+.badge-violet{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border)}
+.badge-green{background:var(--success-bg);color:var(--success)}
+.badge-amber{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border)}
+.status{font-size:12px;border-radius:8px;padding:9px 12px;margin-top:10px;display:none}
+.status.ok{display:block;background:var(--success-bg);color:var(--success)}
+.status.err{display:block;background:var(--danger-bg);color:var(--danger)}
+.status.info{display:block;background:var(--accent-bg);color:var(--accent)}
+.wt-block{border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.wt-header{padding:9px 12px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.wt-num{width:22px;height:22px;border-radius:6px;background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border);display:grid;place-items:center;font-size:11px;font-weight:600;flex-shrink:0}
+.wt-name{font-family:var(--mono);font-size:12px;width:110px;padding:5px 8px}
+.wt-actions{margin-left:auto;display:flex;gap:2px}
+.wt-body{padding:12px}
+details.cfg{border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;background:var(--surface)}
+details.cfg summary{cursor:pointer;padding:9px 12px;font-size:12px;font-weight:600;color:var(--text-2);list-style:none;display:flex;align-items:center;gap:6px}
+details.cfg summary::-webkit-details-marker{display:none}
+details.cfg summary::before{content:'▸';font-size:10px;transition:transform .15s}
+details.cfg[open] summary::before{transform:rotate(90deg)}
+details.cfg .cfg-body{padding:0 12px 12px}
+.data-table-wrap{overflow-x:auto}
+table.data-table{width:100%;border-collapse:collapse;font-size:11.5px}
+table.data-table th{font-size:10.5px;font-weight:500;color:var(--text-2);text-align:right;padding:5px 8px;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap}
+table.data-table th:first-child,table.data-table td:first-child{text-align:left}
+table.data-table td{padding:4px 8px;border-bottom:1px solid var(--border);font-family:var(--mono);white-space:nowrap;text-align:right}
+table.data-table tr:last-child td{border-bottom:none}
+table.data-table tr:hover td{background:var(--surface2)}
+tr.hl td{background:var(--accent-bg)!important;font-weight:500}
+.totals-bar{background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:var(--r);padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.totals-item .val{font-size:19px;font-weight:600;color:var(--accent);font-family:var(--mono);display:block}
+.totals-item .lbl{font-size:11px;color:var(--text-2)}
+.action-bar{display:flex;flex-wrap:wrap;gap:8px;padding:14px 18px;border-top:1px solid var(--border);background:var(--surface2)}
+.empty-state{padding:32px;text-align:center;color:var(--text-3)}
+.empty-state svg{width:32px;height:32px;stroke:currentColor;fill:none;stroke-width:1.5;margin:0 auto 8px;display:block}
+.col{display:flex;flex-direction:column;gap:16px}
+.results-scroll{max-height:75vh;overflow-y:auto}
+.result-wt{margin-bottom:22px}
+.result-wt-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.result-wt-title{font-size:13px;font-weight:600}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);width:600px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-size:15px;font-weight:600}
+.modal-body{padding:20px;overflow-y:auto}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
+.help-step{display:flex;gap:12px;margin-bottom:16px}
+.help-num{width:24px;height:24px;border-radius:999px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:600;flex-shrink:0;margin-top:1px}
+.help-content h4{font-size:13px;font-weight:600;margin-bottom:3px}
+.help-content p{font-size:13px;color:var(--text-2)}
+code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:4px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="back-link" href="index.html"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Tools</a>
+    <div class="logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg></div>
+      <span class="logo-text">Fledermaus <span>Curtailment Loss</span></span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" id="themeBtn" title="Toggle theme"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+      <button class="btn btn-secondary btn-sm" id="helpBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>Help</button>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+<!-- LEFT COLUMN : INPUTS -->
+<div class="col">
+
+  <!-- Method -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M4 4h16v4H4zM4 12h16v8H4z"/></svg>Calculation method</div>
+    </div>
+    <div class="card-body">
+      <div class="seg" role="radiogroup" aria-label="Method">
+        <label><input type="radio" name="method" value="weibull" checked/><span>Weibull (sector stats)</span></label>
+        <label><input type="radio" name="method" value="timeseries"/><span>Time series</span></label>
+        <label><input type="radio" name="method" value="both"/><span>Compare both</span></label>
+      </div>
+      <p class="hint" id="methodHint">Weibull: annual sector statistics &times; active hours (windPRO style). Time series: evaluates every 10-min step of the meteo data &mdash; captures night/summer wind correlation, needs a wind speed column.</p>
+      <div class="field" style="margin-top:12px;margin-bottom:0">
+        <label class="label">Active hours source (Weibull method)</label>
+        <div class="seg" role="radiogroup" aria-label="Hours source">
+          <label><input type="radio" name="hoursSrc" value="csv" checked/><span>From meteo CSV</span></label>
+          <label><input type="radio" name="hoursSrc" value="manual"/><span>Manual entry</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meteo CSV -->
+  <div class="card" id="meteoCard">
+    <div class="card-header">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Meteo time series (CSV)</div>
+      <span class="badge badge-violet" id="meteoBadge">no file</span>
+    </div>
+    <div class="card-body">
+      <input type="file" id="meteoFile" accept=".csv,.txt" style="font-size:12px;font-family:var(--sans);width:100%"/>
+      <div class="grid-3" style="margin-top:12px">
+        <div class="field" style="margin:0"><label class="label">DateTime column</label><select id="colDt"></select></div>
+        <div class="field" style="margin:0"><label class="label">Temperature column</label><select id="colT"></select></div>
+        <div class="field" style="margin:0"><label class="label">Wind speed column</label><select id="colV"></select></div>
+      </div>
+      <div class="grid-3" style="margin-top:10px">
+        <div class="field" style="margin:0"><label class="label">Year from</label><input type="number" id="yearFrom" value="2010"/></div>
+        <div class="field" style="margin:0"><label class="label">Year to</label><input type="number" id="yearTo" value="2025"/></div>
+        <div class="field" style="margin:0"><label class="label">Timestep (min)</label><select id="timestep"><option>10</option><option>15</option><option>30</option><option>60</option></select></div>
+      </div>
+      <div style="margin-top:12px"><button class="btn btn-secondary btn-sm" id="parseBtn"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Parse file</button></div>
+      <div class="status" id="meteoStatus"></div>
+    </div>
+  </div>
+
+  <!-- Manual hours -->
+  <div class="card" id="manualCard" style="display:none">
+    <div class="card-header">
+      <div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Manual active hours (h/a)</div>
+      <button class="btn btn-ghost btn-sm" id="fillFromCsv" title="Fill with hours computed from the parsed CSV">Fill from CSV</button>
+    </div>
+    <div class="card-body">
+      <div class="field"><label class="label">NZ hours &mdash; one line per window: <code>Month NZ hours</code></label>
+        <textarea id="manualHours" rows="8" spellcheck="false"></textarea>
+        <p class="hint">Months: April, Mai, Juni, Juli, August, September, Oktober &middot; NZ: 0&ndash;10</p>
+      </div>
+      <div class="field" style="margin:0"><label class="label">Classic scheme active hours (h/a)</label><input type="number" id="manualClassicHours" step="0.1" placeholder="e.g. 1450"/></div>
+    </div>
+  </div>
+
+  <!-- Turbines -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg>Turbines (WEA)</div>
+      <button class="btn btn-secondary btn-sm" id="addWt"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add turbine</button>
+    </div>
+    <div class="card-body" style="padding:12px">
+      <div id="wtList"></div>
+      <div id="noWt" class="empty-state" style="display:none"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><p>Add at least one turbine</p></div>
+    </div>
+  </div>
+
+  <!-- Configuration -->
+  <div class="card">
+    <div class="card-header"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuration <span class="badge badge-green" style="margin-left:6px">defaults loaded</span></div></div>
+    <div class="card-body">
+
+      <details class="cfg" open>
+        <summary>NZ time windows (Nachtzehntel)</summary>
+        <div class="cfg-body">
+          <p class="hint" style="margin:0 0 6px">One line per window: <code>Month NZ start end</code> (HH:MM). NZ0 is generated automatically: it starts <span id="nz0FactorLbl">15</span>% of the night length before NZ1 and ends at NZ1 start.</p>
+          <textarea id="cfgNz" rows="9" spellcheck="false"></textarea>
+        </div>
+      </details>
+
+      <details class="cfg">
+        <summary>Wind speed thresholds (m/s)</summary>
+        <div class="cfg-body">
+          <p class="hint" style="margin:0 0 6px">One line per month: <code>Month NZ0 NZ1 &hellip; NZ10</code> (11 values). Turbine stops when wind &lt; threshold inside the window.</p>
+          <textarea id="cfgThr" rows="8" spellcheck="false"></textarea>
+        </div>
+      </details>
+
+      <details class="cfg">
+        <summary>Classic scheme (reference)</summary>
+        <div class="cfg-body">
+          <p class="hint" style="margin:0 0 6px">Fixed night windows, single threshold. One line per month: <code>Month start end</code>.</p>
+          <textarea id="cfgClassic" rows="7" spellcheck="false"></textarea>
+          <div class="field" style="margin-top:10px;margin-bottom:0"><label class="label">Classic threshold (m/s)</label><input type="number" id="classicThr" step="0.1" value="6.5"/></div>
+        </div>
+      </details>
+
+      <details class="cfg">
+        <summary>Filters &amp; constants</summary>
+        <div class="cfg-body">
+          <div class="grid-3">
+            <div class="field" style="margin:0"><label class="label">Temp min (&deg;C)</label><input type="number" id="tempMin" step="0.5" value="10"/></div>
+            <div class="field" style="margin:0"><label class="label">Temp max (&deg;C)</label><input type="number" id="tempMax" step="0.5" value="75"/></div>
+            <div class="field" style="margin:0"><label class="label">NZ0 pre-factor</label><input type="number" id="nz0Factor" step="0.01" value="0.15"/></div>
+          </div>
+        </div>
+      </details>
+
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-primary" id="calcBtn"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg>Calculate losses</button>
+      <button class="btn btn-secondary" id="loadExample"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Load example (BN14&ndash;16)</button>
+      <button class="btn btn-danger" id="resetAll" style="margin-left:auto"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.2"/></svg>Reset</button>
+    </div>
+    <div class="status" id="calcStatus" style="margin:0 18px 14px"></div>
+  </div>
+
+</div>
+
+<!-- RIGHT COLUMN : RESULTS -->
+<aside class="col">
+
+  <div class="card" id="resultsCard" style="display:none">
+    <div class="card-header">
+      <div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Results</div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" id="copyTSV" title="Copy summary as TSV"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
+        <button class="btn btn-ghost btn-sm" id="downloadXLSX" title="Download Excel workbook"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>.xlsx</button>
+      </div>
+    </div>
+    <div class="results-scroll card-body" id="resultsBody"></div>
+  </div>
+
+  <div class="card" id="resultsPlaceholder">
+    <div class="card-body empty-state">
+      <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+      <p>Load your turbines and meteo data, then calculate.<br/>Results and Excel export appear here.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Method notes</div></div>
+    <div class="card-body" style="font-size:12px;color:var(--text-2)">
+      <p style="margin-bottom:8px"><strong style="color:var(--text)">Weibull:</strong> loss = frequency-weighted <code>E[P | v &lt; threshold]</code> from the sector wake-Weibull, multiplied by active hours. Assumes the annual wind distribution also holds during bat-active hours.</p>
+      <p style="margin-bottom:8px"><strong style="color:var(--text)">Time series:</strong> every timestep inside an NZ window with valid temperature is checked against the threshold; if wind &lt; threshold, the power-curve value is added as loss. Captures the night/summer wind correlation. Optional per-turbine wind scale adjusts meteo wind to hub conditions.</p>
+      <p>All computation runs locally in your browser.</p>
+    </div>
+  </div>
+
+</aside>
+</main>
+
+<!-- Help modal -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">How to use</span>
+      <button class="btn btn-ghost btn-sm" id="closeHelp"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="help-step"><div class="help-num">1</div><div class="help-content"><h4>Choose a method</h4><p><strong>Weibull</strong> reproduces the windPRO-style sector-statistics calculation. <strong>Time series</strong> evaluates every 10-min step of the meteo data (needs a wind speed column). <strong>Compare both</strong> shows them side by side.</p></div></div>
+      <div class="help-step"><div class="help-num">2</div><div class="help-content"><h4>Load meteo data</h4><p>Select the windPRO raw CSV (<code>;</code> or <code>,</code> separated), map the DateTime, temperature and wind columns, set the year range, then press <strong>Parse file</strong>. German decimal commas are handled automatically. Alternatively enter active hours manually.</p></div></div>
+      <div class="help-step"><div class="help-num">3</div><div class="help-content"><h4>Add turbines</h4><p>Per turbine paste the 12-row sector table (<code>sector angle freq% A k v_free v_wake</code>) and the power curve (<code>wind_speed power</code>, in W or kW &mdash; detected automatically). Optionally add a windPRO AEP reference for validation and a wind scale factor for the time-series method.</p></div></div>
+      <div class="help-step"><div class="help-num">4</div><div class="help-content"><h4>Check configuration</h4><p>NZ windows, monthly thresholds, classic scheme and the temperature filter are pre-filled with your project defaults and fully editable.</p></div></div>
+      <div class="help-step"><div class="help-num">5</div><div class="help-content"><h4>Calculate &amp; export</h4><p>Results show full AEP, classic loss, NZ loss and the saving per turbine, plus the full NZ matrix. Export everything as a multi-sheet <code>.xlsx</code>.</p></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-primary" id="closeHelp2">Got it</button></div>
+  </div>
+</div>
+
+<template id="wtTpl">
+  <div class="wt-block">
+    <div class="wt-header">
+      <div class="wt-num"></div>
+      <input type="text" class="wt-name" placeholder="Name"/>
+      <div class="wt-actions">
+        <button class="btn btn-ghost btn-sm dupWt" title="Duplicate"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <button class="btn btn-ghost btn-sm removeWt" title="Remove" style="color:var(--danger)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+      </div>
+    </div>
+    <div class="wt-body">
+      <div class="grid-2" style="margin-bottom:10px">
+        <div class="field" style="margin:0"><label class="label">windPRO AEP ref (MWh/a, optional)</label><input type="number" class="wt-ref" step="0.1" placeholder="e.g. 19982.5"/></div>
+        <div class="field" style="margin:0"><label class="label">Wind scale (time series)</label><input type="number" class="wt-scale" step="0.01" value="1.00"/></div>
+      </div>
+      <div class="field"><label class="label">Sector data &mdash; <code>sector angle freq% A k v_free v_wake</code></label>
+        <textarea class="wt-sectors" rows="5" spellcheck="false" placeholder="1  0    4.5  6.0  1.91  5.35  5.35&#10;2  30   4.7  5.9  2.03  5.25  5.25&#10;..."></textarea>
+      </div>
+      <div class="field" style="margin:0"><label class="label">Power curve &mdash; <code>wind_speed power</code> (W or kW)</label>
+        <textarea class="wt-curve" rows="5" spellcheck="false" placeholder="3.0   41918.33&#10;3.5   154301.1&#10;..."></textarea>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+'use strict';
+// ============================================================
+// THEME
+// ============================================================
+const root=document.documentElement;
+{const s=localStorage.getItem('wt_theme');
+ if(s==='dark'||(s===null&&matchMedia('(prefers-color-scheme:dark)').matches))root.dataset.theme='dark';}
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const d=root.dataset.theme==='dark';root.dataset.theme=d?'':'dark';
+  localStorage.setItem('wt_theme',d?'light':'dark');
+});
+
+// ============================================================
+// DEFAULT CONFIG (from project script)
+// ============================================================
+const MONTHS=["April","Mai","Juni","Juli","August","September","Oktober"];
+const MONTH_NUM={April:4,Mai:5,Juni:6,Juli:7,August:8,September:9,Oktober:10};
+
+const CFG_NZ_DEFAULT=
+`April 1 20:15 21:15
+April 2 21:15 22:15
+April 3 22:15 23:15
+April 4 23:15 00:15
+April 5 00:15 01:15
+April 6 01:15 02:15
+April 7 02:15 03:15
+April 8 03:15 04:15
+April 9 04:15 05:15
+April 10 05:15 06:10
+Mai 1 21:05 21:54
+Mai 2 21:54 22:43
+Mai 3 22:43 23:32
+Mai 4 23:32 00:21
+Mai 5 00:21 01:10
+Mai 6 01:10 01:59
+Mai 7 01:59 02:48
+Mai 8 02:48 03:37
+Mai 9 03:37 04:26
+Mai 10 04:26 05:15
+Juni 1 21:35 22:20
+Juni 2 22:20 23:05
+Juni 3 23:05 23:50
+Juni 4 23:50 00:35
+Juni 5 00:35 01:20
+Juni 6 01:20 02:05
+Juni 7 02:05 02:50
+Juni 8 02:50 03:35
+Juni 9 03:35 04:20
+Juni 10 04:20 05:00
+Juli 1 21:25 22:12
+Juli 2 22:12 22:59
+Juli 3 22:59 23:46
+Juli 4 23:46 00:33
+Juli 5 00:33 01:20
+Juli 6 01:20 02:07
+Juli 7 02:07 02:54
+Juli 8 02:54 03:41
+Juli 9 03:41 04:28
+Juli 10 04:28 05:15
+August 1 20:40 21:36
+August 2 21:36 22:32
+August 3 22:32 23:28
+August 4 23:28 00:24
+August 5 00:24 01:20
+August 6 01:20 02:16
+August 7 02:16 03:12
+August 8 03:12 04:08
+August 9 04:08 05:04
+August 10 05:04 06:00
+September 1 19:35 20:43
+September 2 20:43 21:51
+September 3 21:51 22:59
+September 4 22:59 00:07
+September 5 00:07 01:15
+September 6 01:15 02:23
+September 7 02:23 03:31
+September 8 03:31 04:39
+September 9 04:39 05:47
+September 10 05:47 06:55
+Oktober 1 18:30 19:49
+Oktober 2 19:49 21:08
+Oktober 3 21:08 22:27
+Oktober 4 22:27 23:46
+Oktober 5 23:46 01:05
+Oktober 6 01:05 02:24
+Oktober 7 02:24 03:43
+Oktober 8 03:43 05:02
+Oktober 9 05:02 06:21
+Oktober 10 06:21 07:40`;
+
+const CFG_THR_DEFAULT=
+`April 4.1 5.6 6.0 5.8 5.7 5.8 5.5 5.5 5.0 4.9 3.7
+Mai 4.8 6.3 6.7 6.5 6.4 6.5 6.2 6.3 5.9 5.7 4.4
+Juni 5.3 6.8 7.4 7.0 7.0 6.9 6.6 6.6 6.3 6.1 4.8
+Juli 5.9 7.3 7.7 7.4 7.3 7.2 6.9 6.9 6.6 6.6 5.4
+August 5.9 7.4 7.8 7.6 7.5 7.4 7.0 7.0 6.6 6.6 5.4
+September 5.6 7.0 7.5 7.3 7.3 7.3 6.9 6.9 6.4 6.5 5.3
+Oktober 4.4 6.0 6.4 6.1 5.9 5.8 5.5 5.6 5.2 5.2 4.0`;
+
+const CFG_CLASSIC_DEFAULT=
+`April 19:15 06:10
+Mai 20:05 05:15
+Juni 20:35 05:00
+Juli 20:25 05:15
+August 19:40 06:00
+September 18:35 06:55
+Oktober 17:30 07:40`;
+
+// ============================================================
+// EXAMPLE TURBINES (BN14 / BN15 / BN16)
+// ============================================================
+const EX_SEC_BN14=`1 0 4.5 6.0 1.91 5.35 5.35
+2 30 4.7 5.9 2.03 5.25 5.25
+3 60 5.7 6.5 2.19 5.76 5.76
+4 90 6.2 7.3 2.24 6.44 6.44
+5 120 6.4 7.4 2.16 6.53 6.53
+6 150 6.6 6.8 1.97 6.06 5.08
+7 180 7.9 7.4 2.06 6.52 5.06
+8 210 10.4 8.4 2.40 7.41 6.24
+9 240 11.1 8.3 2.47 7.39 6.49
+10 270 16.1 9.2 2.44 8.19 8.10
+11 300 14.0 8.1 2.33 7.14 7.14
+12 330 6.3 6.4 2.10 5.65 5.65`;
+const EX_SEC_BN15=`1 0 4.5 6.0 1.91 5.35 4.67
+2 30 4.7 5.9 2.03 5.21 5.21
+3 60 5.7 6.6 2.19 5.85 5.85
+4 90 6.2 7.3 2.24 6.45 6.45
+5 120 6.4 7.4 2.16 6.55 6.55
+6 150 6.6 6.8 1.97 6.05 5.49
+7 180 7.9 7.3 2.06 6.50 5.94
+8 210 10.4 8.4 2.40 7.40 6.55
+9 240 11.1 8.4 2.47 7.41 6.54
+10 270 16.2 9.2 2.44 8.18 7.65
+11 300 14.0 8.1 2.33 7.16 7.16
+12 330 6.3 6.4 2.10 5.68 4.90`;
+const EX_SEC_BN16=`1 0 4.5 6.1 1.92 5.38 5.33
+2 30 4.7 5.8 2.03 5.16 5.16
+3 60 5.7 6.7 2.19 5.93 5.93
+4 90 6.2 7.4 2.24 6.51 6.51
+5 120 6.4 7.4 2.16 6.56 6.56
+6 150 6.6 6.8 1.97 6.06 6.06
+7 180 7.9 7.3 2.06 6.49 6.47
+8 210 10.4 8.3 2.40 7.38 6.56
+9 240 11.1 8.3 2.46 7.40 6.43
+10 270 16.1 9.2 2.44 8.20 7.30
+11 300 14.0 8.1 2.33 7.18 6.64
+12 330 6.3 6.5 2.10 5.73 4.97`;
+
+function buildCurve(rows){return rows.map(r=>r.join(' ')).join('\n');}
+const EX_PC_BN14=buildCurve([[3,41918.33],[3.5,154301.1],[4,321689.6],[4.5,513537.7],[5,742389.5],[5.5,1016617],[6,1345851],[6.5,1735090],[7,2190708],[7.5,2711333],[8,3301878],[8.5,3962974],[9,4674792],[9.5,5348293],[10,5968961],[10.5,6497706],[11,6885522],[11.5,7086775],[12,7160041],[12.5,7191673],[13,7200000],[13.5,7200000],[14,7200000],[14.5,7200000],[15,7200000],[15.5,7200000],[16,7200000],[16.5,7200000],[17,7200000],[17.5,7189216],[18,7099949],[18.5,6921844],[19,6754912],[19.5,6598896],[20,6434792],[20.5,6205596],[21,5865388],[21.5,5437256],[22,4983665],[22.5,4516246],[23,4055197],[23.5,3574146],[24,3110812],[24.5,2684224],[25,2289354]]);
+const EX_PC_BN15=buildCurve([[2.5,0],[3,41925.49],[3.5,154319],[4,321718.3],[4.5,513580.7],[5,742446.9],[5.5,1016700],[6,1345958],[6.5,1735223],[7,2190877],[7.5,2711537],[8,3302126],[8.5,3963262],[9,4675100],[9.5,5348566],[10,5969184],[10.5,6497872],[11,6885623],[11.5,7086815],[12,7160060],[12.5,7191682],[13,7200000],[13.5,7200000],[14,7200000],[14.5,7200000],[15,7200000],[15.5,7200000],[16,7200000],[16.5,7200000],[17,7200000],[17.5,7189221],[18,7099974],[18.5,6921877],[19,6754938],[19.5,6598922],[20,6434826],[20.5,6205643],[21,5865450],[21.5,5437325],[22,4983738],[22.5,4516307],[23,4055258],[23.5,3574207],[24,3110855],[24.5,2684271],[25,2289387]]);
+const EX_PC_BN16=buildCurve([[2.5,0],[3,41927.67],[3.5,154324.4],[4,321727],[4.5,513593.8],[5,742464.4],[5.5,1016725],[6,1345991],[6.5,1735264],[7,2190928],[7.5,2711599],[8,3302201],[8.5,3963349],[9,4675194],[9.5,5348649],[10,5969252],[10.5,6497922],[11,6885654],[11.5,7086828],[12,7160066],[12.5,7191685],[13,7200000],[13.5,7200000],[14,7200000],[14.5,7200000],[15,7200000],[15.5,7200000],[16,7200000],[16.5,7200000],[17,7200000],[17.5,7189222],[18,7099983],[18.5,6921887],[19,6754946],[19.5,6598930],[20,6434835],[20.5,6205658],[21,5865468],[21.5,5437346],[22,4983760],[22.5,4516326],[23,4055277],[23.5,3574226],[24,3110869],[24.5,2684285],[25,2289397]]);
+
+// ============================================================
+// HELPERS
+// ============================================================
+const $=id=>document.getElementById(id);
+function num(s){if(s===undefined||s===null)return NaN;return parseFloat(String(s).trim().replace(',','.'));}
+function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
+function minToStr(m){m=((Math.floor(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+function inIv(min,s,e){return s<=e?(min>=s&&min<e):(min>=s||min<e);}
+function fmt(n,d=1){if(n===null||n===undefined||isNaN(n))return'\u2014';return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function wpdf(v,A,k){return(k/A)*Math.pow(v/A,k-1)*Math.exp(-Math.pow(v/A,k));}
+
+const WIND_STEP=0.05,WIND_MAX=35;
+function buildGrid(curve){ // curve: [{v,kw}] sorted
+  const n=Math.round(WIND_MAX/WIND_STEP)+1;
+  const grid=new Float64Array(n),pw=new Float64Array(n);
+  for(let i=0;i<n;i++){
+    const v=i*WIND_STEP;grid[i]=v;
+    pw[i]=interpCurve(curve,v);
+  }
+  return{grid,pw};
+}
+function interpCurve(curve,v){
+  if(!curve.length)return 0;
+  if(v<curve[0].v||v>curve[curve.length-1].v)return 0; // like np.interp with left=0,right=0 outside grid... 
+  // find bracket
+  let lo=0,hi=curve.length-1;
+  while(hi-lo>1){const mid=(lo+hi)>>1;(curve[mid].v<=v)?lo=mid:hi=mid;}
+  const a=curve[lo],b=curve[hi];
+  if(b.v===a.v)return a.kw;
+  return a.kw+(b.kw-a.kw)*(v-a.v)/(b.v-a.v);
+}
+function expectedBelow(sectors,thr,grid,pw){
+  let r=0;
+  for(const s of sectors){
+    let acc=0;
+    for(let i=1;i<grid.length;i++){
+      const v=grid[i];if(v>=thr)break;
+      acc+=pw[i]*wpdf(v,s.Aw,s.k);
+    }
+    r+=s.ff*acc*WIND_STEP;
+  }
+  return r; // kW
+}
+function expectedFull(sectors,grid,pw){
+  let r=0;
+  for(const s of sectors){
+    let acc=0;
+    for(let i=1;i<grid.length;i++)acc+=pw[i]*wpdf(grid[i],s.Aw,s.k);
+    r+=s.ff*acc*WIND_STEP;
+  }
+  return r;
+}
+
+// ============================================================
+// CONFIG PARSING
+// ============================================================
+function parseNzConfig(){
+  const lines=$('cfgNz').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const byMonth={};
+  for(const l of lines){
+    const p=l.split(/[\s;,\t]+/);
+    if(p.length<4)throw`NZ windows: bad line "${l}"`;
+    const mo=p[0];if(!(mo in MONTH_NUM))throw`NZ windows: unknown month "${mo}"`;
+    const nz=parseInt(p[1].replace(/\D/g,''));
+    if(!(byMonth[mo]))byMonth[mo]=[];
+    byMonth[mo].push({nz,start:p[2],end:p[3]});
+  }
+  const thr=parseThrConfig();
+  const f=num($('nz0Factor').value)||0.15;
+  const rows=[];
+  for(const mo of MONTHS){
+    const list=(byMonth[mo]||[]).sort((a,b)=>a.nz-b.nz);
+    if(!list.length)continue;
+    if(!thr[mo])throw`Thresholds: month "${mo}" missing`;
+    // NZ0
+    const s=toMin(list[0].start);let e=toMin(list[list.length-1].end);
+    let e2=e;if(e2<=s)e2+=1440;
+    const z0=minToStr(s-(e2-s)*f);
+    rows.push({month:mo,monthNum:MONTH_NUM[mo],nz:0,start:z0,end:list[0].start,thr:thr[mo][0]});
+    for(const w of list){
+      if(thr[mo][w.nz]===undefined)throw`Thresholds: ${mo} NZ${w.nz} missing`;
+      rows.push({month:mo,monthNum:MONTH_NUM[mo],nz:w.nz,start:w.start,end:w.end,thr:thr[mo][w.nz]});
+    }
+  }
+  return rows;
+}
+function parseThrConfig(){
+  const out={};
+  for(const l of $('cfgThr').value.split('\n').map(x=>x.trim()).filter(Boolean)){
+    const p=l.split(/[\s;,\t]+/);
+    const mo=p[0];if(!(mo in MONTH_NUM))throw`Thresholds: unknown month "${mo}"`;
+    out[mo]={};
+    for(let i=1;i<p.length;i++){const v=num(p[i]);if(!isNaN(v))out[mo][i-1]=v;}
+  }
+  return out;
+}
+function parseClassicConfig(){
+  const out={};
+  for(const l of $('cfgClassic').value.split('\n').map(x=>x.trim()).filter(Boolean)){
+    const p=l.split(/[\s;,\t]+/);
+    if(p.length<3)throw`Classic windows: bad line "${l}"`;
+    if(!(p[0]in MONTH_NUM))throw`Classic windows: unknown month "${p[0]}"`;
+    out[MONTH_NUM[p[0]]]={s:toMin(p[1]),e:toMin(p[2])};
+  }
+  return out;
+}
+
+// ============================================================
+// METEO CSV
+// ============================================================
+let METEO=null; // {month:Int8Array,minute:Int16Array,T:Float32Array,V:Float32Array|null,years:int,dtH:number,n:int,name:string}
+let RAW=null;   // {header:[], lines:[], sep}
+
+function setStatus(el,cls,msg){el.className='status '+cls;el.textContent=msg;}
+
+$('meteoFile').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  setStatus($('meteoStatus'),'info','Reading file\u2026');
+  try{
+    const text=await f.text();
+    const nl=text.indexOf('\n');
+    const first=text.slice(0,nl);
+    const sep=(first.split(';').length>first.split(',').length)?';':',';
+    const header=first.replace(/\r/,'').split(sep).map(h=>h.trim());
+    RAW={text,sep,header,name:f.name};
+    for(const sel of[$('colDt'),$('colT'),$('colV')]){
+      sel.innerHTML='';
+      header.forEach((h,i)=>{const o=document.createElement('option');o.value=i;o.textContent=h||('col '+(i+1));sel.appendChild(o);});
+    }
+    const opt=document.createElement('option');opt.value=-1;opt.textContent='\u2014 none \u2014';$('colV').insertBefore(opt,$('colV').firstChild);
+    // guesses
+    const gi=(re)=>header.findIndex(h=>re.test(h));
+    let i=gi(/date|time|stamp/i);$('colDt').value=i>=0?i:0;
+    i=header.findIndex(h=>h.trim()==='T');if(i<0)i=gi(/temp|^t$/i);$('colT').value=i>=0?i:0;
+    i=gi(/mean.?wind|wind.?speed|^ws|^v$|speed/i);$('colV').value=i>=0?i:-1;
+    setStatus($('meteoStatus'),'info',`Loaded "${f.name}" (${(f.size/1048576).toFixed(1)} MB). Check the column mapping, then press Parse file.`);
+    $('meteoBadge').textContent='file loaded';
+  }catch(err){setStatus($('meteoStatus'),'err','Could not read file: '+err);}
+});
+
+function parseTs(s){
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[T ](\d{1,2}):(\d{2})/);
+  if(m)return{y:+m[1],mo:+m[2],min:(+m[4])*60+(+m[5])};
+  m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})[ T](\d{1,2}):(\d{2})/);
+  if(m)return{y:+m[3],mo:+m[2],min:(+m[4])*60+(+m[5])};
+  return null;
+}
+
+$('parseBtn').addEventListener('click',()=>{
+  if(!RAW){setStatus($('meteoStatus'),'err','Select a CSV file first.');return;}
+  const iDt=+$('colDt').value,iT=+$('colT').value,iV=+$('colV').value;
+  const y0=+$('yearFrom').value,y1=+$('yearTo').value;
+  const lines=RAW.text.split('\n');
+  const n=lines.length;
+  const month=new Int8Array(n),minute=new Int16Array(n),T=new Float32Array(n);
+  const V=iV>=0?new Float32Array(n):null;
+  const years=new Set();
+  let k=0,row=0;
+  setStatus($('meteoStatus'),'info','Parsing\u2026');
+  function chunk(){
+    const end=Math.min(row+80000,n);
+    for(;row<end;row++){
+      if(row===0)continue; // header
+      const l=lines[row];if(!l||l.length<5)continue;
+      const p=l.split(RAW.sep);
+      const ts=parseTs((p[iDt]||'').trim());if(!ts)continue;
+      if(ts.y<y0||ts.y>y1)continue;
+      const t=num(p[iT]);if(isNaN(t))continue;
+      let v=NaN;
+      if(V){v=num(p[iV]);if(isNaN(v))continue;}
+      month[k]=ts.mo;minute[k]=ts.min;T[k]=t;if(V)V[k]=v;
+      years.add(ts.y);k++;
+    }
+    if(row<n){setStatus($('meteoStatus'),'info',`Parsing\u2026 ${Math.round(row/n*100)}%`);setTimeout(chunk,0);return;}
+    if(k===0){setStatus($('meteoStatus'),'err','No valid rows found. Check the DateTime column and year range.');return;}
+    METEO={month:month.subarray(0,k),minute:minute.subarray(0,k),T:T.subarray(0,k),
+      V:V?V.subarray(0,k):null,years:years.size,dtH:(+$('timestep').value)/60,n:k,name:RAW.name};
+    $('meteoBadge').textContent=`${k.toLocaleString()} rows \u00b7 ${years.size} yrs`;
+    setStatus($('meteoStatus'),'ok',`Parsed ${k.toLocaleString()} rows, ${years.size} full years${V?', wind speed available':', no wind column (Weibull hours only)'}.`);
+    saveState();
+  }
+  chunk();
+});
+
+// hours accumulation from meteo (per NZ row + classic)
+function hoursFromMeteo(nzRows,classicWin,tmin,tmax){
+  if(!METEO)throw'No parsed meteo data \u2014 parse the CSV first or switch to manual hours.';
+  const{month,minute,T,dtH,years,n}=METEO;
+  const byMonth={};
+  nzRows.forEach((r,i)=>{(byMonth[r.monthNum]=byMonth[r.monthNum]||[]).push({i,s:toMin(r.start),e:toMin(r.end)});});
+  const acc=new Float64Array(nzRows.length);let cls=0;
+  for(let j=0;j<n;j++){
+    const t=T[j];if(t<tmin||t>tmax)continue;
+    const mo=month[j],mi=minute[j];
+    const cw=classicWin[mo];if(cw&&inIv(mi,cw.s,cw.e))cls+=dtH;
+    const list=byMonth[mo];if(!list)continue;
+    for(const w of list){if(inIv(mi,w.s,w.e)){acc[w.i]+=dtH;break;}}
+  }
+  return{nzHours:Array.from(acc,x=>x/years),classicHours:cls/years};
+}
+
+// time-series losses per turbine
+function timeseriesLosses(nzRows,classicWin,tmin,tmax,clsThr,curve,scale){
+  if(!METEO)throw'Time-series method needs parsed meteo data.';
+  if(!METEO.V)throw'Time-series method needs a wind speed column \u2014 remap and re-parse the CSV.';
+  const{month,minute,T,V,dtH,years,n}=METEO;
+  const byMonth={};
+  nzRows.forEach((r,i)=>{(byMonth[r.monthNum]=byMonth[r.monthNum]||[]).push({i,s:toMin(r.start),e:toMin(r.end),thr:r.thr});});
+  const eAcc=new Float64Array(nzRows.length),hAcc=new Float64Array(nzRows.length);
+  let clsE=0,clsH=0,aepE=0;
+  for(let j=0;j<n;j++){
+    const v=V[j]*scale;
+    aepE+=interpCurve(curve,v)*dtH;
+    const t=T[j];if(t<tmin||t>tmax)continue;
+    const mo=month[j],mi=minute[j];
+    const cw=classicWin[mo];
+    if(cw&&inIv(mi,cw.s,cw.e)){clsH+=dtH;if(v<clsThr)clsE+=interpCurve(curve,v)*dtH;}
+    const list=byMonth[mo];if(!list)continue;
+    for(const w of list){
+      if(inIv(mi,w.s,w.e)){hAcc[w.i]+=dtH;if(v<w.thr)eAcc[w.i]+=interpCurve(curve,v)*dtH;break;}
+    }
+  }
+  return{
+    nzHours:Array.from(hAcc,x=>x/years),
+    nzLossMwh:Array.from(eAcc,x=>x/years/1000),
+    classicHours:clsH/years,
+    classicLossMwh:clsE/years/1000,
+    tsAepMwh:aepE/years/1000
+  };
+}
+
+// ============================================================
+// MANUAL HOURS
+// ============================================================
+function manualHoursTemplate(){
+  const lines=[];
+  for(const mo of MONTHS)for(let nz=0;nz<=10;nz++)lines.push(`${mo} ${nz} 0`);
+  return lines.join('\n');
+}
+function parseManualHours(nzRows){
+  const map={};
+  for(const l of $('manualHours').value.split('\n').map(x=>x.trim()).filter(Boolean)){
+    const p=l.split(/[\s;,\t]+/);if(p.length<3)continue;
+    if(!(p[0]in MONTH_NUM))continue;
+    map[p[0]+'|'+parseInt(p[1].replace(/\D/g,''))]=num(p[2]);
+  }
+  const nzHours=nzRows.map(r=>{
+    const v=map[r.month+'|'+r.nz];
+    if(v===undefined||isNaN(v))throw`Manual hours: missing value for ${r.month} NZ${r.nz}`;
+    return v;
+  });
+  const ch=num($('manualClassicHours').value);
+  return{nzHours,classicHours:isNaN(ch)?0:ch};
+}
+
+$('fillFromCsv').addEventListener('click',()=>{
+  try{
+    const nzRows=parseNzConfig();
+    const cls=parseClassicConfig();
+    const r=hoursFromMeteo(nzRows,cls,num($('tempMin').value),num($('tempMax').value));
+    $('manualHours').value=nzRows.map((row,i)=>`${row.month} ${row.nz} ${r.nzHours[i].toFixed(2)}`).join('\n');
+    $('manualClassicHours').value=r.classicHours.toFixed(2);
+    saveState();
+  }catch(err){setStatus($('calcStatus'),'err',String(err));}
+});
+
+// ============================================================
+// TURBINE BLOCKS
+// ============================================================
+let wts=[],nextId=1;
+function addWt(pre={}){
+  wts.push({id:nextId++,name:pre.name||('WEA '+(wts.length+1)),
+    ref:pre.ref??'',scale:pre.scale??'1.00',sectors:pre.sectors||'',curve:pre.curve||''});
+  renderWts();saveState();
+}
+function renderWts(){
+  captureWts();
+  const list=$('wtList');list.innerHTML='';
+  wts.forEach((w,i)=>{
+    const tpl=document.getElementById('wtTpl').content.cloneNode(true);
+    const b=tpl.querySelector('.wt-block');b.dataset.id=w.id;
+    b.querySelector('.wt-num').textContent=i+1;
+    b.querySelector('.wt-name').value=w.name;
+    b.querySelector('.wt-ref').value=w.ref;
+    b.querySelector('.wt-scale').value=w.scale;
+    b.querySelector('.wt-sectors').value=w.sectors;
+    b.querySelector('.wt-curve').value=w.curve;
+    b.querySelector('.removeWt').addEventListener('click',()=>{wts=wts.filter(x=>x.id!==w.id);renderWts();saveState();});
+    b.querySelector('.dupWt').addEventListener('click',()=>{captureWts();const src=wts.find(x=>x.id===w.id);
+      wts.splice(wts.indexOf(src)+1,0,{...src,id:nextId++,name:src.name+' copy'});renderWts();saveState();});
+    b.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input',saveState));
+    list.appendChild(b);
+  });
+  $('noWt').style.display=wts.length?'none':'block';
+}
+function captureWts(){
+  document.querySelectorAll('.wt-block').forEach(b=>{
+    const w=wts.find(x=>x.id===+b.dataset.id);if(!w)return;
+    w.name=b.querySelector('.wt-name').value;
+    w.ref=b.querySelector('.wt-ref').value;
+    w.scale=b.querySelector('.wt-scale').value;
+    w.sectors=b.querySelector('.wt-sectors').value;
+    w.curve=b.querySelector('.wt-curve').value;
+  });
+}
+$('addWt').addEventListener('click',()=>addWt());
+
+function parseSectors(text,name){
+  const rows=[];
+  for(const l of text.split('\n').map(x=>x.trim()).filter(Boolean)){
+    const p=l.split(/[\s;\t]+/).map(num);
+    if(p.length>=7&&p.slice(0,7).every(x=>!isNaN(x)))
+      rows.push({sector:p[0],angle:p[1],freq:p[2],A:p[3],k:p[4],vFree:p[5],vWake:p[6]});
+  }
+  if(rows.length<2)throw`${name}: sector data needs numeric rows "sector angle freq% A k v_free v_wake"`;
+  const fSum=rows.reduce((a,r)=>a+r.freq,0);
+  return rows.map(r=>({...r,ff:r.freq/fSum,Aw:r.A*r.vWake/r.vFree,k:r.k}));
+}
+function parseCurve(text,name){
+  const rows=[];
+  for(const l of text.split('\n').map(x=>x.trim()).filter(Boolean)){
+    const p=l.split(/[\s;\t]+/).map(num);
+    if(p.length>=2&&!isNaN(p[0])&&!isNaN(p[1]))rows.push({v:p[0],p:p[1]});
+  }
+  if(rows.length<3)throw`${name}: power curve needs numeric rows "wind_speed power"`;
+  rows.sort((a,b)=>a.v-b.v);
+  const maxP=Math.max(...rows.map(r=>r.p));
+  const div=maxP>20000?1000:1; // W -> kW auto-detect
+  return rows.map(r=>({v:r.v,kw:r.p/div}));
+}
+
+// ============================================================
+// CALCULATE
+// ============================================================
+let RESULTS=null;
+$('calcBtn').addEventListener('click',()=>{
+  const st=$('calcStatus');st.className='status';
+  try{
+    captureWts();
+    if(!wts.length)throw'Add at least one turbine.';
+    const method=document.querySelector('input[name=method]:checked').value;
+    const hoursSrc=document.querySelector('input[name=hoursSrc]:checked').value;
+    const nzRows=parseNzConfig();
+    const classicWin=parseClassicConfig();
+    const tmin=num($('tempMin').value),tmax=num($('tempMax').value);
+    const clsThr=num($('classicThr').value);
+    const needW=(method==='weibull'||method==='both');
+    const needTS=(method==='timeseries'||method==='both');
+
+    let wHours=null;
+    if(needW)wHours=(hoursSrc==='manual')?parseManualHours(nzRows):hoursFromMeteo(nzRows,classicWin,tmin,tmax);
+
+    const out={method,nzRows,turbines:[],hoursSrc,
+      meteoInfo:METEO?`${METEO.name} \u00b7 ${METEO.n.toLocaleString()} rows \u00b7 ${METEO.years} years`:null};
+
+    for(const w of wts){
+      const name=w.name||'WEA';
+      const sectors=parseSectors(w.sectors,name);
+      const curve=parseCurve(w.curve,name);
+      const{grid,pw}=buildGrid(curve);
+      const fullKw=expectedFull(sectors,grid,pw);
+      const fullAep=fullKw*8760/1000;
+      const ref=num(w.ref);
+      const T={name,fullAep,ref:isNaN(ref)?null:ref,
+        dev:isNaN(ref)?null:(fullAep/ref-1)*100,methods:{}};
+
+      if(needW){
+        const thrSet=[...new Set(nzRows.map(r=>r.thr))];
+        const thrMap={};thrSet.forEach(t=>thrMap[t]=expectedBelow(sectors,t,grid,pw));
+        const rows=nzRows.map((r,i)=>({...r,hours:wHours.nzHours[i],
+          ekw:thrMap[r.thr],loss:wHours.nzHours[i]*thrMap[r.thr]/1000}));
+        const nzLoss=rows.reduce((a,r)=>a+r.loss,0);
+        const clsKw=expectedBelow(sectors,clsThr,grid,pw);
+        const clsLoss=clsKw*wHours.classicHours/1000;
+        T.methods.weibull={rows,nzLoss,nzPct:nzLoss/fullAep*100,
+          classicHours:wHours.classicHours,classicLoss:clsLoss,classicPct:clsLoss/fullAep*100,
+          saving:clsLoss-nzLoss,savingPP:(clsLoss-nzLoss)/fullAep*100};
+      }
+      if(needTS){
+        const scale=num(w.scale)||1;
+        const ts=timeseriesLosses(nzRows,classicWin,tmin,tmax,clsThr,curve,scale);
+        const rows=nzRows.map((r,i)=>({...r,hours:ts.nzHours[i],loss:ts.nzLossMwh[i]}));
+        const nzLoss=ts.nzLossMwh.reduce((a,b)=>a+b,0);
+        T.methods.timeseries={rows,nzLoss,nzPct:nzLoss/fullAep*100,
+          classicHours:ts.classicHours,classicLoss:ts.classicLossMwh,classicPct:ts.classicLossMwh/fullAep*100,
+          saving:ts.classicLossMwh-nzLoss,savingPP:(ts.classicLossMwh-nzLoss)/fullAep*100,
+          tsAep:ts.tsAepMwh};
+      }
+      out.turbines.push(T);
+    }
+    RESULTS=out;
+    renderResults(out);
+    st.className='status';
+  }catch(err){setStatus(st,'err',String(err));}
+});
+
+// ============================================================
+// RENDER RESULTS
+// ============================================================
+function methodLabel(m){return m==='weibull'?'Weibull':'Time series';}
+function renderResults(out){
+  const body=$('resultsBody');body.innerHTML='';
+  const methods=Object.keys(out.turbines[0].methods);
+  let totalW=0,totalTS=0;
+
+  out.turbines.forEach(T=>{
+    const wrap=document.createElement('div');wrap.className='result-wt';
+    let badges=`<span class="badge badge-violet">${fmt(T.fullAep,1)} MWh/a AEP</span>`;
+    if(T.dev!==null)badges+=` <span class="badge ${Math.abs(T.dev)<1?'badge-green':'badge-amber'}">${T.dev>=0?'+':''}${fmt(T.dev,2)}% vs windPRO</span>`;
+    wrap.innerHTML=`<div class="result-wt-header"><span class="result-wt-title">${T.name}</span><span style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap">${badges}</span></div>`;
+
+    // summary table
+    const sum=document.createElement('div');sum.className='data-table-wrap';
+    let h=`<table class="data-table"><thead><tr><th>Metric</th>`;
+    methods.forEach(m=>h+=`<th>${methodLabel(m)}</th>`);
+    h+=`<th>Unit</th></tr></thead><tbody>`;
+    const row=(label,key,d,unit,hl)=>{
+      h+=`<tr${hl?' class="hl"':''}><td>${label}</td>`;
+      methods.forEach(m=>{h+=`<td>${fmt(T.methods[m][key],d)}</td>`;});
+      h+=`<td style="text-align:left;color:var(--text-3)">${unit}</td></tr>`;
+    };
+    row('Classic active hours','classicHours',1,'h/a');
+    row('Classic loss','classicLoss',1,'MWh/a');
+    row('Classic loss','classicPct',2,'%');
+    row('NZ loss','nzLoss',1,'MWh/a',true);
+    row('NZ loss','nzPct',2,'%',true);
+    row('Saving vs classic','saving',1,'MWh/a');
+    row('Saving vs classic','savingPP',2,'%-pts');
+    if(methods.includes('timeseries')&&T.methods.timeseries.tsAep)
+      h+=`<tr><td>Time-series AEP (info)</td>${methods.map(m=>`<td>${m==='timeseries'?fmt(T.methods.timeseries.tsAep,1):'\u2014'}</td>`).join('')}<td style="text-align:left;color:var(--text-3)">MWh/a</td></tr>`;
+    h+=`</tbody></table>`;
+    sum.innerHTML=h;wrap.appendChild(sum);
+
+    // NZ matrix (collapsible)
+    const det=document.createElement('details');det.className='cfg';det.style.marginTop='8px';
+    let mh=`<summary>NZ matrix (${out.nzRows.length} windows)</summary><div class="cfg-body"><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Month</th><th>NZ</th><th>Window</th><th>Thr m/s</th>`;
+    methods.forEach(m=>mh+=`<th>h/a (${methodLabel(m)[0]})</th><th>MWh (${methodLabel(m)[0]})</th>`);
+    mh+=`</tr></thead><tbody>`;
+    out.nzRows.forEach((r,i)=>{
+      mh+=`<tr><td>${r.month}</td><td>NZ${r.nz}</td><td>${r.start}\u2013${r.end}</td><td>${fmt(r.thr,1)}</td>`;
+      methods.forEach(m=>{const rr=T.methods[m].rows[i];mh+=`<td>${fmt(rr.hours,1)}</td><td>${fmt(rr.loss,2)}</td>`;});
+      mh+=`</tr>`;
+    });
+    mh+=`</tbody></table></div></div>`;
+    det.innerHTML=mh;wrap.appendChild(det);
+    body.appendChild(wrap);
+
+    if(T.methods.weibull)totalW+=T.methods.weibull.nzLoss;
+    if(T.methods.timeseries)totalTS+=T.methods.timeseries.nzLoss;
+  });
+
+  // totals
+  const tb=document.createElement('div');tb.className='totals-bar';tb.style.marginTop='4px';
+  let th='';
+  if(methods.includes('weibull'))th+=`<div class="totals-item"><span class="val">${fmt(totalW,1)} <span style="font-size:12px;font-weight:400">MWh/a</span></span><span class="lbl">Total NZ loss \u00b7 Weibull (${out.turbines.length} WEA)</span></div>`;
+  if(methods.includes('timeseries'))th+=`<div class="totals-item"><span class="val">${fmt(totalTS,1)} <span style="font-size:12px;font-weight:400">MWh/a</span></span><span class="lbl">Total NZ loss \u00b7 Time series (${out.turbines.length} WEA)</span></div>`;
+  tb.innerHTML=th;body.appendChild(tb);
+
+  if(out.meteoInfo){const p=document.createElement('p');p.className='hint';p.style.marginTop='10px';
+    p.textContent='Meteo: '+out.meteoInfo+(out.hoursSrc==='manual'?' \u00b7 Weibull hours: manual':'');body.appendChild(p);}
+
+  $('resultsCard').style.display='';
+  $('resultsPlaceholder').style.display='none';
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+$('copyTSV').addEventListener('click',async()=>{
+  if(!RESULTS)return;
+  const methods=Object.keys(RESULTS.turbines[0].methods);
+  const lines=[['WEA','Metric',...methods.map(methodLabel),'Unit'].join('\t')];
+  for(const T of RESULTS.turbines){
+    const push=(l,k,d,u)=>lines.push([T.name,l,...methods.map(m=>T.methods[m][k].toFixed(d)),u].join('\t'));
+    lines.push([T.name,'Model full AEP',...methods.map(()=>T.fullAep.toFixed(1)),'MWh/a'].join('\t'));
+    if(T.ref!==null){lines.push([T.name,'windPRO AEP ref',...methods.map(()=>T.ref.toFixed(1)),'MWh/a'].join('\t'));
+      lines.push([T.name,'Deviation vs windPRO',...methods.map(()=>T.dev.toFixed(2)),'%'].join('\t'));}
+    push('Classic active hours','classicHours',1,'h/a');
+    push('Classic loss','classicLoss',2,'MWh/a');
+    push('Classic loss','classicPct',3,'%');
+    push('NZ loss','nzLoss',2,'MWh/a');
+    push('NZ loss','nzPct',3,'%');
+    push('Saving vs classic','saving',2,'MWh/a');
+    push('Saving vs classic','savingPP',3,'%-pts');
+  }
+  try{await navigator.clipboard.writeText(lines.join('\n'));
+    setStatus($('calcStatus'),'ok','Summary copied to clipboard.');
+    setTimeout(()=>{$('calcStatus').className='status';},2500);
+  }catch(e){}
+});
+
+$('downloadXLSX').addEventListener('click',()=>{
+  if(!RESULTS)return;
+  const wb=XLSX.utils.book_new();
+  const methods=Object.keys(RESULTS.turbines[0].methods);
+  // All summary
+  const sumRows=[];
+  for(const T of RESULTS.turbines){
+    for(const m of methods){
+      const M=T.methods[m],ml=methodLabel(m);
+      sumRows.push({WEA:T.name,Method:ml,Metric:'Model full AEP',Value:+T.fullAep.toFixed(2),Unit:'MWh/a'});
+      if(T.ref!==null){sumRows.push({WEA:T.name,Method:ml,Metric:'windPRO AEP ref',Value:T.ref,Unit:'MWh/a'});
+        sumRows.push({WEA:T.name,Method:ml,Metric:'Deviation vs windPRO',Value:+T.dev.toFixed(3),Unit:'%'});}
+      sumRows.push({WEA:T.name,Method:ml,Metric:'Classic active hours',Value:+M.classicHours.toFixed(2),Unit:'h/a'});
+      sumRows.push({WEA:T.name,Method:ml,Metric:'Classic loss',Value:+M.classicLoss.toFixed(2),Unit:'MWh/a'});
+      sumRows.push({WEA:T.name,Method:ml,Metric:'Classic loss',Value:+M.classicPct.toFixed(3),Unit:'%'});
+      sumRows.push({WEA:T.name,Method:ml,Metric:'NZ loss',Value:+M.nzLoss.toFixed(2),Unit:'MWh/a'});
+      sumRows.push({WEA:T.name,Method:ml,Metric:'NZ loss',Value:+M.nzPct.toFixed(3),Unit:'%'});
+      sumRows.push({WEA:T.name,Method:ml,Metric:'Saving vs classic',Value:+M.saving.toFixed(2),Unit:'MWh/a'});
+      sumRows.push({WEA:T.name,Method:ml,Metric:'Saving vs classic',Value:+M.savingPP.toFixed(3),Unit:'%-points'});
+      if(M.tsAep)sumRows.push({WEA:T.name,Method:ml,Metric:'Time-series AEP (info)',Value:+M.tsAep.toFixed(2),Unit:'MWh/a'});
+    }
+  }
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(sumRows),'All_Summary');
+  // per turbine NZ matrix
+  for(const T of RESULTS.turbines){
+    for(const m of methods){
+      const rows=T.methods[m].rows.map(r=>({Month:r.month,NZ:'NZ'+r.nz,Start:r.start,End:r.end,
+        'Threshold_mps':r.thr,'Hours_per_year':+r.hours.toFixed(3),
+        ...(r.ekw!==undefined?{'Expected_kW_below_thr':+r.ekw.toFixed(3)}:{}),
+        'Loss_MWh':+r.loss.toFixed(4)}));
+      const sheet=(T.name+'_'+(m==='weibull'?'WB':'TS')+'_NZ').slice(0,31);
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),sheet);
+    }
+  }
+  XLSX.writeFile(wb,'fledermaus_nz_losses.xlsx');
+});
+
+// ============================================================
+// UI WIRING
+// ============================================================
+function syncVisibility(){
+  const method=document.querySelector('input[name=method]:checked').value;
+  const hoursSrc=document.querySelector('input[name=hoursSrc]:checked').value;
+  const needCsv=(method!=='weibull')||hoursSrc==='csv';
+  $('meteoCard').style.display=needCsv?'':'none';
+  $('manualCard').style.display=hoursSrc==='manual'&&method!=='timeseries'?'':'none';
+}
+document.querySelectorAll('input[name=method],input[name=hoursSrc]').forEach(el=>el.addEventListener('change',()=>{syncVisibility();saveState();}));
+
+$('loadExample').addEventListener('click',()=>{
+  wts=[];nextId=1;$('wtList').innerHTML='';
+  addWt({name:'BN14',ref:'19982.5',sectors:EX_SEC_BN14,curve:EX_PC_BN14});
+  addWt({name:'BN15',sectors:EX_SEC_BN15,curve:EX_PC_BN15});
+  addWt({name:'BN16',sectors:EX_SEC_BN16,curve:EX_PC_BN16});
+  renderWts();saveState();
+});
+
+$('resetAll').addEventListener('click',()=>{
+  wts=[];nextId=1;$('wtList').innerHTML='';addWt({name:'WEA 1'});
+  $('cfgNz').value=CFG_NZ_DEFAULT;$('cfgThr').value=CFG_THR_DEFAULT;$('cfgClassic').value=CFG_CLASSIC_DEFAULT;
+  $('classicThr').value=6.5;$('tempMin').value=10;$('tempMax').value=75;$('nz0Factor').value=0.15;
+  $('manualHours').value=manualHoursTemplate();$('manualClassicHours').value='';
+  RESULTS=null;$('resultsBody').innerHTML='';
+  $('resultsCard').style.display='none';$('resultsPlaceholder').style.display='';
+  $('calcStatus').className='status';
+  saveState();
+});
+
+const helpModal=$('helpModal');
+$('helpBtn').addEventListener('click',()=>helpModal.classList.add('open'));
+$('closeHelp').addEventListener('click',()=>helpModal.classList.remove('open'));
+$('closeHelp2').addEventListener('click',()=>helpModal.classList.remove('open'));
+helpModal.addEventListener('click',e=>{if(e.target===helpModal)helpModal.classList.remove('open');});
+$('nz0Factor').addEventListener('input',()=>{$('nz0FactorLbl').textContent=Math.round((num($('nz0Factor').value)||0)*100);});
+
+// ============================================================
+// PERSISTENCE
+// ============================================================
+function saveState(){
+  captureWts();
+  const st={
+    method:document.querySelector('input[name=method]:checked').value,
+    hoursSrc:document.querySelector('input[name=hoursSrc]:checked').value,
+    cfgNz:$('cfgNz').value,cfgThr:$('cfgThr').value,cfgClassic:$('cfgClassic').value,
+    classicThr:$('classicThr').value,tempMin:$('tempMin').value,tempMax:$('tempMax').value,
+    nz0Factor:$('nz0Factor').value,manualHours:$('manualHours').value,
+    manualClassicHours:$('manualClassicHours').value,
+    yearFrom:$('yearFrom').value,yearTo:$('yearTo').value,timestep:$('timestep').value,
+    wts:wts.map(w=>({...w})),nextId};
+  try{localStorage.setItem('fm_state',JSON.stringify(st));}catch(e){}
+}
+document.querySelectorAll('#cfgNz,#cfgThr,#cfgClassic,#classicThr,#tempMin,#tempMax,#nz0Factor,#manualHours,#manualClassicHours,#yearFrom,#yearTo,#timestep').forEach(el=>el.addEventListener('input',saveState));
+
+function loadState(){
+  $('cfgNz').value=CFG_NZ_DEFAULT;$('cfgThr').value=CFG_THR_DEFAULT;$('cfgClassic').value=CFG_CLASSIC_DEFAULT;
+  $('manualHours').value=manualHoursTemplate();
+  try{
+    const raw=localStorage.getItem('fm_state');
+    if(!raw){addWt({name:'WEA 1'});syncVisibility();return;}
+    const st=JSON.parse(raw);
+    if(st.cfgNz)$('cfgNz').value=st.cfgNz;
+    if(st.cfgThr)$('cfgThr').value=st.cfgThr;
+    if(st.cfgClassic)$('cfgClassic').value=st.cfgClassic;
+    if(st.classicThr)$('classicThr').value=st.classicThr;
+    if(st.tempMin)$('tempMin').value=st.tempMin;
+    if(st.tempMax)$('tempMax').value=st.tempMax;
+    if(st.nz0Factor)$('nz0Factor').value=st.nz0Factor;
+    if(st.manualHours)$('manualHours').value=st.manualHours;
+    if(st.manualClassicHours)$('manualClassicHours').value=st.manualClassicHours;
+    if(st.yearFrom)$('yearFrom').value=st.yearFrom;
+    if(st.yearTo)$('yearTo').value=st.yearTo;
+    if(st.timestep)$('timestep').value=st.timestep;
+    if(st.method)document.querySelector(`input[name=method][value=${st.method}]`).checked=true;
+    if(st.hoursSrc)document.querySelector(`input[name=hoursSrc][value=${st.hoursSrc}]`).checked=true;
+    nextId=st.nextId||1;
+    wts=(st.wts||[]).map(w=>({...w}));
+    if(!wts.length)addWt({name:'WEA 1'});else renderWts();
+  }catch(e){addWt({name:'WEA 1'});}
+  syncVisibility();
+}
+loadState();
+</script>
+</body>
+</html>

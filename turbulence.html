@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Wind Curtailment Loss Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f8fa;
+  --surface:#ffffff;
+  --surface2:#f0f2f6;
+  --border:#e2e5ec;
+  --border-strong:#c8ccda;
+  --text:#111827;
+  --text-2:#4b5563;
+  --text-3:#9ca3af;
+  --accent:#2563eb;
+  --accent-hover:#1d4ed8;
+  --accent-bg:#eff4ff;
+  --accent-border:#bfcfff;
+  --warn:#d97706;
+  --warn-bg:#fffbeb;
+  --warn-border:#fcd34d;
+  --success:#059669;
+  --success-bg:#ecfdf5;
+  --danger:#dc2626;
+  --danger-bg:#fef2f2;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',sans-serif;
+  --r:10px;
+  --r-lg:14px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#0d1117;
+    --surface:#161b22;
+    --surface2:#21262d;
+    --border:#30363d;
+    --border-strong:#484f58;
+    --text:#e6edf3;
+    --text-2:#8b949e;
+    --text-3:#484f58;
+    --accent:#4d90fe;
+    --accent-hover:#6aa3ff;
+    --accent-bg:#1c2538;
+    --accent-border:#2d4a8a;
+    --warn:#f59e0b;
+    --warn-bg:#1a1500;
+    --warn-border:#78460a;
+    --success:#34d399;
+    --success-bg:#0a1f17;
+    --danger:#f87171;
+    --danger-bg:#1c0a0a;
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
+  }
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* Layout */
+.app-shell{display:grid;grid-template-rows:auto 1fr;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px}
+.topbar-inner{max-width:1200px;margin:0 auto;height:56px;display:flex;align-items:center;gap:16px}
+.back-link{display:flex;align-items:center;gap:5px;color:var(--text-2);text-decoration:none;font-size:13px;padding:6px 10px;border-radius:8px}
+.back-link:hover{background:var(--surface2);color:var(--text)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.logo-text{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.logo-text span{color:var(--text-2);font-weight:400}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* Main layout */
+.main{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+@media(max-width:900px){.main{grid-template-columns:1fr;padding:16px}}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.card-title svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;color:var(--text-2)}
+.card-body{padding:16px 20px}
+
+/* Buttons */
+btn,button{font-family:var(--sans);cursor:pointer;border:none;background:none;font-size:13px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:background .12s,color .12s,box-shadow .12s;border:1px solid transparent;white-space:nowrap;font-family:var(--sans)}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn-secondary{background:var(--surface2);color:var(--text);border-color:var(--border)}
+.btn-secondary:hover{background:var(--border);border-color:var(--border-strong)}
+.btn-ghost{background:transparent;color:var(--text-2);border-color:transparent;padding:6px 8px}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border-color:transparent}
+.btn-danger:hover{background:#fecaca;color:#b91c1c}
+.btn-warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.btn-warn:hover{background:#fef3c7}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-sm svg{width:13px;height:13px}
+.btn:active{transform:translateY(1px)}
+
+/* Form elements */
+.field{margin-bottom:12px}
+.label{display:block;font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:5px;letter-spacing:.01em}
+textarea,input[type=text]{font-family:var(--mono);font-size:12px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 12px;width:100%;resize:vertical;outline:none;transition:border .15s,box-shadow .15s;line-height:1.5}
+textarea:focus,input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+textarea::placeholder,input::placeholder{color:var(--text-3);font-size:11px}
+select{font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;outline:none;cursor:pointer;transition:border .15s}
+select:focus{border-color:var(--accent)}
+
+/* Badge / chip */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500}
+.badge-blue{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border)}
+.badge-amber{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border)}
+.badge-green{background:var(--success-bg);color:var(--success)}
+
+/* Scenario blocks */
+.scenario-block{border:1px solid var(--border);border-radius:var(--r);background:var(--surface);margin-bottom:12px;overflow:hidden;transition:box-shadow .15s}
+.scenario-block:hover{box-shadow:var(--shadow)}
+.scenario-header{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.scenario-num{width:22px;height:22px;border-radius:6px;background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);display:grid;place-items:center;font-size:11px;font-weight:600;flex-shrink:0}
+.scenario-label{font-size:12px;font-weight:600;color:var(--text-2)}
+.scenario-actions{margin-left:auto;display:flex;gap:2px}
+.scenario-body{padding:14px}
+.scenario-grid{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:10px;align-items:end}
+
+/* Results */
+.result-scenario{margin-bottom:20px}
+.result-scenario-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.result-scenario-title{font-size:13px;font-weight:600}
+.result-meta{font-size:11px;color:var(--text-2);display:flex;gap:12px;flex-wrap:wrap}
+.result-meta strong{color:var(--text);font-weight:600}
+
+/* Table */
+.data-table-wrap{overflow-x:auto;margin:0 -2px}
+table.data-table{width:100%;border-collapse:collapse;font-size:12px}
+table.data-table th{font-size:11px;font-weight:500;color:var(--text-2);text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap;position:sticky;top:0}
+table.data-table td{padding:5px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--text);white-space:nowrap}
+table.data-table tr:last-child td{border-bottom:none}
+table.data-table tr:hover td{background:var(--surface2)}
+
+/* Totals bar */
+.totals-bar{background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:var(--r);padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.totals-item{display:flex;flex-direction:column;gap:2px}
+.totals-item .val{font-size:20px;font-weight:600;color:var(--accent);font-family:var(--mono)}
+.totals-item .lbl{font-size:11px;color:var(--text-2)}
+
+/* Tips card */
+.tips-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.tips-list li{display:flex;gap:8px;font-size:12px;color:var(--text-2);line-height:1.5}
+.tip-dot{width:18px;height:18px;border-radius:5px;background:var(--accent-bg);color:var(--accent);display:grid;place-items:center;flex-shrink:0;font-size:10px;font-weight:700;margin-top:1px}
+
+/* Action bar */
+.action-bar{display:flex;flex-wrap:wrap;gap:8px;padding:14px 20px;border-top:1px solid var(--border);background:var(--surface2)}
+
+/* Empty state */
+.empty-state{padding:32px;text-align:center;color:var(--text-3)}
+.empty-state svg{width:32px;height:32px;stroke:currentColor;fill:none;stroke-width:1.5;margin:0 auto 8px;display:block}
+.empty-state p{font-size:13px}
+
+/* Row counter */
+.row-chip{font-family:var(--mono);font-size:11px;padding:2px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;color:var(--text-2)}
+
+/* Section spacing */
+.col-left{display:flex;flex-direction:column;gap:16px}
+
+/* Scrollable results */
+.results-scroll{max-height:65vh;overflow-y:auto;padding:0}
+
+/* Help modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:0 24px 64px rgba(0,0,0,.2);width:540px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
+.help-step{display:flex;gap:12px;margin-bottom:16px}
+.help-num{width:24px;height:24px;border-radius:999px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:600;flex-shrink:0;margin-top:1px}
+.help-content h4{font-size:13px;font-weight:600;margin-bottom:3px}
+.help-content p{font-size:13px;color:var(--text-2);line-height:1.6}
+
+/* Row count auto-update */
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+
+/* Theme toggle */
+#themeBtn{padding:6px 8px}
+
+/* Subtle divider */
+.divider{height:1px;background:var(--border);margin:0}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+<!-- Top bar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="back-link" href="index.html"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="15 18 9 12 15 6"/></svg>Tools</a>
+    <a class="logo" href="#">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 12h2m14 0h2M12 3v2m0 14v2M5.6 5.6l1.4 1.4m9.9 9.9 1.4 1.4M18.4 5.6l-1.4 1.4M7.1 16.9l-1.4 1.4"/><circle cx="12" cy="12" r="4"/><path d="M12 8v-.5M12 16.5V17"/></svg>
+      </div>
+      <span class="logo-text">Wind Curtailment <span>Loss Calculator</span></span>
+    </a>
+    <div class="topbar-actions">
+      <select id="langSelect">
+        <option value="en">English</option>
+        <option value="de">Deutsch</option>
+      </select>
+      <button class="btn btn-ghost" id="themeBtn" title="Toggle theme">
+        <svg id="themeIcon" viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="btn btn-secondary btn-sm" id="helpBtn">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+        Help
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- Left column -->
+  <div class="col-left">
+
+    <!-- Full data input -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          <span id="t-fullData">Full Data</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="row-chip" id="rowCounter">0 rows</span>
+          <button class="btn btn-ghost btn-sm" id="pasteFull" title="Paste from clipboard">
+            <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            Paste
+          </button>
+          <button class="btn btn-ghost btn-sm" id="clearFull" title="Clear data">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <textarea id="fullData" rows="8" placeholder="Paste full dataset here — CSV or tab-separated. Column 8 = energy (GWh). Rows containing 'sector' in the header are skipped automatically."></textarea>
+        <p style="font-size:11px;color:var(--text-3);margin-top:6px">Col 8 = energy (GWh) · Header rows with "sector" are ignored</p>
+      </div>
+    </div>
+
+    <!-- Curtailment scenarios -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          <span id="t-scenarios">Curtailment Scenarios</span>
+        </div>
+        <button class="btn btn-warn btn-sm" id="addScenario">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="t-add">Add scenario</span>
+        </button>
+      </div>
+      <div class="card-body" style="padding:12px">
+        <div id="scenarioList"></div>
+        <div id="noScenarios" class="empty-state" style="display:none">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          <p>Add at least one curtailment scenario</p>
+        </div>
+      </div>
+      <div class="action-bar">
+        <button class="btn btn-primary" id="calcBtn">
+          <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg>
+          <span id="t-calc">Calculate losses</span>
+        </button>
+        <button class="btn btn-secondary" id="loadExample">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span id="t-example">Load example</span>
+        </button>
+        <button class="btn btn-danger" id="resetAll" style="margin-left:auto">
+          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.2"/></svg>
+          <span id="t-reset">Reset</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right column -->
+  <aside style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- Results -->
+    <div class="card" id="resultsCard" style="display:none">
+      <div class="card-header">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span id="t-results">Results</span>
+        </div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm" id="copyTSV" title="Copy as TSV for Excel">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+          <button class="btn btn-ghost btn-sm" id="downloadXLSX" title="Download Excel">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            .xlsx
+          </button>
+        </div>
+      </div>
+      <div class="results-scroll card-body" id="resultsBody"></div>
+      <div id="totalsBar" style="margin:0 16px 16px"></div>
+    </div>
+
+    <!-- Empty results placeholder -->
+    <div class="card" id="resultsPlaceholder">
+      <div class="card-body empty-state">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <p>Results appear here after calculating</p>
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Tips</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="tips-list">
+          <li><div class="tip-dot">1</div><span>Use ranges like <code style="font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1px 4px;border-radius:4px">51-92</code> or wrap-around <code style="font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1px 4px;border-radius:4px">356-42</code></span></li>
+          <li><div class="tip-dot">2</div><span>Switch locale for correct decimal separators (comma vs period)</span></li>
+          <li><div class="tip-dot">3</div><span>All computation runs locally — no data leaves your browser</span></li>
+          <li><div class="tip-dot">4</div><span>Hit <strong>Auto</strong> inside a scenario to detect sector range from pasted data</span></li>
+        </ul>
+      </div>
+    </div>
+
+  </aside>
+</main>
+
+</div><!-- .app-shell -->
+
+<!-- Help modal -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="t-helpTitle">How to use</span>
+      <button class="btn btn-ghost btn-sm" id="closeHelp">
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="help-step">
+        <div class="help-num">1</div>
+        <div class="help-content">
+          <h4>Paste full data</h4>
+          <p>Copy your full wind sector dataset (CSV or tab-separated). Column 8 must contain energy in GWh. Any row whose text includes "sector" is treated as a header and skipped.</p>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">2</div>
+        <div class="help-content">
+          <h4>Add curtailment scenarios</h4>
+          <p>Add one or more scenarios. Paste the curtailed dataset and enter the turbulence sector range (e.g. <code style="font-family:var(--mono)">51-92</code>). Wrap-around ranges like <code style="font-family:var(--mono)">350-20</code> are supported.</p>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">3</div>
+        <div class="help-content">
+          <h4>Calculate</h4>
+          <p>Click <strong>Calculate losses</strong>. The tool computes sector-by-sector overlap fractions and energy losses in GWh and kWh, then shows combined totals across all scenarios.</p>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">4</div>
+        <div class="help-content">
+          <h4>Export</h4>
+          <p>Copy results as tab-separated values for Excel, or download a formatted <code style="font-family:var(--mono)">.xlsx</code> file with one sheet per scenario plus a summary sheet.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="closeHelp2">Got it</button>
+    </div>
+  </div>
+</div>
+
+<template id="scenarioTpl">
+  <div class="scenario-block">
+    <div class="scenario-header">
+      <div class="scenario-num"></div>
+      <span class="scenario-label"></span>
+      <div class="scenario-actions">
+        <button class="btn btn-ghost btn-sm moveUp" title="Move up">
+          <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <button class="btn btn-ghost btn-sm moveDown" title="Move down">
+          <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <button class="btn btn-ghost btn-sm dupOne" title="Duplicate">
+          <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button class="btn btn-ghost btn-sm removeOne" title="Remove" style="color:var(--danger)">
+          <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="scenario-body">
+      <div class="field">
+        <label class="label curtailLabel">Curtailment data</label>
+        <textarea class="curtailedData" rows="5" placeholder="Paste curtailed dataset here"></textarea>
+      </div>
+      <div class="scenario-grid">
+        <div class="field" style="margin:0">
+          <label class="label rangeLabel">Turbulence range</label>
+          <input type="text" class="turbRange" placeholder="e.g. 51-92 or 356-42"/>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:0">
+          <button class="btn btn-secondary btn-sm pasteOne" title="Paste from clipboard">
+            <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            Paste
+          </button>
+          <button class="btn btn-secondary btn-sm autoRange" title="Auto-detect range from data">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            Auto
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+// ============================================================
+// i18n
+// ============================================================
+const L10N={
+  en:{
+    fullData:'Full Data',scenarios:'Curtailment Scenarios',add:'Add scenario',
+    calc:'Calculate losses',example:'Load example',reset:'Reset',results:'Results',
+    helpTitle:'How to use',scenario:'Scenario',turbRange:'Range',sector:'Sector',
+    angle:'Angle (°)',overlap:'Overlap (°)',fraction:'Fraction',lossGwh:'Loss (GWh)',
+    lossKwh:'Loss (kWh)',totalLoss:'Total loss',lossPct:'Loss %',
+    combinedLoss:'Combined total loss',curtailLabel:'Curtailment data',
+    rangeLabel:'Turbulence range',rangePh:'e.g. 51-92 or 356-42',
+    pasteBtn:'Paste',rows:'rows',row:'row'
+  },
+  de:{
+    fullData:'Vollständige Daten',scenarios:'Abschaltszenarien',add:'Szenario hinzufügen',
+    calc:'Verluste berechnen',example:'Beispiel laden',reset:'Zurücksetzen',results:'Ergebnisse',
+    helpTitle:'Anleitung',scenario:'Szenario',turbRange:'Bereich',sector:'Sektor',
+    angle:'Winkel (°)',overlap:'Überlappung (°)',fraction:'Anteil',lossGwh:'Verlust (GWh)',
+    lossKwh:'Verlust (kWh)',totalLoss:'Gesamtverlust',lossPct:'Verlust %',
+    combinedLoss:'Kumulativer Gesamtverlust',curtailLabel:'Abschalt-Daten',
+    rangeLabel:'Turbulenzbereich',rangePh:'z. B. 51-92 oder 356-42',
+    pasteBtn:'Einfügen',rows:'Zeilen',row:'Zeile'
+  }
+};
+let LANG='en';
+function t(k){return(L10N[LANG]||L10N.en)[k]||k}
+
+// ============================================================
+// Theme
+// ============================================================
+const savedTheme=localStorage.getItem('wc_theme');
+if(savedTheme==='dark'||(savedTheme===null&&matchMedia('(prefers-color-scheme:dark)').matches)){
+  document.documentElement.style.setProperty('--bg','#0d1117');
+}
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const isDark=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()==='#0d1117';
+  // Toggle by adding/removing inline overrides — simplest cross-browser way
+  const root=document.documentElement;
+  if(isDark){
+    // switch to light
+    root.removeAttribute('data-theme');
+    Object.keys({
+      '--bg':'#f7f8fa','--surface':'#ffffff','--surface2':'#f0f2f6','--border':'#e2e5ec',
+      '--border-strong':'#c8ccda','--text':'#111827','--text-2':'#4b5563','--text-3':'#9ca3af',
+      '--accent':'#2563eb','--accent-hover':'#1d4ed8','--accent-bg':'#eff4ff','--accent-border':'#bfcfff',
+      '--warn':'#d97706','--warn-bg':'#fffbeb','--warn-border':'#fcd34d',
+      '--success':'#059669','--success-bg':'#ecfdf5','--danger':'#dc2626','--danger-bg':'#fef2f2',
+      '--shadow':'0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04)'
+    }).forEach(k=>root.style.setProperty(k,{
+      '--bg':'#f7f8fa','--surface':'#ffffff','--surface2':'#f0f2f6','--border':'#e2e5ec',
+      '--border-strong':'#c8ccda','--text':'#111827','--text-2':'#4b5563','--text-3':'#9ca3af',
+      '--accent':'#2563eb','--accent-hover':'#1d4ed8','--accent-bg':'#eff4ff','--accent-border':'#bfcfff',
+      '--warn':'#d97706','--warn-bg':'#fffbeb','--warn-border':'#fcd34d',
+      '--success':'#059669','--success-bg':'#ecfdf5','--danger':'#dc2626','--danger-bg':'#fef2f2',
+      '--shadow':'0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04)'
+    }[k]));
+    localStorage.setItem('wc_theme','light');
+  } else {
+    const dark={
+      '--bg':'#0d1117','--surface':'#161b22','--surface2':'#21262d','--border':'#30363d',
+      '--border-strong':'#484f58','--text':'#e6edf3','--text-2':'#8b949e','--text-3':'#484f58',
+      '--accent':'#4d90fe','--accent-hover':'#6aa3ff','--accent-bg':'#1c2538','--accent-border':'#2d4a8a',
+      '--warn':'#f59e0b','--warn-bg':'#1a1500','--warn-border':'#78460a',
+      '--success':'#34d399','--success-bg':'#0a1f17','--danger':'#f87171','--danger-bg':'#1c0a0a',
+      '--shadow':'0 1px 3px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3)'
+    };
+    Object.entries(dark).forEach(([k,v])=>root.style.setProperty(k,v));
+    localStorage.setItem('wc_theme','dark');
+  }
+});
+
+// ============================================================
+// NUMBER HELPERS — original logic preserved exactly
+// ============================================================
+function normalizeNum(str){
+  if(LANG==='de') return str.replace(/\./g,'').replace(/,/g,'.');
+  return str.replace(/,/g,'');
+}
+function parseN(str){
+  const v=parseFloat(normalizeNum((str||'').trim()));
+  return isNaN(v)?NaN:v;
+}
+function fmt(n,d){
+  let s=Number(n).toFixed(d);
+  if(LANG==='de') s=s.replace('.',',');
+  return s;
+}
+function fmtInt(n){
+  return new Intl.NumberFormat(LANG==='de'?'de-DE':'en-US').format(Math.round(n));
+}
+
+// ============================================================
+// CORE PARSE / MATH — logic unchanged from original
+// ============================================================
+function parseCSV(text){
+  return text.trim().split('\n')
+    .map(l=>l.trim())
+    .filter(l=>l&&!l.toLowerCase().includes('sector'))
+    .map(l=>LANG==='de'?l.split(/\s+|\t/):l.split(/\s+|,|\t/))
+    .filter(r=>r.length>=8&&!isNaN(parseN(r[7])));
+}
+
+function parseRange(r){
+  const parts=r.split(/[-–]/).map(p=>parseN(p.trim()));
+  if(parts.length===2&&parts.every(v=>!isNaN(v))){
+    const[s,e]=parts;
+    return s<=e?[[s,e]]:[[s,360],[0,e]];
+  }
+  return[];
+}
+
+function calcLoss(fullRows,curtRows,ranges){
+  let loss=0;
+  const result=[];
+  for(let i=0;i<Math.min(fullRows.length,curtRows.length);i++){
+    const angle=parseN(fullRows[i][1]);
+    const full=parseN(fullRows[i][7]);
+    const curt=parseN(curtRows[i][7]);
+    const start=(angle-15+360)%360;
+    const end=(angle+15)%360;
+    let overlap=0;
+    for(const[rs,re] of ranges){
+      if(start<end){
+        overlap+=Math.max(0,Math.min(end,re)-Math.max(start,rs));
+      } else {
+        overlap+=Math.max(0,Math.min(360,re)-Math.max(start,rs));
+        overlap+=Math.max(0,Math.min(end,re)-Math.max(0,rs));
+      }
+    }
+    const frac=overlap/30;
+    const lossGwh=(full-curt)*frac;
+    loss+=lossGwh;
+    result.push({sector:i+1,angle,overlap,fraction:frac,full,curt,loss:lossGwh,kwh:lossGwh*1e6});
+  }
+  return{result,totalLoss:loss};
+}
+
+// ============================================================
+// SCENARIO MANAGEMENT
+// ============================================================
+let scenarios=[];
+let nextId=1;
+
+function scenarioTemplate(id,num){
+  const tpl=document.getElementById('scenarioTpl').content.cloneNode(true);
+  const block=tpl.querySelector('.scenario-block');
+  block.dataset.id=id;
+  block.querySelector('.scenario-num').textContent=num;
+  block.querySelector('.scenario-label').textContent=`${t('scenario')} ${num}`;
+  block.querySelector('.curtailLabel').textContent=t('curtailLabel');
+  block.querySelector('.rangeLabel').textContent=t('rangeLabel');
+  block.querySelector('.turbRange').placeholder=t('rangePh');
+  // Actions
+  block.querySelector('.removeOne').addEventListener('click',()=>{removeScenario(id)});
+  block.querySelector('.dupOne').addEventListener('click',()=>{dupScenario(id)});
+  block.querySelector('.moveUp').addEventListener('click',()=>{moveScenario(id,-1)});
+  block.querySelector('.moveDown').addEventListener('click',()=>{moveScenario(id,1)});
+  block.querySelector('.pasteOne').addEventListener('click',async()=>{
+    try{const tx=await navigator.clipboard.readText();block.querySelector('.curtailedData').value=tx;saveState();}catch(e){}
+  });
+  block.querySelector('.autoRange').addEventListener('click',()=>{
+    const rows=parseCSV(block.querySelector('.curtailedData').value);
+    if(rows.length>0){
+      const first=parseN(rows[0][1]);
+      const last=parseN(rows[rows.length-1][1]);
+      const s=(first-15+360)%360;
+      const e=(last+15)%360;
+      block.querySelector('.turbRange').value=`${Math.round(s)}-${Math.round(e)}`;
+      saveState();
+    }
+  });
+  block.querySelector('.curtailedData').addEventListener('input',saveState);
+  block.querySelector('.turbRange').addEventListener('input',saveState);
+  return block;
+}
+
+function addScenario(prefill={}){
+  const id=nextId++;
+  scenarios.push({id,data:prefill.data||'',range:prefill.range||''});
+  renderScenarios();
+  saveState();
+}
+
+function removeScenario(id){
+  scenarios=scenarios.filter(s=>s.id!==id);
+  renderScenarios();
+  saveState();
+}
+
+function dupScenario(id){
+  const s=scenarios.find(x=>x.id===id);
+  if(!s) return;
+  const newId=nextId++;
+  const idx=scenarios.indexOf(s);
+  const block=document.querySelector(`.scenario-block[data-id="${id}"]`);
+  const data=block?.querySelector('.curtailedData').value||s.data;
+  const range=block?.querySelector('.turbRange').value||s.range;
+  scenarios.splice(idx+1,0,{id:newId,data,range});
+  renderScenarios();
+  saveState();
+}
+
+function moveScenario(id,dir){
+  const idx=scenarios.findIndex(s=>s.id===id);
+  if(idx<0) return;
+  const block=document.querySelector(`.scenario-block[data-id="${id}"]`);
+  if(block){
+    scenarios[idx].data=block.querySelector('.curtailedData').value;
+    scenarios[idx].range=block.querySelector('.turbRange').value;
+  }
+  const newIdx=idx+dir;
+  if(newIdx<0||newIdx>=scenarios.length) return;
+  [scenarios[idx],scenarios[newIdx]]=[scenarios[newIdx],scenarios[idx]];
+  renderScenarios();
+  saveState();
+}
+
+function renderScenarios(){
+  const list=document.getElementById('scenarioList');
+  // Capture current values before re-render
+  document.querySelectorAll('.scenario-block').forEach(b=>{
+    const id=parseInt(b.dataset.id);
+    const s=scenarios.find(x=>x.id===id);
+    if(s){s.data=b.querySelector('.curtailedData').value;s.range=b.querySelector('.turbRange').value;}
+  });
+  list.innerHTML='';
+  scenarios.forEach((s,i)=>{
+    const block=scenarioTemplate(s.id,i+1);
+    block.querySelector('.curtailedData').value=s.data||'';
+    block.querySelector('.turbRange').value=s.range||'';
+    list.appendChild(block);
+  });
+  document.getElementById('noScenarios').style.display=scenarios.length?'none':'block';
+}
+
+document.getElementById('addScenario').addEventListener('click',()=>addScenario());
+
+// ============================================================
+// CALCULATE
+// ============================================================
+document.getElementById('calcBtn').addEventListener('click',()=>{
+  const fullRows=parseCSV(document.getElementById('fullData').value);
+  if(!fullRows.length||!scenarios.length){return;}
+
+  // Capture current UI values
+  document.querySelectorAll('.scenario-block').forEach(b=>{
+    const id=parseInt(b.dataset.id);
+    const s=scenarios.find(x=>x.id===id);
+    if(s){s.data=b.querySelector('.curtailedData').value;s.range=b.querySelector('.turbRange').value;}
+  });
+
+  const totalFull=fullRows.reduce((a,r)=>a+parseN(r[7]),0);
+  let grandLoss=0;
+  const sheetData=[];
+  const resultsBody=document.getElementById('resultsBody');
+  resultsBody.innerHTML='';
+
+  scenarios.forEach((s,i)=>{
+    const curtRows=parseCSV(s.data);
+    const ranges=parseRange(s.range);
+    const{result,totalLoss}=calcLoss(fullRows,curtRows,ranges);
+    grandLoss+=totalLoss;
+    const pct=(1-((totalFull-totalLoss)/totalFull))*100;
+
+    // Build scenario result block
+    const wrap=document.createElement('div');
+    wrap.className='result-scenario';
+
+    const hdr=document.createElement('div');
+    hdr.className='result-scenario-header';
+    hdr.innerHTML=`<div class="result-scenario-title">${t('scenario')} ${i+1}<span class="badge badge-amber" style="margin-left:8px;font-family:var(--mono)">${s.range||'—'}</span></div>
+      <div class="result-meta">
+        <span>${t('totalLoss')}: <strong>${fmt(totalLoss,6)} GWh</strong></span>
+        <span>${t('lossPct')}: <strong>${fmt(pct,2)}%</strong></span>
+      </div>`;
+
+    const tableWrap=document.createElement('div');
+    tableWrap.className='data-table-wrap';
+    const tbl=document.createElement('table');
+    tbl.className='data-table';
+    tbl.innerHTML=`<thead><tr>
+      <th>${t('sector')}</th><th>${t('angle')}</th>
+      <th>${t('overlap')}</th><th>${t('fraction')}</th>
+      <th>${t('lossGwh')}</th><th>${t('lossKwh')}</th>
+    </tr></thead>`;
+    const tbody=document.createElement('tbody');
+    result.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${r.sector}</td><td>${fmt(r.angle,0)}</td>
+        <td>${fmt(r.overlap,2)}</td><td>${fmt(r.fraction,4)}</td>
+        <td>${fmt(r.loss,6)}</td><td>${fmtInt(r.kwh)}</td>`;
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    tableWrap.appendChild(tbl);
+    wrap.appendChild(hdr);
+    wrap.appendChild(tableWrap);
+    resultsBody.appendChild(wrap);
+
+    sheetData.push({name:`${t('scenario')} ${i+1}`,rows:result,totalLoss,pct,range:s.range});
+  });
+
+  // Totals
+  const lossTotal=(1-((totalFull-grandLoss)/totalFull))*100;
+  const totalsBar=document.getElementById('totalsBar');
+  totalsBar.innerHTML=`<div class="totals-bar">
+    <div class="totals-item"><span class="val">${fmt(grandLoss,4)} <span style="font-size:13px;font-weight:400">GWh</span></span><span class="lbl">${t('combinedLoss')}</span></div>
+    <div class="totals-item"><span class="val">${fmt(lossTotal,2)}<span style="font-size:13px;font-weight:400"> %</span></span><span class="lbl">${t('lossPct')}</span></div>
+  </div>`;
+
+  window.__sheetData={sheets:sheetData,totals:{grandLoss,lossTotal}};
+  document.getElementById('resultsCard').style.display='';
+  document.getElementById('resultsPlaceholder').style.display='none';
+  saveState();
+});
+
+// ============================================================
+// COPY TSV
+// ============================================================
+document.getElementById('copyTSV').addEventListener('click',async()=>{
+  const sd=window.__sheetData;if(!sd)return;
+  const lines=[];
+  sd.sheets.forEach((s,i)=>{
+    lines.push(`${t('scenario')} ${i+1}\t${t('turbRange')}: ${s.range}`);
+    lines.push([t('sector'),t('angle'),t('overlap'),t('fraction'),t('lossGwh'),t('lossKwh')].join('\t'));
+    s.rows.forEach(r=>lines.push([r.sector,fmt(r.angle,0),fmt(r.overlap,2),fmt(r.fraction,4),fmt(r.loss,6),Math.round(r.kwh)].join('\t')));
+    lines.push(['\t\t\t',t('totalLoss'),fmt(s.totalLoss,6),Math.round(s.totalLoss*1e6)].join('\t'));
+    lines.push(['\t\t\t',t('lossPct'),fmt(s.pct,2)+'%'].join('\t'));
+    lines.push('');
+  });
+  lines.push(`${t('combinedLoss')}\t${fmt(sd.totals.grandLoss,6)}\t${Math.round(sd.totals.grandLoss*1e6)}`);
+  lines.push(`${t('lossPct')}\t${fmt(sd.totals.lossTotal,2)}%`);
+  try{await navigator.clipboard.writeText(lines.join('\n'));}catch(e){console.warn(e);}
+});
+
+// ============================================================
+// DOWNLOAD XLSX
+// ============================================================
+document.getElementById('downloadXLSX').addEventListener('click',()=>{
+  const sd=window.__sheetData;if(!sd)return;
+  const book=XLSX.utils.book_new();
+  sd.sheets.forEach(s=>{
+    const rows=s.rows.map(r=>({
+      [t('sector')]:r.sector,[t('angle')]:r.angle,
+      [t('overlap')]:parseFloat(fmt(r.overlap,2).replace(',','.')),
+      [t('fraction')]:parseFloat(fmt(r.fraction,4).replace(',','.')),
+      [t('lossGwh')]:parseFloat(fmt(r.loss,6).replace(',','.')),
+      [t('lossKwh')]:Math.round(r.kwh)
+    }));
+    const ws=XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.sheet_add_aoa(ws,[[`${t('totalLoss')}`,parseFloat(fmt(s.totalLoss,6).replace(',','.')),'','','',Math.round(s.totalLoss*1e6)]],{origin:-1});
+    XLSX.utils.book_append_sheet(book,ws,(s.name).slice(0,31));
+  });
+  const wsSum=XLSX.utils.aoa_to_sheet([
+    [t('combinedLoss'),parseFloat(fmt(sd.totals.grandLoss,6).replace(',','.'))],
+    [t('lossPct'),parseFloat(fmt(sd.totals.lossTotal,2).replace(',','.'))+' %']
+  ]);
+  XLSX.utils.book_append_sheet(book,wsSum,'Summary');
+  XLSX.writeFile(book,'curtailment_results.xlsx');
+});
+
+// ============================================================
+// CLIPBOARD / CLEAR / EXAMPLE / RESET
+// ============================================================
+document.getElementById('pasteFull').addEventListener('click',async()=>{
+  try{const tx=await navigator.clipboard.readText();document.getElementById('fullData').value=tx;updateCount();saveState();}catch(e){}
+});
+document.getElementById('clearFull').addEventListener('click',()=>{
+  document.getElementById('fullData').value='';updateCount();saveState();
+});
+document.getElementById('loadExample').addEventListener('click',()=>{
+  document.getElementById('fullData').value=
+    `Sector Angle  V1  V2  V3  V4  Hours  GWh\n1 0 4.2 6.9 2.01 6.14 268 0.436\n2 30 5.5 7.2 2.4 6.34 253 0.790\n3 60 5.8 7.2 2.4 6.39 258 0.947\n4 90 6.1 7.3 2.45 6.5 266 0.903`;
+  updateCount();
+  if(scenarios.length===0) addScenario();
+  const firstBlock=document.querySelector('.scenario-block');
+  if(firstBlock){
+    firstBlock.querySelector('.curtailedData').value=
+      `Sector Angle  V1  V2  V3  V4  Hours  GWh\n1 0 4.2 6.9 2.01 6.14 268 0.400\n2 30 5.5 7.2 2.4 6.34 253 0.700\n3 60 5.8 7.2 2.4 6.39 258 0.800\n4 90 6.1 7.3 2.45 6.5 266 0.850`;
+    firstBlock.querySelector('.turbRange').value='15-75';
+  }
+  saveState();
+});
+document.getElementById('resetAll').addEventListener('click',()=>{
+  document.getElementById('fullData').value='';
+  scenarios=[];nextId=1;
+  renderScenarios();addScenario();
+  document.getElementById('resultsBody').innerHTML='';
+  document.getElementById('totalsBar').innerHTML='';
+  document.getElementById('resultsCard').style.display='none';
+  document.getElementById('resultsPlaceholder').style.display='';
+  updateCount();saveState();
+});
+
+// ============================================================
+// ROW COUNTER
+// ============================================================
+function updateCount(){
+  const c=parseCSV(document.getElementById('fullData').value).length;
+  document.getElementById('rowCounter').textContent=`${c} ${c===1?t('row'):t('rows')}`;
+}
+document.getElementById('fullData').addEventListener('input',()=>{updateCount();saveState();});
+
+// ============================================================
+// HELP MODAL
+// ============================================================
+const helpModal=document.getElementById('helpModal');
+document.getElementById('helpBtn').addEventListener('click',()=>helpModal.classList.add('open'));
+document.getElementById('closeHelp').addEventListener('click',()=>helpModal.classList.remove('open'));
+document.getElementById('closeHelp2').addEventListener('click',()=>helpModal.classList.remove('open'));
+helpModal.addEventListener('click',e=>{if(e.target===helpModal)helpModal.classList.remove('open');});
+
+// ============================================================
+// LANG SWITCH
+// ============================================================
+const langSel=document.getElementById('langSelect');
+const defaultLang=(localStorage.getItem('wc_lang'))||((navigator.language||'en').startsWith('de')?'de':'en');
+langSel.value=defaultLang;
+LANG=defaultLang;
+
+langSel.addEventListener('change',()=>{
+  LANG=langSel.value;
+  localStorage.setItem('wc_lang',LANG);
+  applyI18n();saveState();
+});
+
+function applyI18n(){
+  document.getElementById('t-fullData').textContent=t('fullData');
+  document.getElementById('t-scenarios').textContent=t('scenarios');
+  document.getElementById('t-add').textContent=t('add');
+  document.getElementById('t-calc').textContent=t('calc');
+  document.getElementById('t-example').textContent=t('example');
+  document.getElementById('t-reset').textContent=t('reset');
+  document.getElementById('t-results').textContent=t('results');
+  document.getElementById('t-helpTitle').textContent=t('helpTitle');
+  document.querySelectorAll('.curtailLabel').forEach(el=>el.textContent=t('curtailLabel'));
+  document.querySelectorAll('.rangeLabel').forEach(el=>el.textContent=t('rangeLabel'));
+  document.querySelectorAll('.turbRange').forEach((el,i)=>{el.placeholder=t('rangePh');});
+  document.querySelectorAll('.scenario-label').forEach((el,i)=>el.textContent=`${t('scenario')} ${i+1}`);
+  updateCount();
+}
+
+// ============================================================
+// PERSISTENCE
+// ============================================================
+function saveState(){
+  document.querySelectorAll('.scenario-block').forEach(b=>{
+    const id=parseInt(b.dataset.id);
+    const s=scenarios.find(x=>x.id===id);
+    if(s){s.data=b.querySelector('.curtailedData').value;s.range=b.querySelector('.turbRange').value;}
+  });
+  const state={lang:LANG,full:document.getElementById('fullData').value,
+    scenarios:scenarios.map(s=>({id:s.id,data:s.data,range:s.range})),nextId};
+  try{localStorage.setItem('wc_state',JSON.stringify(state));}catch(e){}
+}
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem('wc_state');
+    if(!raw){addScenario();return;}
+    const st=JSON.parse(raw);
+    LANG=st.lang||LANG;
+    langSel.value=LANG;
+    document.getElementById('fullData').value=st.full||'';
+    scenarios=[];
+    nextId=st.nextId||1;
+    (st.scenarios||[]).forEach(s=>{scenarios.push({id:s.id,data:s.data||'',range:s.range||''});});
+    if(!scenarios.length) addScenario();
+    else renderScenarios();
+  }catch(e){addScenario();}
+  applyI18n();
+  updateCount();
+}
+
+// Init
+loadState();
+applyI18n();
+</script>
+</body>
+</html>
