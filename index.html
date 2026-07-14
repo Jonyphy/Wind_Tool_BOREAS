@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Wind Analysis Tools</title>
+<title data-i18n="title">Wind Analysis Tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -13,6 +13,7 @@
   --text:#111827;--text-2:#4b5563;--text-3:#9ca3af;
   --blue:#2563eb;--blue-bg:#eff4ff;--blue-border:#bfcfff;
   --violet:#7c3aed;--violet-bg:#f5f1ff;--violet-border:#d6c7fb;
+  --teal:#0e7c8a;--teal-bg:#e3f6f8;--teal-border:#a9dce3;
   --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
   --r-lg:16px;--shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
   --shadow-hover:0 4px 12px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.08);
@@ -22,6 +23,7 @@ html[data-theme=dark]{
   --text:#e6edf3;--text-2:#8b949e;--text-3:#6e7681;
   --blue:#4d90fe;--blue-bg:#1c2538;--blue-border:#2d4a8a;
   --violet:#a78bfa;--violet-bg:#221a38;--violet-border:#4c3a80;
+  --teal:#3bc9db;--teal-bg:#122a30;--teal-border:#1f5a66;
   --shadow:0 1px 3px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
   --shadow-hover:0 4px 12px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.45);
 }
@@ -31,7 +33,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-.02em}
 .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--blue),var(--violet));border-radius:8px;display:grid;place-items:center}
 .logo-icon svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.theme-btn{margin-left:auto;background:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--text-2);font-family:var(--sans);font-size:12px}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.lang-switch{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.lang-switch button{background:none;border:none;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.03em;padding:6px 10px;cursor:pointer;color:var(--text-3)}
+.lang-switch button:hover{background:var(--surface2)}
+.lang-switch button.on{background:var(--blue);color:#fff}
+.theme-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--text-2);font-family:var(--sans);font-size:12px}
 .theme-btn:hover{background:var(--surface2)}
 .hero{max-width:1000px;margin:0 auto;padding:56px 24px 8px;width:100%}
 .hero h1{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.2}
@@ -48,11 +55,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .tc-violet .tool-icon{background:var(--violet-bg);border:1px solid var(--violet-border)}
 .tc-violet .tool-icon svg{stroke:var(--violet)}
 .tc-violet:hover{border-color:var(--violet-border)}
+.tc-teal .tool-icon{background:var(--teal-bg);border:1px solid var(--teal-border)}
+.tc-teal .tool-icon svg{stroke:var(--teal)}
+.tc-teal:hover{border-color:var(--teal-border)}
 .tool-card h2{font-size:16px;font-weight:600;letter-spacing:-.01em}
 .tool-card p{font-size:13px;color:var(--text-2);flex:1}
 .tool-open{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
 .tc-blue .tool-open{color:var(--blue)}
 .tc-violet .tool-open{color:var(--violet)}
+.tc-teal .tool-open{color:var(--teal)}
 .tool-open svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
 .tool-card:hover .tool-open svg{transform:translateX(3px)}
 .tool-tags{display:flex;gap:6px;flex-wrap:wrap}
@@ -70,53 +81,127 @@ footer .inner{max-width:1000px;margin:0 auto;padding:16px 24px;font-size:12px;co
   <div class="topbar-inner">
     <div class="logo">
       <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg></div>
-      Wind Analysis Tools
+      <span data-i18n="brand">Wind Analysis Tools</span>
     </div>
-    <button class="theme-btn" id="themeBtn">Theme</button>
+    <div class="topbar-actions">
+      <div class="lang-switch">
+        <button type="button" data-lang="en" onclick="setLang('en')">EN</button>
+        <button type="button" data-lang="de" onclick="setLang('de')">DE</button>
+      </div>
+      <button class="theme-btn" id="themeBtn" data-i18n="theme">Theme</button>
+    </div>
   </div>
 </header>
 
 <section class="hero">
-  <h1>Curtailment loss calculators</h1>
-  <p>Browser-based tools for wind farm curtailment analysis. All computation runs locally &mdash; no data leaves your machine.</p>
+  <h1 data-i18n="hero_h1">Curtailment loss calculators</h1>
+  <p data-i18n="hero_p">Browser-based tools for wind farm curtailment analysis. All computation runs locally &mdash; no data leaves your machine.</p>
 </section>
 
 <main class="grid">
 
   <a class="tool-card tc-violet" href="fledermaus.html">
     <div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 9 9 9 9 0 1 1-9-9z"/><path d="M15 8h.01M17 11h.01"/></svg></div>
-    <h2>Fledermaus &middot; Bat Curtailment</h2>
-    <p>Bat protection shutdown losses per turbine using night-tenth (NZ) time windows, monthly wind speed thresholds and temperature filters. Sector-Weibull or full time-series method.</p>
-    <div class="tool-tags"><span class="tag">Weibull</span><span class="tag">Time series</span><span class="tag">NZ0&ndash;NZ10</span><span class="tag">.xlsx export</span></div>
-    <span class="tool-open">Open calculator <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    <h2 data-i18n="c1_h2">Fledermaus &middot; Bat Curtailment</h2>
+    <p data-i18n="c1_p">Bat protection shutdown losses per turbine using night-tenth (NZ) time windows, monthly wind speed thresholds and temperature filters. Sector-Weibull or full time-series method.</p>
+    <div class="tool-tags" data-i18n="c1_tags"><span class="tag">Weibull</span><span class="tag">Time series</span><span class="tag">NZ0&ndash;NZ10</span><span class="tag">.xlsx export</span></div>
+    <span class="tool-open"><span data-i18n="open_calc">Open calculator</span> <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
   </a>
 
   <a class="tool-card tc-blue" href="turbulence.html">
     <div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg></div>
-    <h2>Turbulence Curtailment</h2>
-    <p>Sector-wise energy losses from turbulence curtailment. Compare full vs. curtailed datasets across multiple scenarios with wrap-around sector ranges.</p>
-    <div class="tool-tags"><span class="tag">Sector overlap</span><span class="tag">Multi-scenario</span><span class="tag">EN/DE</span><span class="tag">.xlsx export</span></div>
-    <span class="tool-open">Open calculator <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    <h2 data-i18n="c2_h2">Turbulence Curtailment</h2>
+    <p data-i18n="c2_p">Sector-wise energy losses from turbulence curtailment. Compare full vs. curtailed datasets across multiple scenarios with wrap-around sector ranges.</p>
+    <div class="tool-tags" data-i18n="c2_tags"><span class="tag">Sector overlap</span><span class="tag">Multi-scenario</span><span class="tag">EN/DE</span><span class="tag">.xlsx export</span></div>
+    <span class="tool-open"><span data-i18n="open_calc">Open calculator</span> <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+  </a>
+
+  <a class="tool-card tc-teal" href="bericht.html">
+    <div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/></svg></div>
+    <h2 data-i18n="c3_h2">BOREAS &middot; Report Generator</h2>
+    <p data-i18n="c3_p">Build a print-ready technical report (PDF): header data, site plans, Excel tables with colours preserved, source documents and remarks. A3/A4, EN/DE.</p>
+    <div class="tool-tags" data-i18n="c3_tags"><span class="tag">PDF export</span><span class="tag">Excel paste</span><span class="tag">A3 &middot; A4</span><span class="tag">EN/DE</span></div>
+    <span class="tool-open"><span data-i18n="open_gen">Open generator</span> <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
   </a>
 
   <div class="tool-card placeholder-card">
     <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    <p>Next calculator goes here.<br/>Copy a tool page, adjust the logic, add a card.</p>
+    <p data-i18n="ph_card">Next tool goes here.<br/>Copy a page, adjust the logic, add a card.</p>
   </div>
 
 </main>
 
-<footer><div class="inner"><span>Wind Analysis Tools</span><span>Runs fully client-side &middot; suitable for GitHub Pages</span></div></footer>
+<footer><div class="inner"><span data-i18n="foot_left">Wind Analysis Tools</span><span data-i18n="foot_right">Runs fully client-side &middot; suitable for GitHub Pages</span></div></footer>
 
 <script>
+/* ---------- theme ---------- */
 const root=document.documentElement;
-const saved=localStorage.getItem('wt_theme');
-if(saved==='dark'||(saved===null&&matchMedia('(prefers-color-scheme:dark)').matches))root.dataset.theme='dark';
+const savedTheme=localStorage.getItem('wt_theme');
+if(savedTheme==='dark'||(savedTheme===null&&matchMedia('(prefers-color-scheme:dark)').matches))root.dataset.theme='dark';
 document.getElementById('themeBtn').addEventListener('click',()=>{
   const d=root.dataset.theme==='dark';
   root.dataset.theme=d?'':'dark';
   localStorage.setItem('wt_theme',d?'light':'dark');
 });
+
+/* ---------- language (EN / DE) ---------- */
+const T={
+  en:{
+    title:"Wind Analysis Tools",
+    brand:"Wind Analysis Tools",
+    theme:"Theme",
+    hero_h1:"Curtailment loss calculators",
+    hero_p:"Browser-based tools for wind farm curtailment analysis. All computation runs locally \u2014 no data leaves your machine.",
+    c1_h2:"Fledermaus \u00b7 Bat Curtailment",
+    c1_p:"Bat protection shutdown losses per turbine using night-tenth (NZ) time windows, monthly wind speed thresholds and temperature filters. Sector-Weibull or full time-series method.",
+    c1_tags:'<span class="tag">Weibull</span><span class="tag">Time series</span><span class="tag">NZ0\u2013NZ10</span><span class="tag">.xlsx export</span>',
+    c2_h2:"Turbulence Curtailment",
+    c2_p:"Sector-wise energy losses from turbulence curtailment. Compare full vs. curtailed datasets across multiple scenarios with wrap-around sector ranges.",
+    c2_tags:'<span class="tag">Sector overlap</span><span class="tag">Multi-scenario</span><span class="tag">EN/DE</span><span class="tag">.xlsx export</span>',
+    c3_h2:"BOREAS \u00b7 Report Generator",
+    c3_p:"Build a print-ready technical report (PDF): header data, site plans, Excel tables with colours preserved, source documents and remarks. A3/A4, EN/DE.",
+    c3_tags:'<span class="tag">PDF export</span><span class="tag">Excel paste</span><span class="tag">A3 \u00b7 A4</span><span class="tag">EN/DE</span>',
+    open_calc:"Open calculator",
+    open_gen:"Open generator",
+    ph_card:"Next tool goes here.<br>Copy a page, adjust the logic, add a card.",
+    foot_left:"Wind Analysis Tools",
+    foot_right:"Runs fully client-side \u00b7 suitable for GitHub Pages"
+  },
+  de:{
+    title:"Windanalyse-Tools",
+    brand:"Windanalyse-Tools",
+    theme:"Ansicht",
+    hero_h1:"Rechner f\u00fcr Abschaltverluste",
+    hero_p:"Browserbasierte Werkzeuge zur Analyse von Abschaltverlusten in Windparks. Alle Berechnungen laufen lokal \u2014 es werden keine Daten \u00fcbertragen.",
+    c1_h2:"Fledermaus \u00b7 Abschaltung Fledermausschutz",
+    c1_p:"Abschaltverluste durch Fledermausschutz je Anlage \u2013 mit Nachtzehntel-Zeitfenstern (NZ), monatlichen Windgeschwindigkeits-Schwellen und Temperaturfiltern. Sektor-Weibull- oder Zeitreihen-Methode.",
+    c1_tags:'<span class="tag">Weibull</span><span class="tag">Zeitreihe</span><span class="tag">NZ0\u2013NZ10</span><span class="tag">.xlsx-Export</span>',
+    c2_h2:"Turbulenz-Abschaltung",
+    c2_p:"Sektorweise Energieverluste durch Turbulenz-Abschaltung. Vergleich von vollst\u00e4ndigen und abgeschalteten Datens\u00e4tzen \u00fcber mehrere Szenarien mit Sektor\u00fcberlappung.",
+    c2_tags:'<span class="tag">Sektor\u00fcberlappung</span><span class="tag">Mehr-Szenarien</span><span class="tag">EN/DE</span><span class="tag">.xlsx-Export</span>',
+    c3_h2:"BOREAS \u00b7 Berichtsgenerator",
+    c3_p:"Erstelle einen druckfertigen technischen Bericht (PDF): Kopfdaten, Lagepl\u00e4ne, Excel-Tabellen mit erhaltenen Farben, verwendete Unterlagen und Bemerkungen. A3/A4, EN/DE.",
+    c3_tags:'<span class="tag">PDF-Export</span><span class="tag">Excel einf\u00fcgen</span><span class="tag">A3 \u00b7 A4</span><span class="tag">EN/DE</span>',
+    open_calc:"Rechner \u00f6ffnen",
+    open_gen:"Generator \u00f6ffnen",
+    ph_card:"N\u00e4chstes Tool kommt hierhin.<br>Eine Seite kopieren, Logik anpassen, Karte hinzuf\u00fcgen.",
+    foot_left:"Windanalyse-Tools",
+    foot_right:"L\u00e4uft vollst\u00e4ndig im Browser \u00b7 geeignet f\u00fcr GitHub Pages"
+  }
+};
+function applyLang(lang){
+  const dict=T[lang]||T.en;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    if(dict[k]!=null) el.innerHTML=dict[k];
+  });
+  document.title=dict.title;
+  document.documentElement.lang=lang;
+  document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('on', b.dataset.lang===lang));
+}
+function setLang(lang){ localStorage.setItem('wt_lang',lang); applyLang(lang); }
+const savedLang=localStorage.getItem('wt_lang') || (navigator.language && navigator.language.toLowerCase().startsWith('de') ? 'de' : 'en');
+applyLang(savedLang);
 </script>
 </body>
 </html>
