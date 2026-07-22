@@ -91,23 +91,11 @@
     .custom-dur span { font-size:13px; color:var(--text3); white-space:nowrap; }
     .warning-note { background:rgba(248,169,61,.08); border:1px solid rgba(248,169,61,.2); border-radius:8px; padding:10px 14px; font-size:12px; color:var(--orange); margin-top:16px; }
     /* Admin styles */
-    .cred-box { background:var(--surface2); border-radius:10px; padding:16px 18px; margin-bottom:12px; border:1px solid var(--border); }
-    .cred-title { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:10px; font-weight:600; }
-    .cred-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px; }
-    .cred-label { font-size:12px; color:var(--text2); }
-    .cred-val { font-family:monospace; font-size:13px; color:var(--text); background:rgba(61,142,248,.1); padding:2px 8px; border-radius:5px; word-break:break-all; }
-    .cred-pw { display:flex; align-items:center; gap:8px; }
-    .cred-pw-val { font-family:monospace; font-size:13px; color:var(--text); background:rgba(61,142,248,.1); padding:2px 8px; border-radius:5px; letter-spacing:2px; }
-    .btn-eye { background:transparent; border:none; color:var(--text3); cursor:pointer; font-size:15px; padding:2px 4px; }
     .admin-section { margin-top:20px; border-top:1px solid var(--border); padding-top:20px; }
     .admin-section-title { font-size:13px; color:var(--text2); font-weight:600; margin-bottom:12px; }
     .admin-action-btn { width:100%; background:rgba(248,92,92,.1); color:var(--red); border:1px solid rgba(248,92,92,.25); border-radius:9px; padding:11px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-body); transition:all .2s; margin-bottom:8px; }
     .admin-action-btn:hover { background:rgba(248,92,92,.2); }
     .admin-action-btn.neutral { color:var(--text3); border-color:var(--border); background:var(--surface2); }
-    .pw-edit-row { display:flex; gap:8px; margin-top:8px; }
-    .pw-edit-row input { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; color:var(--text); font-size:13px; font-family:var(--font-body); outline:none; }
-    .pw-edit-row input:focus { border-color:var(--accent); }
-    .pw-edit-row button { background:linear-gradient(135deg,var(--accent),#6a5af9); color:#fff; border:none; border-radius:8px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-body); white-space:nowrap; }
     .divider { height:1px; background:var(--border); margin:16px 0; }
     .toast { position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 20px; font-size:13px; color:var(--text); box-shadow:var(--shadow); z-index:200; transform:translateY(80px); opacity:0; transition:all .3s; }
     .toast.show { transform:translateY(0); opacity:1; }
@@ -127,7 +115,7 @@
   </div>
   <div class="header-right">
     <div class="live-badge"><div class="live-dot"></div>Live-Status</div>
-    <button class="btn-admin" onclick="openAdmin()">🔐 Admin</button>
+    <button class="btn-admin" onclick="openAdmin()">⚙️ Verwaltung</button>
   </div>
 </header>
 
@@ -202,69 +190,25 @@
   </div>
 </div>
 
-<!-- ADMIN MODAL -->
+<!-- VERWALTUNGS-MODAL -->
 <div class="overlay" id="adminOverlay">
   <div class="modal">
-    <div class="modal-title">🔐 Admin-Zugang</div>
-    <div class="modal-sub" id="adminModalSub">Gib das Admin-Passwort ein.</div>
+    <div class="modal-title">⚙️ Verwaltung</div>
+    <div class="modal-sub">Sitzungen zurücksetzen und das Protokoll leeren.</div>
 
-    <!-- Step 1: password input -->
-    <div id="adminLoginStep">
-      <div class="form-group">
-        <label>Admin-Passwort</label>
-        <input type="password" id="adminPwInput" placeholder="Passwort…" onkeydown="if(event.key==='Enter')checkAdmin()" />
-      </div>
-      <div id="adminError" style="display:none;color:var(--red);font-size:13px;margin-bottom:8px;">❌ Falsches Passwort</div>
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeAdmin()">Schließen</button>
-        <button class="btn-primary" onclick="checkAdmin()">Einloggen</button>
-      </div>
+    <div class="admin-section" style="border-top:none; padding-top:0; margin-top:18px;">
+      <div class="admin-section-title">Sitzungen verwalten</div>
+      <button class="admin-action-btn" onclick="adminForceRelease(0)">🔓 Konto 1 zwangsweise freigeben</button>
+      <button class="admin-action-btn" onclick="adminForceRelease(1)">🔓 Konto 2 zwangsweise freigeben</button>
+      <button class="admin-action-btn neutral" onclick="adminClearLog()">🗑 Protokoll löschen</button>
     </div>
 
-    <!-- Step 2: admin panel (shown after correct password) -->
-    <div id="adminPanel" style="display:none;">
+    <div class="warning-note" style="margin-top:18px;">
+      🔑 Konto-Passwörter werden hier bewusst nicht mehr gespeichert. Bitte einen Passwort-Manager verwenden.
+    </div>
 
-      <!-- Account credentials (loaded from Firebase, only visible here) -->
-      <div class="cred-box" id="credBox0">
-        <div class="cred-title">Konto 1 — d.lafeld@boreas.de</div>
-        <div class="cred-row">
-          <span class="cred-label">Passwort</span>
-          <div class="cred-pw">
-            <span class="cred-pw-val" id="pw0Val">••••••••</span>
-            <button class="btn-eye" onclick="togglePw(0)" title="Anzeigen">👁</button>
-          </div>
-        </div>
-        <div class="pw-edit-row">
-          <input type="password" id="pw0Input" placeholder="Neues Passwort eingeben…" />
-          <button onclick="savePassword(0)">Speichern</button>
-        </div>
-      </div>
-
-      <div class="cred-box" id="credBox1">
-        <div class="cred-title">Konto 2 — rn.jony@boreas.de</div>
-        <div class="cred-row">
-          <span class="cred-label">Passwort</span>
-          <div class="cred-pw">
-            <span class="cred-pw-val" id="pw1Val">••••••••</span>
-            <button class="btn-eye" onclick="togglePw(1)" title="Anzeigen">👁</button>
-          </div>
-        </div>
-        <div class="pw-edit-row">
-          <input type="password" id="pw1Input" placeholder="Neues Passwort eingeben…" />
-          <button onclick="savePassword(1)">Speichern</button>
-        </div>
-      </div>
-
-      <div class="admin-section">
-        <div class="admin-section-title">⚙️ Sitzungen verwalten</div>
-        <button class="admin-action-btn" onclick="adminForceRelease(0)">🔓 Konto 1 zwangsweise freigeben</button>
-        <button class="admin-action-btn" onclick="adminForceRelease(1)">🔓 Konto 2 zwangsweise freigeben</button>
-        <button class="admin-action-btn neutral" onclick="adminClearLog()">🗑 Protokoll löschen</button>
-      </div>
-
-      <div class="modal-actions" style="margin-top:20px;">
-        <button class="btn-secondary" onclick="closeAdmin()">Schließen</button>
-      </div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn-secondary" onclick="closeAdmin()">Schließen</button>
     </div>
   </div>
 </div>
@@ -276,14 +220,10 @@
   // FIREBASE — hardcoded, no user setup needed
   // ═══════════════════════════════════════════════
   const FB_URL = 'https://boreas-konto-f2e-default-rtdb.europe-west1.firebasedatabase.app';
-  const ADMIN_PASSWORD = '12345'; // change this to your preferred admin password
-
   const ACCOUNT_EMAILS = ['d.lafeld@boreas.de', 'rn.jony@boreas.de'];
 
-  // Passwords are stored ONLY in Firebase under /passwords/
-  // They are never in the HTML file — only visible after admin login
-  let cachedPasswords = [null, null];
-  let pwVisible = [false, false];
+  // Hinweis: Diese Seite speichert bewusst KEINE Konto-Passwoerter.
+  // Die Datenbank enthaelt nur /sessions und /log.
 
   // ═══════════════════════════════════════════════
   // FIREBASE REST
@@ -478,58 +418,11 @@
   // ADMIN
   // ═══════════════════════════════════════════════
   function openAdmin() {
-    document.getElementById('adminPwInput').value = '';
-    document.getElementById('adminPanel').style.display = 'none';
-    document.getElementById('adminLoginStep').style.display = 'block';
-    document.getElementById('adminError').style.display = 'none';
     document.getElementById('adminOverlay').classList.add('show');
-    setTimeout(() => document.getElementById('adminPwInput').focus(), 100);
   }
 
   function closeAdmin() {
     document.getElementById('adminOverlay').classList.remove('show');
-    // Hide passwords again on close for security
-    pwVisible = [false, false];
-    document.getElementById('pw0Val').textContent = '••••••••';
-    document.getElementById('pw1Val').textContent = '••••••••';
-  }
-
-  async function checkAdmin() {
-    if (document.getElementById('adminPwInput').value !== ADMIN_PASSWORD) {
-      document.getElementById('adminError').style.display = 'block';
-      return;
-    }
-    document.getElementById('adminLoginStep').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'block';
-    // Load passwords from Firebase (only visible here, never in page source)
-    try {
-      const pws = await fbGet('passwords');
-      cachedPasswords[0] = (pws && pws['0']) ? pws['0'] : '(noch nicht gesetzt)';
-      cachedPasswords[1] = (pws && pws['1']) ? pws['1'] : '(noch nicht gesetzt)';
-    } catch(e) {
-      cachedPasswords = ['(Fehler beim Laden)', '(Fehler beim Laden)'];
-    }
-  }
-
-  function togglePw(idx) {
-    pwVisible[idx] = !pwVisible[idx];
-    const el = document.getElementById(`pw${idx}Val`);
-    el.textContent = pwVisible[idx] ? (cachedPasswords[idx] || '(nicht gesetzt)') : '••••••••';
-  }
-
-  async function savePassword(idx) {
-    const input = document.getElementById(`pw${idx}Input`);
-    const val = input.value.trim();
-    if (!val) { showToast('❗ Passwort darf nicht leer sein.', 'error'); return; }
-    try {
-      await fbSet(`passwords/${idx}`, val);
-      cachedPasswords[idx] = val;
-      if (pwVisible[idx]) document.getElementById(`pw${idx}Val`).textContent = val;
-      input.value = '';
-      showToast(`✅ Passwort für Konto ${idx+1} gespeichert.`, 'success');
-    } catch(e) {
-      showToast('❌ Fehler beim Speichern.', 'error');
-    }
   }
 
   async function adminForceRelease(idx) {
