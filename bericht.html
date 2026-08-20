@@ -242,7 +242,7 @@
   /* calc body region (the part we paginate into) */
   .calc-body{flex:1;min-height:0;margin-top:18px;}
   .calc-table{border-collapse:collapse;width:auto;}
-  .calc-table td,.calc-table th{border:1px solid #9aa7b2;padding:1px 4px;vertical-align:middle;white-space:nowrap;line-height:1.2;}
+  .calc-table td,.calc-table th{border:1px solid #9aa7b2;padding:var(--cpad,1px) 4px;vertical-align:middle;white-space:nowrap;line-height:1.2;}
   .calc-table th{background:#e4e9ee;font-weight:700;}
 
   /* summary rows (Mittelwert / Summe / …): values stay in their own columns,
@@ -251,6 +251,15 @@
   .calc-table tr.sum-row > .sum-gap{border:none;background:transparent;}
   .calc-table tr.sum-top > td,.calc-table tr.sum-top > th{border-top:1.8px solid #0B2540;}
   .calc-table tr.sum-top > .sum-gap{border-left:none;border-right:none;border-bottom:none;border-top:1.8px solid #0B2540;}
+  /* “professional” look: no grid, no fill — a typographic total band under the data */
+  .calc-table tr.sum-pro > td,.calc-table tr.sum-pro > th{
+    background:transparent;color:#0B2540;letter-spacing:.01em;
+    border-left:none;border-right:none;border-bottom:none;
+    padding-top:calc(var(--cpad,1px) + 4px);padding-bottom:calc(var(--cpad,1px) + 2px);
+  }
+  .calc-table tr.sum-pro.sum-top > td,.calc-table tr.sum-pro.sum-top > th{border-top:1.8px solid #0B2540;}
+  .calc-table tr.sum-pro.sum-last > td,.calc-table tr.sum-pro.sum-last > th{border-bottom:3px double #0B2540;padding-bottom:calc(var(--cpad,1px) + 4px);}
+  .calc-table tr.sum-pro.sum-last > .sum-gap{border-bottom:none;}
 
   .calc-img-block{margin-bottom:14px;text-align:center;}
   .calc-img-block img{max-width:100%;border:1px solid var(--line);border-radius:8px;}
@@ -602,6 +611,16 @@ const DYN = {
   sum_nofound:{de:"Keine Summenzeilen erkannt", en:"No summary rows detected"},
   sum_words_fixed:{de:"Standard:", en:"Built-in:"},
   adv_toggle:{de:"⚙ Erweiterte Optionen", en:"⚙ Advanced options"},
+  row_height:{de:"Zeilenhöhe:", en:"Row height:"},
+  rh_tight:{de:"Eng", en:"Tight"},
+  rh_normal:{de:"Normal", en:"Normal"},
+  rh_wide:{de:"Weit", en:"Wide"},
+  rh_xwide:{de:"Sehr weit", en:"Extra wide"},
+  brk_before:{de:"Tabelle auf neuer Seite beginnen", en:"Start table on a new page"},
+  brk_after:{de:"Danach Seitenumbruch (nächste Tabelle auf neuer Seite)", en:"Page break after (next table on a new page)"},
+  sum_style:{de:"Darstellung:", en:"Style:"},
+  sum_style_pro:{de:"Professionell (ohne Gitter)", en:"Professional (no grid)"},
+  sum_style_excel:{de:"Wie Excel (Farben behalten)", en:"Like Excel (keep colours)"},
   copy_link:{de:"Link kopieren", en:"Copy link"},
   copied:{de:"Link kopiert", en:"Link copied"}
 };
@@ -835,7 +854,11 @@ function blockFromTable(el){
     headerCount: detectHeaderRows(el),    // how many top rows are the (repeating) header
     cols,
     total: trs.length,
-    html: el.outerHTML
+    html: el.outerHTML,
+    // starting settings for a NEW table — changeable per card afterwards
+    rowPad: 3,           // Zeilenhöhe: Weit
+    sumMode: "auto",     // Summenzeilen: automatisch erkennen
+    sumStyle: "excel"    // Darstellung: wie Excel (Farben behalten)
   };
 }
 // ensure older saved blocks (with thead/rows) get the new shape
@@ -891,7 +914,7 @@ function findSumStart(rows, mode, nManual){
 /* drops blank spacer rows inside/above the block and returns clean rows + start index */
 function prepRows(t){
   const rows=tableBody(t);
-  const mode=t.sumMode||"auto";
+  const mode=t.sumMode||"none";
   const start=findSumStart(rows, mode, t.sumN);
   if(start<0) return {rows:rows.slice(), sumStart:-1};
   const info=classifyRows(rows);
@@ -906,14 +929,17 @@ function prepRows(t){
   return {rows:out, sumStart:newStart>=out.length?-1:newStart};
 }
 /* visual treatment: keep values in their columns, merge empty cells borderless, rule on top */
-function applySumStyle(tableEl, headerRowCount, sumStartInBody){
+function applySumStyle(tableEl, headerRowCount, sumStartInBody, style){
   if(sumStartInBody==null || sumStartInBody<0) return;
+  const pro = (style||"pro")==="pro";
   const rows=[...tableEl.rows];
   const first=headerRowCount+sumStartInBody;
   for(let r=first;r<rows.length;r++){
     const tr=rows[r];
     tr.classList.add("sum-row");
+    if(pro) tr.classList.add("sum-pro");
     if(r===first) tr.classList.add("sum-top");
+    if(r===rows.length-1) tr.classList.add("sum-last");
     const cells=[...tr.cells];
     let i=0;
     while(i<cells.length){
@@ -926,7 +952,14 @@ function applySumStyle(tableEl, headerRowCount, sumStartInBody){
         keep.colSpan=span; keep.className="sum-gap"; keep.removeAttribute("style"); keep.innerHTML="";
         for(let k=i+1;k<=j;k++) cells[k].remove();
         i=j+1;
-      } else i++;
+      } else {
+        if(pro){                       // drop Excel's fill/colour, keep the alignment
+          const sty=(cells[i].getAttribute("style")||"")
+            .split(";").filter(d=>/text-align/i.test(d)).join(";");
+          if(sty) cells[i].setAttribute("style", sty); else cells[i].removeAttribute("style");
+        }
+        i++;
+      }
     }
   }
 }
@@ -940,7 +973,9 @@ function renderCards(){
   state.tables.forEach((t,i)=>{
     const filled=!!t.allRows;
     const hc=filled?(t.headerCount||1):1;
-    const mode=t.sumMode||"auto";
+    const mode=t.sumMode||"none";
+    const sumStyle=t.sumStyle||"pro";
+    const rowPad=(t.rowPad==null?1:t.rowPad);
     const adv=!!t.advOpen;
     let sumInfo="";
     if(filled && adv){
@@ -972,7 +1007,7 @@ function renderCards(){
         <label class="hcrow" style="margin-bottom:8px;">${tt("header_rows")}
           <input class="hc-input" type="number" min="1" max="5" value="${hc}" data-id="${t.id}"></label>
         <label class="hcrow" style="margin:0;">${tt("space_after")}
-          <input class="sp-input hc-input" type="number" min="0" max="10" step="1" value="${t.spaceAfter||0}" data-id="${t.id}"></label>
+          <input class="sp-input hc-input" type="number" min="0" max="40" step="1" value="${t.spaceAfter||0}" data-id="${t.id}"></label>
         <button class="adv-toggle ${adv?"on":""}" type="button" data-act="adv" data-id="${t.id}">${tt("adv_toggle")} ${adv?"▴":"▾"}</button>
         <div class="tcard-adv" style="display:${adv?"block":"none"};">
           <div class="hcrow" style="margin-bottom:8px;">${tt("tbl_font")}
@@ -980,6 +1015,13 @@ function renderCards(){
             <span style="font-weight:700;">pt</span>
             <button class="icon-btn" title="${tt('tbl_font_def')}" data-act="fontdef" data-id="${t.id}">↺</button>
           </div>
+          <label class="hcrow" style="margin-bottom:8px;">${tt("row_height")}
+            <select class="tt-rowpad" data-id="${t.id}" style="flex:1;padding:6px 8px;font-size:13px;">
+              <option value="0" ${rowPad===0?"selected":""}>${tt("rh_tight")}</option>
+              <option value="1" ${rowPad===1?"selected":""}>${tt("rh_normal")}</option>
+              <option value="3" ${rowPad===3?"selected":""}>${tt("rh_wide")}</option>
+              <option value="6" ${rowPad===6?"selected":""}>${tt("rh_xwide")}</option>
+            </select></label>
           <label class="hcrow" style="margin-bottom:8px;">${tt("sum_mode")}
             <select class="tt-summode" data-id="${t.id}" style="flex:1;padding:6px 8px;font-size:13px;">
               <option value="auto" ${mode==="auto"?"selected":""}>${tt("sum_auto")}</option>
@@ -988,8 +1030,18 @@ function renderCards(){
             </select></label>
           <label class="hcrow" style="margin-bottom:8px;display:${mode==="n"?"flex":"none"};">${tt("sum_count")}
             <input class="tt-sumn hc-input" type="number" min="1" max="12" value="${t.sumN||2}" data-id="${t.id}"></label>
-          <label class="hcrow" style="margin:0;gap:6px;cursor:pointer;">
+          <label class="hcrow" style="margin-bottom:8px;display:${mode==="none"?"none":"flex"};">${tt("sum_style")}
+            <select class="tt-sumstyle" data-id="${t.id}" style="flex:1;padding:6px 8px;font-size:13px;">
+              <option value="pro" ${sumStyle==="pro"?"selected":""}>${tt("sum_style_pro")}</option>
+              <option value="excel" ${sumStyle==="excel"?"selected":""}>${tt("sum_style_excel")}</option>
+            </select></label>
+          <label class="hcrow" style="margin:0 0 8px;gap:6px;cursor:pointer;">
             <input class="tt-sumrep" type="checkbox" ${t.sumRepeat?'checked':''} data-id="${t.id}" style="width:16px;height:16px;accent-color:var(--gust-deep);">${tt("sum_repeat")}</label>
+          <div class="divider"></div>
+          <label class="hcrow" style="margin:0 0 8px;gap:6px;cursor:pointer;">
+            <input class="tt-brkbefore" type="checkbox" ${t.breakBefore?'checked':''} data-id="${t.id}" style="width:16px;height:16px;accent-color:var(--gust-deep);">${tt("brk_before")}</label>
+          <label class="hcrow" style="margin:0;gap:6px;cursor:pointer;">
+            <input class="tt-brkafter" type="checkbox" ${t.breakAfter?'checked':''} data-id="${t.id}" style="width:16px;height:16px;accent-color:var(--gust-deep);">${tt("brk_after")}</label>
         </div>
       </div>`:""}`;
     wrap.appendChild(card);
@@ -1017,7 +1069,7 @@ function renderCards(){
       render(); saveLocal(); });
   });
   wrap.querySelectorAll(".sp-input").forEach(inp=>{
-    inp.addEventListener("input", ()=>{ const t=findTable(inp); if(t){ t.spaceAfter=Math.max(0,Math.min(10,parseInt(inp.value)||0)); render(); saveLocal(); } });
+    inp.addEventListener("input", ()=>{ const t=findTable(inp); if(t){ t.spaceAfter=Math.max(0,Math.min(40,parseInt(inp.value)||0)); render(); saveLocal(); } });
   });
   wrap.querySelectorAll(".tt-summode").forEach(sel=>{
     sel.addEventListener("change", ()=>{ const t=findTable(sel); if(t){ t.sumMode=sel.value; renderCards(); render(); saveLocal(); } });
@@ -1025,8 +1077,20 @@ function renderCards(){
   wrap.querySelectorAll(".tt-sumn").forEach(inp=>{
     inp.addEventListener("input", ()=>{ const t=findTable(inp); if(t){ t.sumN=Math.max(1,Math.min(12,parseInt(inp.value)||1)); render(); saveLocal(); } });
   });
+  wrap.querySelectorAll(".tt-sumstyle").forEach(sel=>{
+    sel.addEventListener("change", ()=>{ const t=findTable(sel); if(t){ t.sumStyle=sel.value; render(); saveLocal(); } });
+  });
   wrap.querySelectorAll(".tt-sumrep").forEach(inp=>{
     inp.addEventListener("change", ()=>{ const t=findTable(inp); if(t){ t.sumRepeat=inp.checked; render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll(".tt-rowpad").forEach(sel=>{
+    sel.addEventListener("change", ()=>{ const t=findTable(sel); if(t){ t.rowPad=parseInt(sel.value)||0; render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll(".tt-brkbefore").forEach(inp=>{
+    inp.addEventListener("change", ()=>{ const t=findTable(inp); if(t){ t.breakBefore=inp.checked; render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll(".tt-brkafter").forEach(inp=>{
+    inp.addEventListener("change", ()=>{ const t=findTable(inp); if(t){ t.breakAfter=inp.checked; render(); saveLocal(); } });
   });
   wrap.querySelectorAll("button[data-act]").forEach(b=>{
     b.addEventListener("click", ()=>{
@@ -1035,7 +1099,10 @@ function renderCards(){
       else if(act==="up") moveCard(id,-1);
       else if(act==="down") moveCard(id,1);
       else if(act==="fontdef"){ const t=state.tables.find(x=>x.id===id); if(t){ t.fontPt=0; renderCards(); render(); saveLocal(); } }
-      else if(act==="adv"){ const t=state.tables.find(x=>x.id===id); if(t){ t.advOpen=!t.advOpen; renderCards(); saveLocal(); } }
+      else if(act==="adv"){ const t=state.tables.find(x=>x.id===id); if(t){
+        t.advOpen=!t.advOpen;
+        if(t.advOpen && !t.sumMode) t.sumMode="auto";   // first use of the panel turns detection on
+        renderCards(); render(); saveLocal(); } }
     });
   });
 }
@@ -1055,7 +1122,7 @@ function setCardStatus(id,msg,cls){
 }
 /* the settings of a card belong to the CARD, not to the pasted content —
    a re-paste keeps name, colour, bold, spacing, font size and summary options */
-const CARD_SETTINGS=["title","titleColor","titleBold","spaceAfter","fontPt","sumMode","sumN","sumRepeat","headerCountManual","advOpen"];
+const CARD_SETTINGS=["title","titleColor","titleBold","spaceAfter","fontPt","sumMode","sumN","sumRepeat","sumStyle","rowPad","breakBefore","breakAfter","headerCountManual","advOpen"];
 function carryOverSettings(oldT, newT){
   CARD_SETTINGS.forEach(k=>{ if(oldT[k]!==undefined) newT[k]=oldT[k]; });
   if(oldT.headerCountManual && oldT.headerCount){
@@ -1128,7 +1195,8 @@ function calcItems(){
       type:"table", thead:tableHead(t), rows:p.rows, sumStart:p.sumStart,
       headerCount:t.headerCount, cols:t.cols, total:t.total,
       title:t.title||"", titleColor:t.titleColor||"#0B2540", titleBold:!!t.titleBold,
-      spaceAfter:t.spaceAfter||0, fontPt:tableFontPt(t), sumRepeat:!!t.sumRepeat
+      spaceAfter:t.spaceAfter||0, fontPt:tableFontPt(t), sumRepeat:!!t.sumRepeat, sumStyle:t.sumStyle||"pro",
+      rowPad:(t.rowPad==null?1:t.rowPad), breakBefore:!!t.breakBefore, breakAfter:!!t.breakAfter
     });
   });
   state.images.forEach(im=>items.push({type:"image", src:im.src, natW:im.natW, natH:im.natH}));
@@ -1345,20 +1413,7 @@ function render(){
 
   /* ---- Verwendete Unterlagen (only if any non-empty entry) ---- */
   const docs=state.docs.filter(d=>(d.label||"").trim()||(d.target||"").trim());
-  if(docs.length){
-    const {frame,pad}=makePage("Seite — Verwendete Unterlagen");
-    const items=docs.map(d=>{
-      const href=resolveHref(d.target);
-      const right = href
-        ? `<a class="doc-link" href="${esc(href)}" data-href="${esc(href)}" target="_blank" rel="noopener">${esc(d.target||href)}</a>`
-        : `<span class="doc-plain">${esc(d.target)||"—"}</span>`;
-      return `<div class="doc-item"><div class="k">${esc(d.label)||"—"}</div><div class="v">${right}</div></div>`;
-    }).join("");
-    pad.innerHTML = pageChrome("Verwendete Unterlagen",{sub:"Datengrundlage / Quellen"})
-      + `<div class="fill"><div class="sec"><div class="doc-list">${items}</div></div></div>`
-      + pageFooter();
-    pages.appendChild(frame);
-  }
+  if(docs.length) paginateDocs(pages, docs);
 
   /* ---- Bemerkungen (only if text) ---- */
   const notes=$("notes").value.trim();
@@ -1371,6 +1426,45 @@ function render(){
   }
 
   numberAndScale();
+}
+
+/* ---- Verwendete Unterlagen across as many pages as needed ---- */
+function paginateDocs(pages, docs){
+  let list=null, availH=0, used=0, first=true;
+  function openPage(){
+    const m=makePage(first?"Seite — Verwendete Unterlagen":"Seite — Verwendete Unterlagen (Forts.)");
+    m.pad.innerHTML = pageChrome(first?"Verwendete Unterlagen":"Verwendete Unterlagen (Fortsetzung)",
+        {sub:first?"Datengrundlage / Quellen":"Datengrundlage / Quellen (Fortsetzung)"})
+      + `<div class="fill"><div class="sec"><div class="doc-list"></div></div></div>`
+      + pageFooter();
+    pages.appendChild(m.frame);
+    const fill=m.pad.querySelector(".fill");
+    list=m.pad.querySelector(".doc-list");
+    availH = fill.getBoundingClientRect().bottom - list.getBoundingClientRect().top;
+    used=0; first=false;
+  }
+  function docRow(d){
+    const href=resolveHref(d.target);
+    const right = href
+      ? `<a class="doc-link" href="${esc(href)}" data-href="${esc(href)}" target="_blank" rel="noopener">${esc(d.target||href)}</a>`
+      : `<span class="doc-plain">${esc(d.target)||"—"}</span>`;
+    const el=document.createElement("div"); el.className="doc-item";
+    el.innerHTML=`<div class="k">${esc(d.label)||"—"}</div><div class="v">${right}</div>`;
+    return el;
+  }
+  openPage();
+  docs.forEach(d=>{
+    let el=docRow(d);
+    list.appendChild(el);
+    let h=el.getBoundingClientRect().height;
+    if(used+h > availH+0.5 && used>0){        // doesn't fit -> move this entry to the next page
+      list.removeChild(el);
+      openPage();
+      list.appendChild(el);
+      h=el.getBoundingClientRect().height;
+      used=h;
+    } else used+=h;
+  });
 }
 
 /* ---- swap EN→DE number formatting in table cells: , ↔ . ---- */
@@ -1409,10 +1503,13 @@ function paginateCalc(pages){
     availH = body.clientHeight; bodyW = body.clientWidth; used=0; isFirst=false;
   }
   function spaceBeforeBlock(){ if(used>0) used += BLOCK_GAP; }   // add separation before a new item
+  let pendingBreak=false;                                        // set by a "break after" / overflowing gap
   openPage();
 
   const items=calcItems();
   items.forEach((b, bi)=>{
+    if((pendingBreak || b.breakBefore) && used>0) openPage();     // start this block on a fresh page
+    pendingBreak=false;
     if(b.type==="image"){
       const fitW=bodyW, fullH=b.natH*(fitW/b.natW);
       if(fullH<=availH){
@@ -1447,8 +1544,10 @@ function paginateCalc(pages){
 
     // Measure the UNTOUCHED table. Summary styling merges empty cells, and measuring
     // that version would hand us a column grid with missing columns.
+    const rowPad=(b.rowPad==null?1:b.rowPad);          // per-table row height (cell padding, px)
     const meas=document.createElement("table");
     meas.className="calc-table"; meas.style.fontSize=fontPt+"pt";
+    meas.style.setProperty("--cpad", rowPad+"px");
     meas.style.visibility="hidden"; meas.style.position="absolute";
     meas.innerHTML=b.thead + b.rows.join("");
     body.appendChild(meas);
@@ -1475,6 +1574,25 @@ function paginateCalc(pages){
     while(colW.length<maxCols) colW.push(colW.length?colW[colW.length-1]:20);
     body.removeChild(meas);
 
+    // the summary block carries extra rules and padding — measure it in its final form
+    const sumStyle = b.sumStyle||"pro";
+    if(hasSum){
+      const meas2=document.createElement("table");
+      meas2.className="calc-table"; meas2.style.fontSize=fontPt+"pt";
+      meas2.style.setProperty("--cpad", rowPad+"px");
+      meas2.style.visibility="hidden"; meas2.style.position="absolute";
+      meas2.innerHTML=b.thead + b.rows.join("");
+      applySumStyle(meas2, hc, sumStart, sumStyle);
+      body.appendChild(meas2);
+      const t2=[...meas2.querySelectorAll("tr")];
+      for(let r=sumStart;r<b.rows.length;r++){
+        const el=t2[hc+r]; if(!el) continue;
+        const h=el.getBoundingClientRect().height;
+        if(h) rowH[r]=h;
+      }
+      body.removeChild(meas2);
+    }
+
     const colgroup="<colgroup>"+colW.map(w=>`<col style="width:${w}px">`).join("")+"</colgroup>";
     const wScale = natW>bodyW ? bodyW/natW : 1;     // shrink to fit width; never enlarge
     const effPt = fontPt*wScale;
@@ -1495,6 +1613,7 @@ function paginateCalc(pages){
     function renderFragment(start, end, appendSum){
       const t=document.createElement("table");
       t.className="calc-table"; t.style.fontSize=fontPt+"pt"; t.style.tableLayout="fixed"; t.style.width=natW+"px";
+      t.style.setProperty("--cpad", rowPad+"px");
       const slice=b.rows.slice(start,end);
       const rowsHtml = appendSum ? slice.concat(sumRowsHtml) : slice;
       t.innerHTML=colgroup + b.thead + rowsHtml.join("");
@@ -1502,7 +1621,7 @@ function paginateCalc(pages){
       let localSum=-1;
       if(appendSum) localSum = end-start;
       else if(hasSum && end>sumStart) localSum = Math.max(0, sumStart-start);
-      applySumStyle(t, hc, localSum);
+      applySumStyle(t, hc, localSum, sumStyle);
       if(numSwap) swapNumFmt(t);
       if(wScale<1){ t.style.transform=`scale(${wScale})`; t.style.transformOrigin="top left"; }
       const fragH = headHs + rowHs.slice(start,end).reduce((a,x)=>a+x,0) + (appendSum?sumH:0);
@@ -1563,9 +1682,15 @@ function paginateCalc(pages){
     // --- manual space after this table (user-chosen units; 1 unit ≈ one blank line) ---
     if(b.spaceAfter>0){
       const gap=b.spaceAfter*SPACE_UNIT;
-      const sp=document.createElement("div"); sp.style.cssText=`width:100%;height:${gap}px;`;
-      body.appendChild(sp); used+=gap;
+      const visible=Math.max(0, Math.min(gap, availH-used));   // never draw past the page edge
+      if(visible>0){
+        const sp=document.createElement("div"); sp.style.cssText=`width:100%;height:${visible}px;`;
+        body.appendChild(sp);
+      }
+      used += gap;                                             // the full gap still counts …
+      if(used >= availH-1) pendingBreak=true;                   // … and pushes the next block over
     }
+    if(b.breakAfter) pendingBreak=true;
   });
 }
 
