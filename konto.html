@@ -37,7 +37,8 @@
     .sync-dot.synced { background: var(--green); }
     .sync-dot.syncing { background: var(--orange); animation: pulse 1s infinite; }
     .sync-dot.error { background: var(--red); }
-    .accounts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+    .accounts-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+    @media(max-width:980px){ .accounts-grid{grid-template-columns:1fr 1fr} }
     @media(max-width:700px){ .accounts-grid{grid-template-columns:1fr} header{padding:16px 20px} .page-title{font-size:26px} }
     .account-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; transition: border-color .3s; position: relative; overflow: hidden; }
     .account-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; opacity:0; transition:opacity .3s; }
@@ -146,6 +147,15 @@
       <div class="usage-info" id="usageInfo1"><div class="usage-empty">Gerade niemand eingeloggt</div></div>
       <button class="btn-use" id="btn1" onclick="openLogin(1)">▶ Konto verwenden</button>
     </div>
+    <div class="account-card free" id="card2">
+      <div class="card-header">
+        <div class="account-name">Konto 3 – m.patwala</div>
+        <div class="status-pill free" id="pill2">Verfügbar</div>
+      </div>
+      <div class="card-email">m.patwala@boreas.de</div>
+      <div class="usage-info" id="usageInfo2"><div class="usage-empty">Gerade niemand eingeloggt</div></div>
+      <button class="btn-use" id="btn2" onclick="openLogin(2)">▶ Konto verwenden</button>
+    </div>
   </div>
 
   <div class="log-section">
@@ -200,6 +210,7 @@
       <div class="admin-section-title">Sitzungen verwalten</div>
       <button class="admin-action-btn" onclick="adminForceRelease(0)">🔓 Konto 1 zwangsweise freigeben</button>
       <button class="admin-action-btn" onclick="adminForceRelease(1)">🔓 Konto 2 zwangsweise freigeben</button>
+      <button class="admin-action-btn" onclick="adminForceRelease(2)">🔓 Konto 3 zwangsweise freigeben</button>
       <button class="admin-action-btn neutral" onclick="adminClearLog()">🗑 Protokoll löschen</button>
     </div>
 
@@ -220,7 +231,7 @@
   // FIREBASE — hardcoded, no user setup needed
   // ═══════════════════════════════════════════════
   const FB_URL = 'https://boreas-konto-f2e-default-rtdb.europe-west1.firebasedatabase.app';
-  const ACCOUNT_EMAILS = ['d.lafeld@boreas.de', 'rn.jony@boreas.de'];
+  const ACCOUNT_EMAILS = ['d.lafeld@boreas.de', 'rn.jony@boreas.de', 'm.patwala@boreas.de'];
 
   // Hinweis: Diese Seite speichert bewusst KEINE Konto-Passwoerter.
   // Die Datenbank enthaelt nur /sessions und /log.
@@ -255,7 +266,7 @@
   // ═══════════════════════════════════════════════
   // TIMERS
   // ═══════════════════════════════════════════════
-  const timers = [null, null];
+  const timers = [null, null, null];
 
   function formatElapsed(ms) {
     const s = Math.floor(ms/1000), m = Math.floor(s/60), h = Math.floor(m/60);
@@ -327,11 +338,12 @@
   async function loadAll() {
     setSyncStatus('syncing', 'Lade Daten…');
     try {
-      const [s0, s1, log] = await Promise.all([
-        fbGet('sessions/0'), fbGet('sessions/1'), fbGet('log')
+      const [s0, s1, s2, log] = await Promise.all([
+        fbGet('sessions/0'), fbGet('sessions/1'), fbGet('sessions/2'), fbGet('log')
       ]);
       renderCard(0, s0);
       renderCard(1, s1);
+      renderCard(2, s2);
       renderLog(log);
       setSyncStatus('synced', 'Live-Status aktiv – alle sehen denselben Status');
     } catch(e) {
