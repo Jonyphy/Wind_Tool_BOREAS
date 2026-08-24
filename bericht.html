@@ -157,6 +157,12 @@
   .icon-btn:disabled{opacity:.35;cursor:default;}
   .empty-note{font-size:12px;color:var(--muted);padding:10px 0 2px;font-style:italic;}
 
+  /* console: Lageplan card with its own optional name field */
+  .blk.lp-blk{flex-direction:column;align-items:stretch;gap:9px;}
+  .lp-blk .lp-top{display:flex;align-items:center;gap:11px;}
+  .lp-blk .lp-namerow{display:flex;align-items:center;gap:9px;margin:0;font-size:11.5px;font-weight:600;color:var(--ink-2);text-transform:none;letter-spacing:0;}
+  .lp-blk .lp-namerow input{flex:1;padding:6px 8px;font-size:13px;}
+
   .stepper{display:flex;align-items:center;gap:10px;margin-top:4px;}
   .stepper input{width:78px;text-align:center;}
   .stepper .unit{font-size:13px;font-weight:700;color:var(--ink-2);}
@@ -236,8 +242,11 @@
   .lp-grid{flex:1;min-height:0;display:grid;gap:14px;margin-top:4px;}
   .lp-grid.one,.lp-grid.two{grid-template-columns:1fr;}
   .lp-grid.many{grid-template-columns:1fr 1fr;grid-auto-rows:1fr;}
-  .lp-grid .lp-cell{min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-  .lp-grid .lp-cell img{max-width:100%;max-height:100%;object-fit:contain;border:1px solid var(--line);border-radius:8px;}
+  .lp-grid .lp-cell{min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;overflow:hidden;}
+  .lp-grid .lp-cell img{max-width:100%;max-height:100%;min-height:0;object-fit:contain;border:1px solid var(--line);border-radius:8px;}
+  /* optional name of a site plan (figure caption) */
+  .lp-cap{flex:none;font-family:"Archivo","Inter",sans-serif;font-size:12.5px;font-weight:700;color:var(--ink);text-align:center;line-height:1.3;padding-top:2px;}
+  .lp-cap.page-cap{font-size:14px;margin-top:10px;}
 
   /* calc body region (the part we paginate into) */
   .calc-body{flex:1;min-height:0;margin-top:18px;}
@@ -399,7 +408,7 @@
         <div class="body">
           <label for="layoutImg" data-i18n="l_layout_upload">Lageplan hochladen</label>
           <input id="layoutImg" type="file" accept="image/*" multiple>
-          <p class="hint" data-i18n="h_layout_multi">Mehrere Lagepläne möglich — mehrere Dateien auf einmal oder nacheinander auswählen.</p>
+          <p class="hint" data-i18n="h_layout_multi">Mehrere Lagepläne möglich — mehrere Dateien auf einmal oder nacheinander auswählen. Jeder Lageplan kann einen <b>optionalen Namen</b> bekommen; dieser wird im Bericht als Bildunterschrift gedruckt.</p>
           <div id="layoutList" class="blocks"></div>
 
           <label style="margin-top:16px;" data-i18n="l_layout_mode">Anordnung</label>
@@ -548,7 +557,7 @@ const EN = {
   l_logoupload:"Upload your own logo (optional)", b_logo_default:"Restore default logo", b_logo_remove:"Remove logo",
   l_task_text:"Task as text", l_task_img:"Task as image (optional)", b_task_img_remove:"Remove task image",
   l_layout_upload:"Upload site plan", b_layout_remove:"Remove all site plans",
-  h_layout_multi:"Several site plans possible — pick multiple files at once or upload one after another.",
+  h_layout_multi:"Several site plans possible — pick multiple files at once or upload one after another. Each site plan can be given an <b>optional name</b>; it is printed in the report as a figure caption.",
   l_layout_mode:"Arrangement", opt_layout_each:"Each site plan on its own page", opt_layout_combined:"All site plans on one page",
   h_calc_intro:'One card per table: <b>copy from Excel</b> and paste into a card (Ctrl + V). <b>Colours &amp; formatting are kept.</b> For another table, use <b>＋ Add table</b> below. Several tables copied at once are split onto their own cards automatically. <b>Name, colour, font size and all other settings of a card survive a re-paste</b> — they are only cleared when the card is deleted with ✕.',
   b_add_table:"＋ Add table", l_fontsize:"Font size — default for new tables",
@@ -581,6 +590,8 @@ const DYN = {
   card_empty:{de:"Leer — Excel hier einfügen (Strg + V)", en:"Empty — paste Excel here (Ctrl + V)"},
   table_n:{de:"Tabelle {n}", en:"Table {n}"},
   layout_n:{de:"Lageplan {n}", en:"Site plan {n}"},
+  lp_name:{de:"Name (optional):", en:"Name (optional):"},
+  lp_name_ph:{de:"z. B. Variante A — 6 WEA", en:"e.g. Variant A — 6 WTG"},
   tbl_name:{de:"Tabellenname:", en:"Table name:"},
   tbl_name_ph:{de:"z. B. Ertragsverluste", en:"e.g. Yield losses"},
   tbl_color:{de:"Farbe", en:"Colour"},
@@ -655,7 +666,7 @@ const state = {
   logoCustom: false, // true only when the user uploaded their own logo
   taskImg: "",
   layout: "",        // legacy single plan (kept for old saves; migrated into layouts on load)
-  layouts: [],       // multiple site plans: { id, src, natW, natH }
+  layouts: [],       // multiple site plans: { id, src, natW, natH, name }
   layoutMode: "each",// "each" = one page per plan, "combined" = all plans on one page
   tables: [],        // one card per entry: { id, allRows, headerCount, cols, total, html, title, titleColor, titleBold, spaceAfter, fontPt, sumMode, sumN, sumRepeat }
   images: [],        // { id, src, natW, natH }
@@ -1266,7 +1277,7 @@ function useDefaultLogo(){ state.logo=defaultLogo(); state.logoCustom=false; aft
 function removeLogo(){ state.logo=""; state.logoCustom=false; afterChange(); }
 function clearImg(which){ if(which==="task") state.taskImg=""; if(which==="layout"){ state.layout=""; state.layouts=[]; renderLayouts(); } afterChange(); }
 
-/* ============ site plans (Lagepläne) — multiple ============ */
+/* ============ site plans (Lagepläne) — multiple, each with an optional name ============ */
 function addLayouts(input){
   const files=[...(input.files||[])]; if(!files.length) return;
   let pending=files.length;
@@ -1274,7 +1285,7 @@ function addLayouts(input){
   files.forEach(f=>{
     const r=new FileReader();
     r.onload=async ev=>{ const src=ev.target.result; const {w,h}=await imgSize(src);
-      state.layouts.push({id:blockSeq++, src, natW:w, natH:h}); done(); };
+      state.layouts.push({id:blockSeq++, src, natW:w, natH:h, name:""}); done(); };
     r.onerror=done;
     r.readAsDataURL(f);
   });
@@ -1286,17 +1297,31 @@ function moveLayout(id,dir){
   [state.layouts[i],state.layouts[j]]=[state.layouts[j],state.layouts[i]];
   renderLayouts(); render(); saveLocal();
 }
+function layoutName(lp){ return ((lp&&lp.name)||"").trim(); }
 function renderLayouts(){
   const wrap=$("layoutList"); if(!wrap) return; wrap.innerHTML="";
   state.layouts.forEach((lp,i)=>{
-    const row=document.createElement("div"); row.className="blk";
-    row.innerHTML=`<div class="ic">▤</div><div class="meta"><b>${tt("layout_n",{n:i+1})}</b><small>${lp.natW}×${lp.natH}px</small></div>
-      <div class="ctrls">
-        <button class="icon-btn" title="nach oben" ${i===0?"disabled":""} onclick="moveLayout(${lp.id},-1)">▲</button>
-        <button class="icon-btn" title="nach unten" ${i===state.layouts.length-1?"disabled":""} onclick="moveLayout(${lp.id},1)">▼</button>
-        <button class="icon-btn x" title="Entfernen" onclick="removeLayout(${lp.id})">✕</button>
-      </div>`;
+    const row=document.createElement("div"); row.className="blk lp-blk";
+    row.innerHTML=`
+      <div class="lp-top">
+        <div class="ic">▤</div>
+        <div class="meta"><b>${tt("layout_n",{n:i+1})}</b><small>${lp.natW}×${lp.natH}px</small></div>
+        <div class="ctrls">
+          <button class="icon-btn" title="nach oben" ${i===0?"disabled":""} onclick="moveLayout(${lp.id},-1)">▲</button>
+          <button class="icon-btn" title="nach unten" ${i===state.layouts.length-1?"disabled":""} onclick="moveLayout(${lp.id},1)">▼</button>
+          <button class="icon-btn x" title="Entfernen" onclick="removeLayout(${lp.id})">✕</button>
+        </div>
+      </div>
+      <label class="lp-namerow">${tt("lp_name")}
+        <input class="lp-name" type="text" data-id="${lp.id}" placeholder="${tt('lp_name_ph')}" value="${esc(lp.name||'')}">
+      </label>`;
     wrap.appendChild(row);
+  });
+  wrap.querySelectorAll(".lp-name").forEach(inp=>{
+    inp.addEventListener("input", ()=>{
+      const lp=state.layouts.find(x=>x.id===+inp.dataset.id);
+      if(lp){ lp.name=inp.value; render(); saveLocal(); }
+    });
   });
 }
 
@@ -1382,13 +1407,16 @@ function render(){
     pages.appendChild(frame);
   }
 
-  /* ---- Lagepläne (only if any image) ---- */
+  /* ---- Lagepläne (only if any image) — optional name printed as a caption ---- */
   if(state.layouts.length){
     if(state.layoutMode==="combined"){
       const {frame,pad}=makePage("Seite — Lagepläne");
       const n=state.layouts.length;
       const cls = n===1?"one":(n===2?"two":"many");
-      const grid = state.layouts.map(lp=>`<div class="lp-cell"><img src="${lp.src}" alt="Lageplan"></div>`).join("");
+      const grid = state.layouts.map(lp=>{
+        const cap=layoutName(lp);
+        return `<div class="lp-cell"><img src="${lp.src}" alt="Lageplan">${cap?`<div class="lp-cap">${esc(cap)}</div>`:""}</div>`;
+      }).join("");
       pad.innerHTML = pageChrome(n>1?"Lagepläne":"Lageplan",{sub:"Standortübersicht"})
         + `<div class="fill"><div class="lp-grid ${cls}">${grid}</div></div>`
         + pageFooter();
@@ -1396,10 +1424,11 @@ function render(){
     } else {
       const n=state.layouts.length;
       state.layouts.forEach((lp,idx)=>{
-        const {frame,pad}=makePage("Seite — Lageplan");
+        const cap=layoutName(lp);
+        const {frame,pad}=makePage("Seite — Lageplan"+(cap?" · "+cap:""));
         const sub = n>1 ? `Standortübersicht · ${idx+1} / ${n}` : "Standortübersicht";
         pad.innerHTML = pageChrome("Lageplan",{sub})
-          + `<div class="fill"><div class="center-media"><img src="${lp.src}" alt="Lageplan"></div></div>`
+          + `<div class="fill"><div class="center-media"><img src="${lp.src}" alt="Lageplan"></div>${cap?`<div class="lp-cap page-cap">${esc(cap)}</div>`:""}</div>`
           + pageFooter();
         pages.appendChild(frame);
       });
@@ -1821,13 +1850,14 @@ function loadLocal(){
     state.logo = state.logoCustom ? (d.logo||defaultLogo()) : defaultLogo();
     state.taskImg=d.taskImg||""; state.layout=d.layout||"";
     state.layouts=Array.isArray(d.layouts)?d.layouts:[];
+    state.layouts.forEach(l=>{ if(typeof l.name!=="string") l.name=""; });   // older saves have no name yet
     state.layoutMode=d.layoutMode||"each";
     state.tables=Array.isArray(d.tables)?d.tables:[];
     state.images=Array.isArray(d.images)?d.images:[];
     const ids=[...state.tables,...state.images,...state.layouts].map(x=>x.id||0);
     blockSeq=d.blockSeq||((ids.length?Math.max(...ids):0)+1);
     // migrate a legacy single site plan into the new list
-    if(d.layout && !state.layouts.length){ state.layouts.push({id:blockSeq++, src:d.layout, natW:1, natH:1}); }
+    if(d.layout && !state.layouts.length){ state.layouts.push({id:blockSeq++, src:d.layout, natW:1, natH:1, name:""}); }
     if($("layoutMode")) $("layoutMode").value=state.layoutMode;
     return true;
   }catch(e){ console.warn(e); return false; }
