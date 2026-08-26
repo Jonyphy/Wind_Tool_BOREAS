@@ -206,7 +206,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
     <div class="card-body">
       <div class="field"><label class="label">NZ hours &mdash; one line per window: <code>Month NZ hours</code></label>
         <textarea id="manualHours" rows="8" spellcheck="false"></textarea>
-        <p class="hint">Months: April, Mai, Juni, Juli, August, September, Oktober &middot; NZ: 0&ndash;10</p>
+        <p class="hint">Any month name from the Configuration &rarr; Months list below (edit that list to change your season) &middot; NZ: 0&ndash;N, wherever N is your last defined window</p>
       </div>
       <div class="field" style="margin:0"><label class="label">Classic scheme active hours (h/a)</label><input type="number" id="manualClassicHours" step="0.1" placeholder="e.g. 1450"/></div>
     </div>
@@ -230,9 +230,17 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
     <div class="card-body">
 
       <details class="cfg" open>
+        <summary>Months in scope (season definition)</summary>
+        <div class="cfg-body">
+          <p class="hint" style="margin:0 0 6px">One month name per line, in <b>any order</b>, choosing however many months your local bat-active season covers. Names are matched case-insensitively against German <i>or</i> English spellings (e.g. <code>Mai</code> or <code>May</code>, <code>Oktober</code> or <code>October</code>). All 12 calendar months are supported &mdash; not just April&ndash;October &mdash; so a Southern-Hemisphere or shifted-season project (e.g. November&ndash;February) works the same way. Any month you don't list here is simply skipped everywhere else in the tool.</p>
+          <textarea id="cfgMonths" rows="7" spellcheck="false"></textarea>
+        </div>
+      </details>
+
+      <details class="cfg" open>
         <summary>NZ time windows (Nachtzehntel)</summary>
         <div class="cfg-body">
-          <p class="hint" style="margin:0 0 6px">One line per window: <code>Month NZ start end</code> (HH:MM). NZ0 is generated automatically: it starts <span id="nz0FactorLbl">15</span>% of the night length before NZ1 and ends at NZ1 start.</p>
+          <p class="hint" style="margin:0 0 6px">One line per window: <code>Month NZ start end</code> (HH:MM). NZ0 is generated automatically: it starts <span id="nz0FactorLbl">15</span>% of the night length before NZ1 start and ends at NZ1 start. Each month can have a different number of windows (NZ1&hellip;NZ8, NZ1&hellip;NZ12, etc.) &mdash; just be consistent with the thresholds below.</p>
           <textarea id="cfgNz" rows="9" spellcheck="false"></textarea>
         </div>
       </details>
@@ -240,7 +248,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
       <details class="cfg">
         <summary>Wind speed thresholds (m/s)</summary>
         <div class="cfg-body">
-          <p class="hint" style="margin:0 0 6px">One line per month: <code>Month NZ0 NZ1 &hellip; NZ10</code> (11 values). Turbine stops when wind &lt; threshold inside the window.</p>
+          <p class="hint" style="margin:0 0 6px">One line per month: <code>Month NZ0 NZ1 &hellip; NZN</code> &mdash; give one value per NZ window used by that month (N+1 values total, where N is that month's highest window index). Turbine stops when wind &lt; threshold inside the window.</p>
           <textarea id="cfgThr" rows="8" spellcheck="false"></textarea>
         </div>
       </details>
@@ -302,6 +310,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
     <div class="card-body" style="font-size:12px;color:var(--text-2)">
       <p style="margin-bottom:8px"><strong style="color:var(--text)">Weibull:</strong> loss = frequency-weighted <code>E[P | v &lt; threshold]</code> from the sector wake-Weibull, multiplied by active hours. Assumes the annual wind distribution also holds during bat-active hours.</p>
       <p style="margin-bottom:8px"><strong style="color:var(--text)">Time series:</strong> every timestep inside an NZ window with valid temperature is checked against the threshold; if wind &lt; threshold, the power-curve value is added as loss. Captures the night/summer wind correlation. Optional per-turbine wind scale adjusts meteo wind to hub conditions.</p>
+      <p style="margin-bottom:8px"><strong style="color:var(--text)">Months in scope:</strong> the season is now fully configurable in the Configuration card &mdash; any subset of the 12 calendar months, in German or English spelling.</p>
       <p>All computation runs locally in your browser.</p>
     </div>
   </div>
@@ -319,7 +328,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
       <div class="help-step"><div class="help-num">1</div><div class="help-content"><h4>Choose a method</h4><p><strong>Weibull</strong> reproduces the windPRO-style sector-statistics calculation. <strong>Time series</strong> evaluates every 10-min step of the meteo data (needs a wind speed column). <strong>Compare both</strong> shows them side by side.</p></div></div>
       <div class="help-step"><div class="help-num">2</div><div class="help-content"><h4>Load meteo data</h4><p>Select the windPRO raw CSV (<code>;</code> or <code>,</code> separated), map the DateTime, temperature and wind columns, set the year range, then press <strong>Parse file</strong>. German decimal commas are handled automatically. Alternatively enter active hours manually.</p></div></div>
       <div class="help-step"><div class="help-num">3</div><div class="help-content"><h4>Add turbines</h4><p>Per turbine paste the 12-row sector table (<code>sector angle freq% A k v_free v_wake</code>) and the power curve (<code>wind_speed power</code>, in W or kW &mdash; detected automatically). Optionally add a windPRO AEP reference for validation and a wind scale factor for the time-series method.</p></div></div>
-      <div class="help-step"><div class="help-num">4</div><div class="help-content"><h4>Check configuration</h4><p>NZ windows, monthly thresholds, classic scheme and the temperature filter are pre-filled with your project defaults and fully editable.</p></div></div>
+      <div class="help-step"><div class="help-num">4</div><div class="help-content"><h4>Set your months and check configuration</h4><p>The <strong>Months in scope</strong> box defines your bat-active season &mdash; any subset of the 12 calendar months, in any order, German or English names. NZ windows, monthly thresholds, classic scheme and the temperature filter are pre-filled with the standard April&ndash;October defaults and fully editable.</p></div></div>
       <div class="help-step"><div class="help-num">5</div><div class="help-content"><h4>Calculate &amp; export</h4><p>Results show full AEP, classic loss, NZ loss and the saving per turbine, plus the full NZ matrix. Export everything as a multi-sheet <code>.xlsx</code>.</p></div></div>
     </div>
     <div class="modal-footer"><button class="btn btn-primary" id="closeHelp2">Got it</button></div>
@@ -365,10 +374,55 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
 });
 
 // ============================================================
-// DEFAULT CONFIG (from project script)
+// MONTHS (now editable/flexible — full 12-month calendar, German + English aliases)
 // ============================================================
-const MONTHS=["April","Mai","Juni","Juli","August","September","Oktober"];
-const MONTH_NUM={April:4,Mai:5,Juni:6,Juli:7,August:8,September:9,Oktober:10};
+const MONTH_ALIASES={
+  januar:1, january:1, jan:1,
+  februar:2, february:2, feb:2,
+  "märz":3, maerz:3, marz:3, march:3, mar:3,
+  april:4, apr:4,
+  mai:5, may:5,
+  juni:6, june:6, jun:6,
+  juli:7, july:7, jul:7,
+  august:8, aug:8,
+  september:9, sep:9, sept:9,
+  oktober:10, october:10, okt:10, oct:10,
+  november:11, nov:11,
+  dezember:12, december:12, dez:12, dec:12
+};
+// Canonical display name for each calendar month number (German, matches original defaults)
+const MONTH_CANON={1:'Januar',2:'Februar',3:'März',4:'April',5:'Mai',6:'Juni',7:'Juli',8:'August',9:'September',10:'Oktober',11:'November',12:'Dezember'};
+
+const CFG_MONTHS_DEFAULT=`April
+Mai
+Juni
+Juli
+August
+September
+Oktober`;
+
+// Resolve a user-typed month name (any case, German or English) to its canonical
+// name + calendar number, but ONLY if that month is listed in the Months box.
+function resolveMonth(raw,scopeSet){
+  const key=raw.trim().toLowerCase();
+  const num=MONTH_ALIASES[key];
+  if(num===undefined)throw`Unknown month "${raw}" — check spelling (German or English names accepted).`;
+  const canon=MONTH_CANON[num];
+  if(scopeSet && !scopeSet.has(num))throw`Month "${raw}" is not listed in "Months in scope" — add it there first.`;
+  return{canon,num};
+}
+function parseMonthsScope(){
+  const lines=$('cfgMonths').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length)throw'Months in scope: add at least one month.';
+  const nums=new Set(),order=[];
+  for(const l of lines){
+    const key=l.toLowerCase();
+    const num=MONTH_ALIASES[key];
+    if(num===undefined)throw`Months in scope: unknown month "${l}".`;
+    if(!nums.has(num)){nums.add(num);order.push(num);}
+  }
+  return{nums,order};
+}
 
 const CFG_NZ_DEFAULT=
 `April 1 20:15 21:15
@@ -562,20 +616,23 @@ function expectedFull(sectors,grid,pw){
 // CONFIG PARSING
 // ============================================================
 function parseNzConfig(){
+  const scope=parseMonthsScope();
   const lines=$('cfgNz').value.split('\n').map(l=>l.trim()).filter(Boolean);
   const byMonth={};
   for(const l of lines){
     const p=l.split(/[\s;,\t]+/);
     if(p.length<4)throw`NZ windows: bad line "${l}"`;
-    const mo=p[0];if(!(mo in MONTH_NUM))throw`NZ windows: unknown month "${mo}"`;
+    const{canon:mo}=resolveMonth(p[0],scope.nums);
     const nz=parseInt(p[1].replace(/\D/g,''));
     if(!(byMonth[mo]))byMonth[mo]=[];
     byMonth[mo].push({nz,start:p[2],end:p[3]});
   }
-  const thr=parseThrConfig();
+  const thr=parseThrConfig(scope);
   const f=num($('nz0Factor').value)||0.15;
   const rows=[];
-  for(const mo of MONTHS){
+  // Iterate months in the order the user listed them in "Months in scope"
+  for(const num_ of scope.order){
+    const mo=MONTH_CANON[num_];
     const list=(byMonth[mo]||[]).sort((a,b)=>a.nz-b.nz);
     if(!list.length)continue;
     if(!thr[mo])throw`Thresholds: month "${mo}" missing`;
@@ -583,31 +640,33 @@ function parseNzConfig(){
     const s=toMin(list[0].start);let e=toMin(list[list.length-1].end);
     let e2=e;if(e2<=s)e2+=1440;
     const z0=minToStr(s-(e2-s)*f);
-    rows.push({month:mo,monthNum:MONTH_NUM[mo],nz:0,start:z0,end:list[0].start,thr:thr[mo][0]});
+    rows.push({month:mo,monthNum:num_,nz:0,start:z0,end:list[0].start,thr:thr[mo][0]});
     for(const w of list){
       if(thr[mo][w.nz]===undefined)throw`Thresholds: ${mo} NZ${w.nz} missing`;
-      rows.push({month:mo,monthNum:MONTH_NUM[mo],nz:w.nz,start:w.start,end:w.end,thr:thr[mo][w.nz]});
+      rows.push({month:mo,monthNum:num_,nz:w.nz,start:w.start,end:w.end,thr:thr[mo][w.nz]});
     }
   }
   return rows;
 }
-function parseThrConfig(){
+function parseThrConfig(scope){
+  if(!scope)scope=parseMonthsScope();
   const out={};
   for(const l of $('cfgThr').value.split('\n').map(x=>x.trim()).filter(Boolean)){
     const p=l.split(/[\s;,\t]+/);
-    const mo=p[0];if(!(mo in MONTH_NUM))throw`Thresholds: unknown month "${mo}"`;
+    const{canon:mo}=resolveMonth(p[0],scope.nums);
     out[mo]={};
     for(let i=1;i<p.length;i++){const v=num(p[i]);if(!isNaN(v))out[mo][i-1]=v;}
   }
   return out;
 }
 function parseClassicConfig(){
+  const scope=parseMonthsScope();
   const out={};
   for(const l of $('cfgClassic').value.split('\n').map(x=>x.trim()).filter(Boolean)){
     const p=l.split(/[\s;,\t]+/);
     if(p.length<3)throw`Classic windows: bad line "${l}"`;
-    if(!(p[0]in MONTH_NUM))throw`Classic windows: unknown month "${p[0]}"`;
-    out[MONTH_NUM[p[0]]]={s:toMin(p[1]),e:toMin(p[2])};
+    const{num:monthNum}=resolveMonth(p[0],scope.nums);
+    out[monthNum]={s:toMin(p[1]),e:toMin(p[2])};
   }
   return out;
 }
@@ -741,15 +800,20 @@ function timeseriesLosses(nzRows,classicWin,tmin,tmax,clsThr,curve,scale){
 // ============================================================
 function manualHoursTemplate(){
   const lines=[];
-  for(const mo of MONTHS)for(let nz=0;nz<=10;nz++)lines.push(`${mo} ${nz} 0`);
+  const scope=(()=>{try{return parseMonthsScope();}catch(e){return{order:[4,5,6,7,8,9,10]};}})();
+  for(const num_ of scope.order){
+    const mo=MONTH_CANON[num_];
+    for(let nz=0;nz<=10;nz++)lines.push(`${mo} ${nz} 0`);
+  }
   return lines.join('\n');
 }
 function parseManualHours(nzRows){
+  const scope=parseMonthsScope();
   const map={};
   for(const l of $('manualHours').value.split('\n').map(x=>x.trim()).filter(Boolean)){
     const p=l.split(/[\s;,\t]+/);if(p.length<3)continue;
-    if(!(p[0]in MONTH_NUM))continue;
-    map[p[0]+'|'+parseInt(p[1].replace(/\D/g,''))]=num(p[2]);
+    let mo;try{mo=resolveMonth(p[0],scope.nums).canon;}catch(e){continue;}
+    map[mo+'|'+parseInt(p[1].replace(/\D/g,''))]=num(p[2]);
   }
   const nzHours=nzRows.map(r=>{
     const v=map[r.month+'|'+r.nz];
@@ -1044,6 +1108,7 @@ function syncVisibility(){
   $('manualCard').style.display=hoursSrc==='manual'&&method!=='timeseries'?'':'none';
 }
 document.querySelectorAll('input[name=method],input[name=hoursSrc]').forEach(el=>el.addEventListener('change',()=>{syncVisibility();saveState();}));
+$('cfgMonths').addEventListener('input',saveState);
 
 $('loadExample').addEventListener('click',()=>{
   wts=[];nextId=1;$('wtList').innerHTML='';
@@ -1055,6 +1120,7 @@ $('loadExample').addEventListener('click',()=>{
 
 $('resetAll').addEventListener('click',()=>{
   wts=[];nextId=1;$('wtList').innerHTML='';addWt({name:'WEA 1'});
+  $('cfgMonths').value=CFG_MONTHS_DEFAULT;
   $('cfgNz').value=CFG_NZ_DEFAULT;$('cfgThr').value=CFG_THR_DEFAULT;$('cfgClassic').value=CFG_CLASSIC_DEFAULT;
   $('classicThr').value=6.5;$('tempMin').value=10;$('tempMax').value=75;$('nz0Factor').value=0.15;
   $('manualHours').value=manualHoursTemplate();$('manualClassicHours').value='';
@@ -1079,6 +1145,7 @@ function saveState(){
   const st={
     method:document.querySelector('input[name=method]:checked').value,
     hoursSrc:document.querySelector('input[name=hoursSrc]:checked').value,
+    cfgMonths:$('cfgMonths').value,
     cfgNz:$('cfgNz').value,cfgThr:$('cfgThr').value,cfgClassic:$('cfgClassic').value,
     classicThr:$('classicThr').value,tempMin:$('tempMin').value,tempMax:$('tempMax').value,
     nz0Factor:$('nz0Factor').value,manualHours:$('manualHours').value,
@@ -1087,15 +1154,17 @@ function saveState(){
     wts:wts.map(w=>({...w})),nextId};
   try{localStorage.setItem('fm_state',JSON.stringify(st));}catch(e){}
 }
-document.querySelectorAll('#cfgNz,#cfgThr,#cfgClassic,#classicThr,#tempMin,#tempMax,#nz0Factor,#manualHours,#manualClassicHours,#yearFrom,#yearTo,#timestep').forEach(el=>el.addEventListener('input',saveState));
+document.querySelectorAll('#cfgMonths,#cfgNz,#cfgThr,#cfgClassic,#classicThr,#tempMin,#tempMax,#nz0Factor,#manualHours,#manualClassicHours,#yearFrom,#yearTo,#timestep').forEach(el=>el.addEventListener('input',saveState));
 
 function loadState(){
+  $('cfgMonths').value=CFG_MONTHS_DEFAULT;
   $('cfgNz').value=CFG_NZ_DEFAULT;$('cfgThr').value=CFG_THR_DEFAULT;$('cfgClassic').value=CFG_CLASSIC_DEFAULT;
   $('manualHours').value=manualHoursTemplate();
   try{
     const raw=localStorage.getItem('fm_state');
     if(!raw){addWt({name:'WEA 1'});syncVisibility();return;}
     const st=JSON.parse(raw);
+    if(st.cfgMonths)$('cfgMonths').value=st.cfgMonths;
     if(st.cfgNz)$('cfgNz').value=st.cfgNz;
     if(st.cfgThr)$('cfgThr').value=st.cfgThr;
     if(st.cfgClassic)$('cfgClassic').value=st.cfgClassic;
