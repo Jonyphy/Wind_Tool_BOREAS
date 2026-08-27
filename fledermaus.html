@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Fledermaus Curtailment Loss Calculator</title>
+<title>Fledermaus Curtailment Loss Calculator &middot; Abschaltverlust-Rechner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -39,6 +39,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .logo-text{font-size:15px;font-weight:600;letter-spacing:-.02em}
 .logo-text span{color:var(--text-2);font-weight:400}
 .topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.langseg{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px}
+.langbtn{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--text-2);padding:4px 9px;border-radius:6px;cursor:pointer;transition:background .12s,color .12s}
+.langbtn:hover{color:var(--text)}
+.langbtn.active{background:var(--surface);color:var(--accent);box-shadow:var(--shadow)}
+.langbtn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .main{max-width:1280px;margin:0 auto;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:20px;align-items:start}
 @media(max-width:1000px){.main{grid-template-columns:1fr;padding:16px}}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
@@ -118,6 +123,7 @@ tr.hl td{background:var(--accent-bg)!important;font-weight:500}
 .result-wt{margin-bottom:22px}
 .result-wt-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
 .result-wt-title{font-size:13px;font-weight:600}
+.result-lang-note{font-size:11px;color:var(--text-3);margin-bottom:12px;padding:7px 10px;background:var(--surface2);border-radius:8px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);width:600px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column}
@@ -137,14 +143,18 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
 
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="back-link" href="index.html"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Tools</a>
+    <a class="back-link" href="index.html"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg><span data-i18n="nav.tools">Tools</span></a>
     <div class="logo">
       <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg></div>
-      <span class="logo-text">Fledermaus <span>Curtailment Loss</span></span>
+      <span class="logo-text">Fledermaus <span data-i18n="logo.sub">Curtailment Loss</span></span>
     </div>
     <div class="topbar-actions">
-      <button class="btn btn-ghost btn-sm" id="themeBtn" title="Toggle theme"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-      <button class="btn btn-secondary btn-sm" id="helpBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>Help</button>
+      <div class="langseg" id="langSeg" role="group" aria-label="Language / Sprache">
+        <button type="button" class="langbtn" data-lang="en">EN</button>
+        <button type="button" class="langbtn" data-lang="de">DE</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="themeBtn" data-i18n-title="title.theme" title="Toggle theme"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+      <button class="btn btn-secondary btn-sm" id="helpBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg><span data-i18n="btn.help">Help</span></button>
     </div>
   </div>
 </header>
@@ -157,20 +167,20 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
   <!-- Method -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M4 4h16v4H4zM4 12h16v8H4z"/></svg>Calculation method</div>
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M4 4h16v4H4zM4 12h16v8H4z"/></svg><span data-i18n="card.method">Calculation method</span></div>
     </div>
     <div class="card-body">
       <div class="seg" role="radiogroup" aria-label="Method">
-        <label><input type="radio" name="method" value="weibull" checked/><span>Weibull (sector stats)</span></label>
-        <label><input type="radio" name="method" value="timeseries"/><span>Time series</span></label>
-        <label><input type="radio" name="method" value="both"/><span>Compare both</span></label>
+        <label><input type="radio" name="method" value="weibull" checked/><span data-i18n="seg.weibull">Weibull (sector stats)</span></label>
+        <label><input type="radio" name="method" value="timeseries"/><span data-i18n="seg.ts">Time series</span></label>
+        <label><input type="radio" name="method" value="both"/><span data-i18n="seg.both">Compare both</span></label>
       </div>
-      <p class="hint" id="methodHint">Weibull: annual sector statistics &times; active hours (windPRO style). Time series: evaluates every 10-min step of the meteo data &mdash; captures night/summer wind correlation, needs a wind speed column.</p>
+      <p class="hint" id="methodHint" data-i18n-html="hint.method">Weibull: annual sector statistics &times; active hours (windPRO style). Time series: evaluates every 10-min step of the meteo data &mdash; captures night/summer wind correlation, needs a wind speed column.</p>
       <div class="field" style="margin-top:12px;margin-bottom:0">
-        <label class="label">Active hours source (Weibull method)</label>
+        <label class="label" data-i18n="label.hoursSrc">Active hours source (Weibull method)</label>
         <div class="seg" role="radiogroup" aria-label="Hours source">
-          <label><input type="radio" name="hoursSrc" value="csv" checked/><span>From meteo CSV</span></label>
-          <label><input type="radio" name="hoursSrc" value="manual"/><span>Manual entry</span></label>
+          <label><input type="radio" name="hoursSrc" value="csv" checked/><span data-i18n="seg.csv">From meteo CSV</span></label>
+          <label><input type="radio" name="hoursSrc" value="manual"/><span data-i18n="seg.manualEntry">Manual entry</span></label>
         </div>
       </div>
     </div>
@@ -179,30 +189,30 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
   <!-- Meteo CSV -->
   <div class="card" id="meteoCard">
     <div class="card-header">
-      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Meteo time series (CSV)</div>
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span data-i18n="card.meteo">Meteo time series (CSV)</span></div>
       <span class="badge badge-violet" id="meteoBadge">no file</span>
     </div>
     <div class="card-body">
       <input type="file" id="meteoFile" accept=".csv,.txt" style="font-size:12px;font-family:var(--sans);width:100%"/>
       <div class="grid-3" style="margin-top:12px">
-        <div class="field" style="margin:0"><label class="label">DateTime column</label><select id="colDt"></select></div>
-        <div class="field" style="margin:0"><label class="label">Temperature column</label><select id="colT"></select></div>
-        <div class="field" style="margin:0"><label class="label">Wind speed column</label><select id="colV"></select></div>
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.colDt">DateTime column</label><select id="colDt"></select></div>
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.colT">Temperature column</label><select id="colT"></select></div>
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.colV">Wind speed column</label><select id="colV"></select></div>
       </div>
       <div class="grid-4" style="margin-top:10px">
-        <div class="field" style="margin:0"><label class="label">Date format</label>
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.dateFmt">Date format</label>
           <select id="dateFmt">
-            <option value="auto">Auto-detect</option>
-            <option value="iso">YYYY-MM-DD</option>
-            <option value="dmy">DD.MM.YYYY (day first)</option>
-            <option value="mdy">MM/DD/YYYY (US, month first)</option>
+            <option value="auto" data-i18n="opt.auto">Auto-detect</option>
+            <option value="iso" data-i18n="opt.iso">YYYY-MM-DD</option>
+            <option value="dmy" data-i18n="opt.dmy">DD.MM.YYYY (day first)</option>
+            <option value="mdy" data-i18n="opt.mdy">MM/DD/YYYY (US, month first)</option>
           </select>
         </div>
-        <div class="field" style="margin:0"><label class="label">Year from</label><input type="number" id="yearFrom" value="2010"/></div>
-        <div class="field" style="margin:0"><label class="label">Year to</label><input type="number" id="yearTo" value="2025"/></div>
-        <div class="field" style="margin:0"><label class="label">Timestep (min)</label><select id="timestep"><option>10</option><option>15</option><option>30</option><option>60</option></select></div>
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.yearFrom">Year from</label><input type="number" id="yearFrom" value="2010"/></div>
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.yearTo">Year to</label><input type="number" id="yearTo" value="2025"/></div>
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.timestep">Timestep (min)</label><select id="timestep"><option>10</option><option>15</option><option>30</option><option>60</option></select></div>
       </div>
-      <div style="margin-top:12px"><button class="btn btn-secondary btn-sm" id="parseBtn"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Parse file</button></div>
+      <div style="margin-top:12px"><button class="btn btn-secondary btn-sm" id="parseBtn"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span data-i18n="btn.parse">Parse file</span></button></div>
       <div class="status" id="meteoStatus"></div>
     </div>
   </div>
@@ -210,84 +220,84 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
   <!-- Manual hours -->
   <div class="card" id="manualCard" style="display:none">
     <div class="card-header">
-      <div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Manual active hours (h/a)</div>
-      <button class="btn btn-ghost btn-sm" id="fillFromCsv" title="Fill with hours computed from the parsed CSV">Fill from CSV</button>
+      <div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span data-i18n="card.manual">Manual active hours (h/a)</span></div>
+      <button class="btn btn-ghost btn-sm" id="fillFromCsv" data-i18n-title="title.fillCsv" title="Fill with hours computed from the parsed CSV"><span data-i18n="btn.fillCsv">Fill from CSV</span></button>
     </div>
     <div class="card-body">
-      <div class="field"><label class="label">NZ hours &mdash; one line per window: <code>Month NZ hours</code></label>
+      <div class="field"><label class="label" data-i18n-html="label.manualHours">NZ hours &mdash; one line per window: <code>Month NZ hours</code></label>
         <textarea id="manualHours" rows="8" spellcheck="false"></textarea>
-        <p class="hint">Any month name from the Configuration &rarr; Months list below (edit that list to change your season) &middot; NZ: 0&ndash;N, wherever N is your last defined window</p>
+        <p class="hint" data-i18n-html="hint.manualHours">Any month name from the Configuration &rarr; Months list below (edit that list to change your season) &middot; NZ: 0&ndash;N, wherever N is your last defined window</p>
       </div>
-      <div class="field" style="margin:0"><label class="label">Classic scheme active hours (h/a)</label><input type="number" id="manualClassicHours" step="0.1" placeholder="e.g. 1450"/></div>
+      <div class="field" style="margin:0"><label class="label" data-i18n="label.manualClassic">Classic scheme active hours (h/a)</label><input type="number" id="manualClassicHours" step="0.1" placeholder="e.g. 1450"/></div>
     </div>
   </div>
 
   <!-- Turbines -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg>Turbines (WEA)</div>
-      <button class="btn btn-secondary btn-sm" id="addWt"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add turbine</button>
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg><span data-i18n="card.turbines">Turbines (WEA)</span></div>
+      <button class="btn btn-secondary btn-sm" id="addWt"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="btn.addWt">Add turbine</span></button>
     </div>
     <div class="card-body" style="padding:12px">
       <div id="wtList"></div>
-      <div id="noWt" class="empty-state" style="display:none"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><p>Add at least one turbine</p></div>
+      <div id="noWt" class="empty-state" style="display:none"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><p data-i18n="empty.wt">Add at least one turbine</p></div>
     </div>
   </div>
 
   <!-- Configuration -->
   <div class="card">
-    <div class="card-header"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuration <span class="badge badge-green" style="margin-left:6px">defaults loaded</span></div></div>
+    <div class="card-header"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span data-i18n="card.config">Configuration</span> <span class="badge badge-green" style="margin-left:6px" data-i18n="badge.defaults">defaults loaded</span></div></div>
     <div class="card-body">
 
       <details class="cfg" open>
-        <summary>Months in scope (season definition)</summary>
+        <summary data-i18n="cfg.months">Months in scope (season definition)</summary>
         <div class="cfg-body">
-          <p class="hint" style="margin:0 0 6px">One month name per line, in <b>any order</b>, choosing however many months your local bat-active season covers. Names are matched case-insensitively against German <i>or</i> English spellings (e.g. <code>Mai</code> or <code>May</code>, <code>Oktober</code> or <code>October</code>). All 12 calendar months are supported &mdash; not just April&ndash;October &mdash; so a Southern-Hemisphere or shifted-season project (e.g. November&ndash;February) works the same way. Any month you don't list here is simply skipped everywhere else in the tool.</p>
+          <p class="hint" style="margin:0 0 6px" data-i18n-html="hint.months">One month name per line, in <b>any order</b>, choosing however many months your local bat-active season covers. Names are matched case-insensitively against German <i>or</i> English spellings (e.g. <code>Mai</code> or <code>May</code>, <code>Oktober</code> or <code>October</code>). All 12 calendar months are supported &mdash; not just April&ndash;October &mdash; so a Southern-Hemisphere or shifted-season project (e.g. November&ndash;February) works the same way. Any month you don't list here is simply skipped everywhere else in the tool.</p>
           <textarea id="cfgMonths" rows="7" spellcheck="false"></textarea>
         </div>
       </details>
 
       <details class="cfg" open>
-        <summary>NZ time windows (Nachtzehntel)</summary>
+        <summary data-i18n="cfg.nz">NZ time windows (Nachtzehntel)</summary>
         <div class="cfg-body">
-          <p class="hint" style="margin:0 0 6px">One line per window: <code>Month NZ start end</code> (HH:MM). NZ0 is generated automatically: it starts <span id="nz0FactorLbl">15</span>% of the night length before NZ1 start and ends at NZ1 start. Each month can have a different number of windows (NZ1&hellip;NZ8, NZ1&hellip;NZ12, etc.) &mdash; just be consistent with the thresholds below.</p>
+          <p class="hint" style="margin:0 0 6px" data-i18n-html="hint.nz">One line per window: <code>Month NZ start end</code> (HH:MM). NZ0 is generated automatically: it starts <span id="nz0FactorLbl">15</span>% of the night length before NZ1 start and ends at NZ1 start. Each month can have a different number of windows (NZ1&hellip;NZ8, NZ1&hellip;NZ12, etc.) &mdash; just be consistent with the thresholds below.</p>
           <textarea id="cfgNz" rows="9" spellcheck="false"></textarea>
         </div>
       </details>
 
       <details class="cfg">
-        <summary>Wind speed thresholds (m/s)</summary>
+        <summary data-i18n="cfg.thr">Wind speed thresholds (m/s)</summary>
         <div class="cfg-body">
-          <p class="hint" style="margin:0 0 6px">One line per month: <code>Month NZ0 NZ1 &hellip; NZN</code> &mdash; give one value per NZ window used by that month (N+1 values total, where N is that month's highest window index). Turbine stops when wind &lt; threshold inside the window.</p>
+          <p class="hint" style="margin:0 0 6px" data-i18n-html="hint.thr">One line per month: <code>Month NZ0 NZ1 &hellip; NZN</code> &mdash; give one value per NZ window used by that month (N+1 values total, where N is that month's highest window index). Turbine stops when wind &lt; threshold inside the window.</p>
           <textarea id="cfgThr" rows="8" spellcheck="false"></textarea>
         </div>
       </details>
 
       <details class="cfg">
-        <summary>Classic scheme (reference)</summary>
+        <summary data-i18n="cfg.classic">Classic scheme (reference)</summary>
         <div class="cfg-body">
-          <p class="hint" style="margin:0 0 6px">Fixed night windows, single threshold. One line per month: <code>Month start end</code>.</p>
+          <p class="hint" style="margin:0 0 6px" data-i18n-html="hint.classic">Fixed night windows, single threshold. One line per month: <code>Month start end</code>.</p>
           <textarea id="cfgClassic" rows="7" spellcheck="false"></textarea>
-          <div class="field" style="margin-top:10px;margin-bottom:0"><label class="label">Classic threshold (m/s)</label><input type="number" id="classicThr" step="0.1" value="6.5"/></div>
+          <div class="field" style="margin-top:10px;margin-bottom:0"><label class="label" data-i18n="label.classicThr">Classic threshold (m/s)</label><input type="number" id="classicThr" step="0.1" value="6.5"/></div>
         </div>
       </details>
 
       <details class="cfg">
-        <summary>Filters &amp; constants</summary>
+        <summary data-i18n="cfg.filters">Filters &amp; constants</summary>
         <div class="cfg-body">
           <div class="grid-3">
-            <div class="field" style="margin:0"><label class="label">Temp min (&deg;C)</label><input type="number" id="tempMin" step="0.5" value="10"/></div>
-            <div class="field" style="margin:0"><label class="label">Temp max (&deg;C)</label><input type="number" id="tempMax" step="0.5" value="75"/></div>
-            <div class="field" style="margin:0"><label class="label">NZ0 pre-factor</label><input type="number" id="nz0Factor" step="0.01" value="0.15"/></div>
+            <div class="field" style="margin:0"><label class="label" data-i18n="label.tempMin">Temp min (&deg;C)</label><input type="number" id="tempMin" step="0.5" value="10"/></div>
+            <div class="field" style="margin:0"><label class="label" data-i18n="label.tempMax">Temp max (&deg;C)</label><input type="number" id="tempMax" step="0.5" value="75"/></div>
+            <div class="field" style="margin:0"><label class="label" data-i18n="label.nz0">NZ0 pre-factor</label><input type="number" id="nz0Factor" step="0.01" value="0.15"/></div>
           </div>
         </div>
       </details>
 
     </div>
     <div class="action-bar">
-      <button class="btn btn-primary" id="calcBtn"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg>Calculate losses</button>
-      <button class="btn btn-secondary" id="loadExample"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Load example (BN14&ndash;16)</button>
-      <button class="btn btn-danger" id="resetAll" style="margin-left:auto"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.2"/></svg>Reset</button>
+      <button class="btn btn-primary" id="calcBtn"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg><span data-i18n="btn.calc">Calculate losses</span></button>
+      <button class="btn btn-secondary" id="loadExample"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span data-i18n="btn.example">Load example (BN14&ndash;16)</span></button>
+      <button class="btn btn-danger" id="resetAll" style="margin-left:auto"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.2"/></svg><span data-i18n="btn.reset">Reset</span></button>
     </div>
     <div class="status" id="calcStatus" style="margin:0 18px 14px"></div>
   </div>
@@ -299,10 +309,10 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
 
   <div class="card" id="resultsCard" style="display:none">
     <div class="card-header">
-      <div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Results</div>
+      <div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span data-i18n="card.results">Results</span></div>
       <div style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" id="copyTSV" title="Copy summary as TSV"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
-        <button class="btn btn-ghost btn-sm" id="downloadXLSX" title="Download Excel workbook"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>.xlsx</button>
+        <button class="btn btn-ghost btn-sm" id="copyTSV" data-i18n-title="title.copy" title="Copy summary as TSV"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span data-i18n="btn.copy">Copy</span></button>
+        <button class="btn btn-ghost btn-sm" id="downloadXLSX" data-i18n-title="title.xlsx" title="Download Excel workbook"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>.xlsx</button>
       </div>
     </div>
     <div class="results-scroll card-body" id="resultsBody"></div>
@@ -311,17 +321,18 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
   <div class="card" id="resultsPlaceholder">
     <div class="card-body empty-state">
       <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
-      <p>Load your turbines and meteo data, then calculate.<br/>Results and Excel export appear here.</p>
+      <p data-i18n-html="placeholder.results">Load your turbines and meteo data, then calculate.<br/>Results and Excel export appear here.</p>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-header"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Method notes</div></div>
+    <div class="card-header"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span data-i18n="card.notes">Method notes</span></div></div>
     <div class="card-body" style="font-size:12px;color:var(--text-2)">
-      <p style="margin-bottom:8px"><strong style="color:var(--text)">Weibull:</strong> loss = frequency-weighted <code>E[P | v &lt; threshold]</code> from the sector wake-Weibull, multiplied by active hours. Assumes the annual wind distribution also holds during bat-active hours.</p>
-      <p style="margin-bottom:8px"><strong style="color:var(--text)">Time series:</strong> every timestep inside an NZ window with valid temperature is checked against the threshold; if wind &lt; threshold, the power-curve value is added as loss. Captures the night/summer wind correlation. Optional per-turbine wind scale adjusts meteo wind to hub conditions.</p>
-      <p style="margin-bottom:8px"><strong style="color:var(--text)">Date parsing:</strong> the DateTime column supports ISO (<code>YYYY-MM-DD</code>), day-first (<code>DD.MM.YYYY</code>) and US month-first (<code>MM/DD/YYYY</code>) formats. Auto-detect scans a sample of rows and locks in whichever format is unambiguous from the data (a component &gt;12 can only be a day); it warns you if the sample is fully ambiguous.</p>
-      <p>All computation runs locally in your browser.</p>
+      <p style="margin-bottom:8px" data-i18n-html="notes.weibull"><strong style="color:var(--text)">Weibull:</strong> loss = frequency-weighted <code>E[P | v &lt; threshold]</code> from the sector wake-Weibull, multiplied by active hours. Assumes the annual wind distribution also holds during bat-active hours.</p>
+      <p style="margin-bottom:8px" data-i18n-html="notes.ts"><strong style="color:var(--text)">Time series:</strong> every timestep inside an NZ window with valid temperature is checked against the threshold; if wind &lt; threshold, the power-curve value is added as loss. Captures the night/summer wind correlation. Optional per-turbine wind scale adjusts meteo wind to hub conditions.</p>
+      <p style="margin-bottom:8px" data-i18n-html="notes.date"><strong style="color:var(--text)">Date parsing:</strong> the DateTime column supports ISO (<code>YYYY-MM-DD</code>), day-first (<code>DD.MM.YYYY</code>) and US month-first (<code>MM/DD/YYYY</code>) formats. Auto-detect scans a sample of rows and locks in whichever format is unambiguous from the data (a component &gt;12 can only be a day); it warns you if the sample is fully ambiguous.</p>
+      <p style="margin-bottom:8px" data-i18n-html="notes.results"><strong style="color:var(--text)">Result language:</strong> the interface can be switched between English and German, but all results, tables and exports are always written in German so reports stay consistent.</p>
+      <p data-i18n="notes.local">All computation runs locally in your browser.</p>
     </div>
   </div>
 
@@ -331,17 +342,17 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
 <!-- Help modal -->
 <div class="modal-overlay" id="helpModal">
   <div class="modal">
-    <div class="modal-header"><span class="modal-title">How to use</span>
+    <div class="modal-header"><span class="modal-title" data-i18n="help.title">How to use</span>
       <button class="btn btn-ghost btn-sm" id="closeHelp"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
-      <div class="help-step"><div class="help-num">1</div><div class="help-content"><h4>Choose a method</h4><p><strong>Weibull</strong> reproduces the windPRO-style sector-statistics calculation. <strong>Time series</strong> evaluates every 10-min step of the meteo data (needs a wind speed column). <strong>Compare both</strong> shows them side by side.</p></div></div>
-      <div class="help-step"><div class="help-num">2</div><div class="help-content"><h4>Load meteo data</h4><p>Select the meteo CSV (<code>;</code> or <code>,</code> separated), map the DateTime, temperature and wind columns, choose the date format (or leave it on Auto-detect), set the year range, then press <strong>Parse file</strong>. German decimal commas are handled automatically.</p></div></div>
-      <div class="help-step"><div class="help-num">3</div><div class="help-content"><h4>Add turbines</h4><p>Per turbine paste the 12-row sector table (<code>sector angle freq% A k v_free v_wake</code>) and the power curve (<code>wind_speed power</code>, in W or kW &mdash; detected automatically). Optionally add a windPRO AEP reference for validation and a wind scale factor for the time-series method.</p></div></div>
-      <div class="help-step"><div class="help-num">4</div><div class="help-content"><h4>Set your months and check configuration</h4><p>The <strong>Months in scope</strong> box defines your bat-active season &mdash; any subset of the 12 calendar months, in any order, German or English names. NZ windows, monthly thresholds, classic scheme and the temperature filter are pre-filled with the standard April&ndash;October defaults and fully editable.</p></div></div>
-      <div class="help-step"><div class="help-num">5</div><div class="help-content"><h4>Calculate &amp; export</h4><p>Results show full AEP, classic loss, NZ loss and the saving per turbine, plus the full NZ matrix. Export everything as a multi-sheet <code>.xlsx</code>.</p></div></div>
+      <div class="help-step"><div class="help-num">1</div><div class="help-content"><h4 data-i18n="help.s1t">Choose a method</h4><p data-i18n-html="help.s1p"><strong>Weibull</strong> reproduces the windPRO-style sector-statistics calculation. <strong>Time series</strong> evaluates every 10-min step of the meteo data (needs a wind speed column). <strong>Compare both</strong> shows them side by side.</p></div></div>
+      <div class="help-step"><div class="help-num">2</div><div class="help-content"><h4 data-i18n="help.s2t">Load meteo data</h4><p data-i18n-html="help.s2p">Select the meteo CSV (<code>;</code> or <code>,</code> separated), map the DateTime, temperature and wind columns, choose the date format (or leave it on Auto-detect), set the year range, then press <strong>Parse file</strong>. German decimal commas are handled automatically.</p></div></div>
+      <div class="help-step"><div class="help-num">3</div><div class="help-content"><h4 data-i18n="help.s3t">Add turbines</h4><p data-i18n-html="help.s3p">Per turbine paste the 12-row sector table (<code>sector angle freq% A k v_free v_wake</code>) and the power curve (<code>wind_speed power</code>, in W or kW &mdash; detected automatically). Optionally add a windPRO AEP reference for validation and a wind scale factor for the time-series method.</p></div></div>
+      <div class="help-step"><div class="help-num">4</div><div class="help-content"><h4 data-i18n="help.s4t">Set your months and check configuration</h4><p data-i18n-html="help.s4p">The <strong>Months in scope</strong> box defines your bat-active season &mdash; any subset of the 12 calendar months, in any order, German or English names. NZ windows, monthly thresholds, classic scheme and the temperature filter are pre-filled with the standard April&ndash;October defaults and fully editable.</p></div></div>
+      <div class="help-step"><div class="help-num">5</div><div class="help-content"><h4 data-i18n="help.s5t">Calculate &amp; export</h4><p data-i18n-html="help.s5p">Results show full AEP, classic loss, NZ loss and the saving per turbine, plus the full NZ matrix. Export everything as a multi-sheet <code>.xlsx</code>. Results and exports are always in German.</p></div></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-primary" id="closeHelp2">Got it</button></div>
+    <div class="modal-footer"><button class="btn btn-primary" id="closeHelp2" data-i18n="btn.gotit">Got it</button></div>
   </div>
 </div>
 
@@ -349,21 +360,21 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
   <div class="wt-block">
     <div class="wt-header">
       <div class="wt-num"></div>
-      <input type="text" class="wt-name" placeholder="Name"/>
+      <input type="text" class="wt-name" data-i18n-ph="wt.namePh" placeholder="Name"/>
       <div class="wt-actions">
-        <button class="btn btn-ghost btn-sm dupWt" title="Duplicate"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-        <button class="btn btn-ghost btn-sm removeWt" title="Remove" style="color:var(--danger)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+        <button class="btn btn-ghost btn-sm dupWt" data-i18n-title="title.dup" title="Duplicate"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <button class="btn btn-ghost btn-sm removeWt" data-i18n-title="title.rm" title="Remove" style="color:var(--danger)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
       </div>
     </div>
     <div class="wt-body">
       <div class="grid-2" style="margin-bottom:10px">
-        <div class="field" style="margin:0"><label class="label">windPRO AEP ref (MWh/a, optional)</label><input type="number" class="wt-ref" step="0.1" placeholder="e.g. 19982.5"/></div>
-        <div class="field" style="margin:0"><label class="label">Wind scale (time series)</label><input type="number" class="wt-scale" step="0.01" value="1.00"/></div>
+        <div class="field" style="margin:0"><label class="label" data-i18n="wt.ref">windPRO AEP ref (MWh/a, optional)</label><input type="number" class="wt-ref" step="0.1" placeholder="e.g. 19982.5"/></div>
+        <div class="field" style="margin:0"><label class="label" data-i18n="wt.scale">Wind scale (time series)</label><input type="number" class="wt-scale" step="0.01" value="1.00"/></div>
       </div>
-      <div class="field"><label class="label">Sector data &mdash; <code>sector angle freq% A k v_free v_wake</code></label>
+      <div class="field"><label class="label" data-i18n-html="wt.sectors">Sector data &mdash; <code>sector angle freq% A k v_free v_wake</code></label>
         <textarea class="wt-sectors" rows="5" spellcheck="false" placeholder="1  0    4.5  6.0  1.91  5.35  5.35&#10;2  30   4.7  5.9  2.03  5.25  5.25&#10;..."></textarea>
       </div>
-      <div class="field" style="margin:0"><label class="label">Power curve &mdash; <code>wind_speed power</code> (W or kW)</label>
+      <div class="field" style="margin:0"><label class="label" data-i18n-html="wt.curve">Power curve &mdash; <code>wind_speed power</code> (W or kW)</label>
         <textarea class="wt-curve" rows="5" spellcheck="false" placeholder="3.0   41918.33&#10;3.5   154301.1&#10;..."></textarea>
       </div>
     </div>
@@ -384,7 +395,334 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
 });
 
 // ============================================================
-// MONTHS (now editable/flexible — full 12-month calendar, German + English aliases)
+// I18N — interface language (EN / DE).
+// NOTE: results, result tables and all exports are ALWAYS German
+// (see the RESULT_DE block further down); only the interface switches.
+// ============================================================
+const I18N={
+en:{
+'nav.tools':'Tools',
+'logo.sub':'Curtailment Loss',
+'btn.help':'Help',
+'title.theme':'Toggle theme',
+'card.method':'Calculation method',
+'seg.weibull':'Weibull (sector stats)',
+'seg.ts':'Time series',
+'seg.both':'Compare both',
+'hint.method':'Weibull: annual sector statistics &times; active hours (windPRO style). Time series: evaluates every 10-min step of the meteo data &mdash; captures night/summer wind correlation, needs a wind speed column.',
+'label.hoursSrc':'Active hours source (Weibull method)',
+'seg.csv':'From meteo CSV',
+'seg.manualEntry':'Manual entry',
+'card.meteo':'Meteo time series (CSV)',
+'label.colDt':'DateTime column',
+'label.colT':'Temperature column',
+'label.colV':'Wind speed column',
+'label.dateFmt':'Date format',
+'opt.auto':'Auto-detect',
+'opt.iso':'YYYY-MM-DD',
+'opt.dmy':'DD.MM.YYYY (day first)',
+'opt.mdy':'MM/DD/YYYY (US, month first)',
+'label.yearFrom':'Year from',
+'label.yearTo':'Year to',
+'label.timestep':'Timestep (min)',
+'btn.parse':'Parse file',
+'card.manual':'Manual active hours (h/a)',
+'btn.fillCsv':'Fill from CSV',
+'title.fillCsv':'Fill with hours computed from the parsed CSV',
+'label.manualHours':'NZ hours &mdash; one line per window: <code>Month NZ hours</code>',
+'hint.manualHours':'Any month name from the Configuration &rarr; Months list below (edit that list to change your season) &middot; NZ: 0&ndash;N, wherever N is your last defined window',
+'label.manualClassic':'Classic scheme active hours (h/a)',
+'card.turbines':'Turbines (WEA)',
+'btn.addWt':'Add turbine',
+'empty.wt':'Add at least one turbine',
+'card.config':'Configuration',
+'badge.defaults':'defaults loaded',
+'cfg.months':'Months in scope (season definition)',
+'hint.months':'One month name per line, in <b>any order</b>, choosing however many months your local bat-active season covers. Names are matched case-insensitively against German <i>or</i> English spellings (e.g. <code>Mai</code> or <code>May</code>, <code>Oktober</code> or <code>October</code>). All 12 calendar months are supported &mdash; not just April&ndash;October &mdash; so a Southern-Hemisphere or shifted-season project (e.g. November&ndash;February) works the same way. Any month you don\'t list here is simply skipped everywhere else in the tool.',
+'cfg.nz':'NZ time windows (Nachtzehntel)',
+'hint.nz':'One line per window: <code>Month NZ start end</code> (HH:MM). NZ0 is generated automatically: it starts <span id="nz0FactorLbl">15</span>% of the night length before NZ1 start and ends at NZ1 start. Each month can have a different number of windows (NZ1&hellip;NZ8, NZ1&hellip;NZ12, etc.) &mdash; just be consistent with the thresholds below.',
+'cfg.thr':'Wind speed thresholds (m/s)',
+'hint.thr':'One line per month: <code>Month NZ0 NZ1 &hellip; NZN</code> &mdash; give one value per NZ window used by that month (N+1 values total, where N is that month\'s highest window index). Turbine stops when wind &lt; threshold inside the window.',
+'cfg.classic':'Classic scheme (reference)',
+'hint.classic':'Fixed night windows, single threshold. One line per month: <code>Month start end</code>.',
+'label.classicThr':'Classic threshold (m/s)',
+'cfg.filters':'Filters &amp; constants',
+'label.tempMin':'Temp min (&deg;C)',
+'label.tempMax':'Temp max (&deg;C)',
+'label.nz0':'NZ0 pre-factor',
+'btn.calc':'Calculate losses',
+'btn.example':'Load example (BN14&ndash;16)',
+'btn.reset':'Reset',
+'card.results':'Results',
+'btn.copy':'Copy',
+'title.copy':'Copy summary as TSV (German)',
+'title.xlsx':'Download Excel workbook (German)',
+'placeholder.results':'Load your turbines and meteo data, then calculate.<br/>Results and Excel export appear here.',
+'card.notes':'Method notes',
+'notes.weibull':'<strong style="color:var(--text)">Weibull:</strong> loss = frequency-weighted <code>E[P | v &lt; threshold]</code> from the sector wake-Weibull, multiplied by active hours. Assumes the annual wind distribution also holds during bat-active hours.',
+'notes.ts':'<strong style="color:var(--text)">Time series:</strong> every timestep inside an NZ window with valid temperature is checked against the threshold; if wind &lt; threshold, the power-curve value is added as loss. Captures the night/summer wind correlation. Optional per-turbine wind scale adjusts meteo wind to hub conditions.',
+'notes.date':'<strong style="color:var(--text)">Date parsing:</strong> the DateTime column supports ISO (<code>YYYY-MM-DD</code>), day-first (<code>DD.MM.YYYY</code>) and US month-first (<code>MM/DD/YYYY</code>) formats. Auto-detect scans a sample of rows and locks in whichever format is unambiguous from the data (a component &gt;12 can only be a day); it warns you if the sample is fully ambiguous.',
+'notes.results':'<strong style="color:var(--text)">Result language:</strong> the interface can be switched between English and German, but all results, tables and exports are always written in German so reports stay consistent.',
+'notes.local':'All computation runs locally in your browser.',
+'help.title':'How to use',
+'help.s1t':'Choose a method',
+'help.s1p':'<strong>Weibull</strong> reproduces the windPRO-style sector-statistics calculation. <strong>Time series</strong> evaluates every 10-min step of the meteo data (needs a wind speed column). <strong>Compare both</strong> shows them side by side.',
+'help.s2t':'Load meteo data',
+'help.s2p':'Select the meteo CSV (<code>;</code> or <code>,</code> separated), map the DateTime, temperature and wind columns, choose the date format (or leave it on Auto-detect), set the year range, then press <strong>Parse file</strong>. German decimal commas are handled automatically.',
+'help.s3t':'Add turbines',
+'help.s3p':'Per turbine paste the 12-row sector table (<code>sector angle freq% A k v_free v_wake</code>) and the power curve (<code>wind_speed power</code>, in W or kW &mdash; detected automatically). Optionally add a windPRO AEP reference for validation and a wind scale factor for the time-series method.',
+'help.s4t':'Set your months and check configuration',
+'help.s4p':'The <strong>Months in scope</strong> box defines your bat-active season &mdash; any subset of the 12 calendar months, in any order, German or English names. NZ windows, monthly thresholds, classic scheme and the temperature filter are pre-filled with the standard April&ndash;October defaults and fully editable.',
+'help.s5t':'Calculate &amp; export',
+'help.s5p':'Results show full AEP, classic loss, NZ loss and the saving per turbine, plus the full NZ matrix. Export everything as a multi-sheet <code>.xlsx</code>. Results and exports are always in German.',
+'btn.gotit':'Got it',
+'wt.namePh':'Name',
+'wt.ref':'windPRO AEP ref (MWh/a, optional)',
+'wt.scale':'Wind scale (time series)',
+'wt.sectors':'Sector data &mdash; <code>sector angle freq% A k v_free v_wake</code>',
+'wt.curve':'Power curve &mdash; <code>wind_speed power</code> (W or kW)',
+'title.dup':'Duplicate',
+'title.rm':'Remove',
+// --- messages ---
+'badge.nofile':'no file',
+'badge.file':'file loaded',
+'badge.rows':'{k} rows \u00b7 {y} yrs',
+'m.reading':'Reading file\u2026',
+'m.loaded':'Loaded "{name}" ({size} MB). Check the column mapping and date format, then press Parse file.',
+'m.readErr':'Could not read file: {err}',
+'m.none':'\u2014 none \u2014',
+'m.selectFirst':'Select a CSV file first.',
+'m.parsing':'Parsing\u2026',
+'m.parsingPct':'Parsing\u2026 {pct}%',
+'m.noRows':'No valid rows found. Check the DateTime column, date format and year range.',
+'m.detIso':'Detected date format: ISO (YYYY-MM-DD).',
+'m.detOk':'Detected date format: {fmt} \u2014 a day value >12 appeared in the sample, so this is unambiguous.',
+'m.fmtMdy':'MM/DD/YYYY (US, month first)',
+'m.fmtDmy':'DD.MM.YYYY (day first)',
+'m.detConflict':'Warning: sample has day values >12 in BOTH date positions \u2014 the file may mix formats or use an unsupported one. Falling back to day-first; please verify results, or pick the format manually.',
+'m.detAmbig':'Warning: all sampled dates have both components \u226412, so day-first vs month-first is ambiguous. Assuming DD.MM.YYYY (day first) \u2014 if your file is US-style MM/DD/YYYY, set "Date format" manually and re-parse.',
+'m.parsed':'Parsed {k} rows, {y} full years{wind}.',
+'m.windYes':', wind speed available',
+'m.windNo':', no wind column (Weibull hours only)',
+'m.badMonth':' {n} row(s) had an invalid month and were skipped \u2014 check the date format if this number looks large.',
+'m.noMeteo':'No parsed meteo data \u2014 parse the CSV first or switch to manual hours.',
+'m.tsNoMeteo':'Time-series method needs parsed meteo data.',
+'m.tsNoWind':'Time-series method needs a wind speed column \u2014 remap and re-parse the CSV.',
+'m.manualMissing':'Manual hours: missing value for {mo} NZ{nz}',
+'m.sectorsBad':'{name}: sector data needs numeric rows "sector angle freq% A k v_free v_wake"',
+'m.curveBad':'{name}: power curve needs numeric rows "wind_speed power"',
+'m.addWt':'Add at least one turbine.',
+'m.copied':'Summary copied to clipboard (German).',
+'m.unknownMonth':'Unknown month "{raw}" \u2014 check spelling (German or English names accepted).',
+'m.monthNotInScope':'Month "{raw}" is not listed in "Months in scope" \u2014 add it there first.',
+'m.monthsEmpty':'Months in scope: add at least one month.',
+'m.monthsUnknown':'Months in scope: unknown month "{l}".',
+'m.nzBadLine':'NZ windows: bad line "{l}"',
+'m.thrMissingMonth':'Thresholds: month "{mo}" missing',
+'m.thrMissing':'Thresholds: {mo} NZ{nz} missing',
+'m.classicBadLine':'Classic windows: bad line "{l}"'
+},
+de:{
+'nav.tools':'Werkzeuge',
+'logo.sub':'Abschaltverluste',
+'btn.help':'Hilfe',
+'title.theme':'Design umschalten',
+'card.method':'Berechnungsmethode',
+'seg.weibull':'Weibull (Sektorstatistik)',
+'seg.ts':'Zeitreihe',
+'seg.both':'Beide vergleichen',
+'hint.method':'Weibull: Jahres-Sektorstatistik &times; Aktivstunden (windPRO-Stil). Zeitreihe: wertet jeden 10-Minuten-Schritt der Meteodaten aus &mdash; bildet die Nacht-/Sommer-Windkorrelation ab, ben&ouml;tigt eine Windgeschwindigkeitsspalte.',
+'label.hoursSrc':'Quelle der Aktivstunden (Weibull-Methode)',
+'seg.csv':'Aus Meteo-CSV',
+'seg.manualEntry':'Manuelle Eingabe',
+'card.meteo':'Meteo-Zeitreihe (CSV)',
+'label.colDt':'Zeitstempel-Spalte',
+'label.colT':'Temperatur-Spalte',
+'label.colV':'Windgeschwindigkeits-Spalte',
+'label.dateFmt':'Datumsformat',
+'opt.auto':'Automatisch erkennen',
+'opt.iso':'JJJJ-MM-TT',
+'opt.dmy':'TT.MM.JJJJ (Tag zuerst)',
+'opt.mdy':'MM/TT/JJJJ (US, Monat zuerst)',
+'label.yearFrom':'Jahr von',
+'label.yearTo':'Jahr bis',
+'label.timestep':'Zeitschritt (min)',
+'btn.parse':'Datei einlesen',
+'card.manual':'Manuelle Aktivstunden (h/a)',
+'btn.fillCsv':'Aus CSV &uuml;bernehmen',
+'title.fillCsv':'Mit den aus der eingelesenen CSV berechneten Stunden f&uuml;llen',
+'label.manualHours':'NZ-Stunden &mdash; eine Zeile je Fenster: <code>Monat NZ Stunden</code>',
+'hint.manualHours':'Beliebiger Monatsname aus der Monatsliste unter Konfiguration &rarr; Monate (diese Liste &auml;ndern, um die Saison anzupassen) &middot; NZ: 0&ndash;N, wobei N Ihr letztes definiertes Fenster ist',
+'label.manualClassic':'Aktivstunden klassisches Schema (h/a)',
+'card.turbines':'Windenergieanlagen (WEA)',
+'btn.addWt':'WEA hinzuf&uuml;gen',
+'empty.wt':'Mindestens eine WEA hinzuf&uuml;gen',
+'card.config':'Konfiguration',
+'badge.defaults':'Standardwerte geladen',
+'cfg.months':'Monate im Betrachtungszeitraum (Saisondefinition)',
+'hint.months':'Ein Monatsname pro Zeile, in <b>beliebiger Reihenfolge</b>, mit so vielen Monaten, wie Ihre lokale Fledermaus-Aktivit&auml;tssaison umfasst. Die Namen werden unabh&auml;ngig von Gro&szlig;-/Kleinschreibung gegen deutsche <i>oder</i> englische Schreibweisen gepr&uuml;ft (z.&nbsp;B. <code>Mai</code> oder <code>May</code>, <code>Oktober</code> oder <code>October</code>). Alle 12 Kalendermonate werden unterst&uuml;tzt &mdash; nicht nur April&ndash;Oktober &mdash; sodass auch ein Projekt auf der S&uuml;dhalbkugel oder mit verschobener Saison (z.&nbsp;B. November&ndash;Februar) genauso funktioniert. Jeder hier nicht gelistete Monat wird im gesamten Werkzeug &uuml;bersprungen.',
+'cfg.nz':'NZ-Zeitfenster (Nachtzehntel)',
+'hint.nz':'Eine Zeile je Fenster: <code>Monat NZ Beginn Ende</code> (HH:MM). NZ0 wird automatisch erzeugt: es beginnt <span id="nz0FactorLbl">15</span>% der Nachtl&auml;nge vor Beginn von NZ1 und endet mit dem Beginn von NZ1. Jeder Monat kann unterschiedlich viele Fenster haben (NZ1&hellip;NZ8, NZ1&hellip;NZ12 usw.) &mdash; achten Sie nur auf Konsistenz mit den Schwellenwerten unten.',
+'cfg.thr':'Windgeschwindigkeits-Schwellenwerte (m/s)',
+'hint.thr':'Eine Zeile je Monat: <code>Monat NZ0 NZ1 &hellip; NZN</code> &mdash; je ein Wert pro NZ-Fenster dieses Monats (insgesamt N+1 Werte, wobei N der h&ouml;chste Fensterindex dieses Monats ist). Die Anlage stoppt, wenn der Wind im Fenster unter dem Schwellenwert liegt.',
+'cfg.classic':'Klassisches Schema (Referenz)',
+'hint.classic':'Feste Nachtfenster, ein einziger Schwellenwert. Eine Zeile je Monat: <code>Monat Beginn Ende</code>.',
+'label.classicThr':'Schwellenwert klassisch (m/s)',
+'cfg.filters':'Filter &amp; Konstanten',
+'label.tempMin':'Temp. min (&deg;C)',
+'label.tempMax':'Temp. max (&deg;C)',
+'label.nz0':'NZ0-Vorlauffaktor',
+'btn.calc':'Verluste berechnen',
+'btn.example':'Beispiel laden (BN14&ndash;16)',
+'btn.reset':'Zur&uuml;cksetzen',
+'card.results':'Ergebnisse',
+'btn.copy':'Kopieren',
+'title.copy':'Zusammenfassung als TSV kopieren',
+'title.xlsx':'Excel-Arbeitsmappe herunterladen',
+'placeholder.results':'Anlagen und Meteodaten laden, dann berechnen.<br/>Ergebnisse und Excel-Export erscheinen hier.',
+'card.notes':'Methodenhinweise',
+'notes.weibull':'<strong style="color:var(--text)">Weibull:</strong> Verlust = h&auml;ufigkeitsgewichteter <code>E[P | v &lt; Schwelle]</code> aus der Sektor-Nachlauf-Weibullverteilung, multipliziert mit den Aktivstunden. Setzt voraus, dass die Jahres-Windverteilung auch w&auml;hrend der Fledermaus-Aktivstunden gilt.',
+'notes.ts':'<strong style="color:var(--text)">Zeitreihe:</strong> Jeder Zeitschritt innerhalb eines NZ-Fensters mit g&uuml;ltiger Temperatur wird gegen den Schwellenwert gepr&uuml;ft; liegt der Wind darunter, wird der Wert der Leistungskennlinie als Verlust addiert. Bildet die Nacht-/Sommer-Windkorrelation ab. Eine optionale Windskalierung je Anlage passt den Meteo-Wind an die Nabenbedingungen an.',
+'notes.date':'<strong style="color:var(--text)">Datumsauswertung:</strong> Die Zeitstempel-Spalte unterst&uuml;tzt ISO (<code>JJJJ-MM-TT</code>), Tag-zuerst (<code>TT.MM.JJJJ</code>) und US-Monat-zuerst (<code>MM/TT/JJJJ</code>). Die automatische Erkennung pr&uuml;ft eine Stichprobe von Zeilen und legt das Format fest, sobald es aus den Daten eindeutig ist (ein Wert &gt;12 kann nur ein Tag sein); bei durchgehender Mehrdeutigkeit erfolgt eine Warnung.',
+'notes.results':'<strong style="color:var(--text)">Ergebnissprache:</strong> Die Oberfl&auml;che l&auml;sst sich zwischen Englisch und Deutsch umschalten, alle Ergebnisse, Tabellen und Exporte sind jedoch immer auf Deutsch, damit Berichte einheitlich bleiben.',
+'notes.local':'Die gesamte Berechnung l&auml;uft lokal in Ihrem Browser.',
+'help.title':'Bedienung',
+'help.s1t':'Methode w&auml;hlen',
+'help.s1p':'<strong>Weibull</strong> bildet die windPRO-typische Berechnung aus der Sektorstatistik nach. <strong>Zeitreihe</strong> wertet jeden 10-Minuten-Schritt der Meteodaten aus (ben&ouml;tigt eine Windgeschwindigkeitsspalte). <strong>Beide vergleichen</strong> zeigt beide nebeneinander.',
+'help.s2t':'Meteodaten laden',
+'help.s2p':'W&auml;hlen Sie die Meteo-CSV (<code>;</code>- oder <code>,</code>-getrennt), ordnen Sie die Spalten f&uuml;r Zeitstempel, Temperatur und Wind zu, w&auml;hlen Sie das Datumsformat (oder belassen Sie es auf Automatisch erkennen), setzen Sie den Jahresbereich und dr&uuml;cken Sie <strong>Datei einlesen</strong>. Deutsche Dezimalkommas werden automatisch verarbeitet.',
+'help.s3t':'Anlagen hinzuf&uuml;gen',
+'help.s3p':'F&uuml;gen Sie je Anlage die 12-zeilige Sektortabelle ein (<code>Sektor Winkel H&auml;ufigkeit% A k v_frei v_Nachlauf</code>) sowie die Leistungskennlinie (<code>Windgeschwindigkeit Leistung</code>, in W oder kW &mdash; wird automatisch erkannt). Optional k&ouml;nnen Sie eine windPRO-Ertragsreferenz zur Validierung und einen Windskalierungsfaktor f&uuml;r die Zeitreihenmethode angeben.',
+'help.s4t':'Monate festlegen und Konfiguration pr&uuml;fen',
+'help.s4p':'Das Feld <strong>Monate im Betrachtungszeitraum</strong> definiert Ihre Fledermaus-Saison &mdash; eine beliebige Auswahl der 12 Kalendermonate, in beliebiger Reihenfolge, mit deutschen oder englischen Namen. NZ-Fenster, Monatsschwellenwerte, klassisches Schema und Temperaturfilter sind mit den Standardwerten f&uuml;r April&ndash;Oktober vorbelegt und vollst&auml;ndig editierbar.',
+'help.s5t':'Berechnen &amp; exportieren',
+'help.s5p':'Die Ergebnisse zeigen den vollen Jahresertrag, den klassischen Verlust, den NZ-Verlust und die Einsparung je Anlage sowie die vollst&auml;ndige NZ-Matrix. Alles l&auml;sst sich als mehrbl&auml;ttrige <code>.xlsx</code>-Datei exportieren. Ergebnisse und Exporte sind immer auf Deutsch.',
+'btn.gotit':'Verstanden',
+'wt.namePh':'Name',
+'wt.ref':'windPRO-Ertragsreferenz (MWh/a, optional)',
+'wt.scale':'Windskalierung (Zeitreihe)',
+'wt.sectors':'Sektordaten &mdash; <code>Sektor Winkel H&auml;ufigkeit% A k v_frei v_Nachlauf</code>',
+'wt.curve':'Leistungskennlinie &mdash; <code>Windgeschwindigkeit Leistung</code> (W oder kW)',
+'title.dup':'Duplizieren',
+'title.rm':'Entfernen',
+// --- Meldungen ---
+'badge.nofile':'keine Datei',
+'badge.file':'Datei geladen',
+'badge.rows':'{k} Zeilen \u00b7 {y} Jahre',
+'m.reading':'Datei wird gelesen\u2026',
+'m.loaded':'Datei "{name}" geladen ({size} MB). Pr\u00fcfen Sie Spaltenzuordnung und Datumsformat und dr\u00fccken Sie "Datei einlesen".',
+'m.readErr':'Datei konnte nicht gelesen werden: {err}',
+'m.none':'\u2014 keine \u2014',
+'m.selectFirst':'Bitte zuerst eine CSV-Datei ausw\u00e4hlen.',
+'m.parsing':'Einlesen\u2026',
+'m.parsingPct':'Einlesen\u2026 {pct}%',
+'m.noRows':'Keine g\u00fcltigen Zeilen gefunden. Pr\u00fcfen Sie Zeitstempel-Spalte, Datumsformat und Jahresbereich.',
+'m.detIso':'Erkanntes Datumsformat: ISO (JJJJ-MM-TT).',
+'m.detOk':'Erkanntes Datumsformat: {fmt} \u2014 in der Stichprobe trat ein Tageswert >12 auf, damit ist es eindeutig.',
+'m.fmtMdy':'MM/TT/JJJJ (US, Monat zuerst)',
+'m.fmtDmy':'TT.MM.JJJJ (Tag zuerst)',
+'m.detConflict':'Warnung: In der Stichprobe treten in BEIDEN Datumspositionen Werte >12 auf \u2014 die Datei mischt m\u00f6glicherweise Formate oder nutzt ein nicht unterst\u00fctztes. Es wird Tag-zuerst angenommen; bitte Ergebnisse pr\u00fcfen oder das Format manuell w\u00e4hlen.',
+'m.detAmbig':'Warnung: Alle Datumswerte der Stichprobe sind in beiden Positionen \u226412, daher l\u00e4sst sich Tag-zuerst nicht von Monat-zuerst unterscheiden. Es wird TT.MM.JJJJ (Tag zuerst) angenommen \u2014 bei US-Format MM/TT/JJJJ bitte "Datumsformat" manuell setzen und erneut einlesen.',
+'m.parsed':'{k} Zeilen eingelesen, {y} volle Jahre{wind}.',
+'m.windYes':', Windgeschwindigkeit verf\u00fcgbar',
+'m.windNo':', keine Windspalte (nur Weibull-Stunden)',
+'m.badMonth':' {n} Zeile(n) hatten einen ung\u00fcltigen Monat und wurden \u00fcbersprungen \u2014 pr\u00fcfen Sie das Datumsformat, falls diese Zahl gro\u00df wirkt.',
+'m.noMeteo':'Keine eingelesenen Meteodaten \u2014 bitte zuerst die CSV einlesen oder auf manuelle Stunden umschalten.',
+'m.tsNoMeteo':'Die Zeitreihenmethode ben\u00f6tigt eingelesene Meteodaten.',
+'m.tsNoWind':'Die Zeitreihenmethode ben\u00f6tigt eine Windgeschwindigkeitsspalte \u2014 Spalten neu zuordnen und CSV erneut einlesen.',
+'m.manualMissing':'Manuelle Stunden: Wert f\u00fcr {mo} NZ{nz} fehlt',
+'m.sectorsBad':'{name}: Sektordaten ben\u00f6tigen numerische Zeilen "Sektor Winkel H\u00e4ufigkeit% A k v_frei v_Nachlauf"',
+'m.curveBad':'{name}: Leistungskennlinie ben\u00f6tigt numerische Zeilen "Windgeschwindigkeit Leistung"',
+'m.addWt':'Bitte mindestens eine WEA hinzuf\u00fcgen.',
+'m.copied':'Zusammenfassung in die Zwischenablage kopiert.',
+'m.unknownMonth':'Unbekannter Monat "{raw}" \u2014 bitte Schreibweise pr\u00fcfen (deutsche oder englische Namen zul\u00e4ssig).',
+'m.monthNotInScope':'Monat "{raw}" ist nicht unter "Monate im Betrachtungszeitraum" gelistet \u2014 dort zuerst erg\u00e4nzen.',
+'m.monthsEmpty':'Monate im Betrachtungszeitraum: bitte mindestens einen Monat angeben.',
+'m.monthsUnknown':'Monate im Betrachtungszeitraum: unbekannter Monat "{l}".',
+'m.nzBadLine':'NZ-Fenster: fehlerhafte Zeile "{l}"',
+'m.thrMissingMonth':'Schwellenwerte: Monat "{mo}" fehlt',
+'m.thrMissing':'Schwellenwerte: {mo} NZ{nz} fehlt',
+'m.classicBadLine':'Klassische Fenster: fehlerhafte Zeile "{l}"'
+}
+};
+
+let LANG=localStorage.getItem('fm_lang');
+if(LANG!=='en'&&LANG!=='de')LANG=(navigator.language||'en').toLowerCase().startsWith('de')?'de':'en';
+
+// t() returns plain text (HTML entities decoded) — for textContent / messages.
+// tHtml() returns the raw string — for innerHTML slots.
+const _dec=document.createElement('textarea');
+function tHtml(k,p){
+  let s=(I18N[LANG]&&I18N[LANG][k])!==undefined?I18N[LANG][k]:(I18N.en[k]!==undefined?I18N.en[k]:k);
+  if(p)for(const key in p)s=s.split('{'+key+'}').join(p[key]);
+  return s;
+}
+function t(k,p){_dec.innerHTML=tHtml(k,p);return _dec.value;}
+
+// dynamic badge state for the meteo card
+let BADGE={key:'badge.nofile',p:null};
+function renderBadge(){
+  const el=document.getElementById('meteoBadge');if(!el)return;
+  let p=BADGE.p;
+  if(p&&typeof p.k==='number')p={...p,k:p.k.toLocaleString(LANG==='de'?'de-DE':'en-US')};
+  el.textContent=t(BADGE.key,p);
+}
+function setBadge(key,p){BADGE={key,p:p||null};renderBadge();}
+
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{el.innerHTML=tHtml(el.dataset.i18nHtml);});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{el.placeholder=t(el.dataset.i18nPh);});
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});
+  document.querySelectorAll('#langSeg .langbtn').forEach(b=>b.classList.toggle('active',b.dataset.lang===LANG));
+  renderBadge();
+  syncNz0Label();
+}
+function setLang(l){
+  LANG=l;try{localStorage.setItem('fm_lang',l);}catch(e){}
+  applyI18n();
+}
+document.querySelectorAll('#langSeg .langbtn').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
+
+// ============================================================
+// RESULT LABELS — ALWAYS GERMAN (both interface languages)
+// ============================================================
+const R={
+  aepBadge:'MWh/a Jahresertrag',
+  devBadge:'% ggü. windPRO',
+  metric:'Kennwert',
+  unit:'Einheit',
+  mWeibull:'Weibull',
+  mTs:'Zeitreihe',
+  rClassicHours:'Aktivstunden klassisch',
+  rClassicLoss:'Verlust klassisch',
+  rNzLoss:'Verlust NZ',
+  rSaving:'Einsparung ggü. klassisch',
+  rTsAep:'Jahresertrag Zeitreihe (Info)',
+  rFullAep:'Modell-Jahresertrag',
+  rRef:'windPRO-Ertragsreferenz',
+  rDev:'Abweichung ggü. windPRO',
+  uH:'h/a',uMwh:'MWh/a',uPct:'%',uPp:'%-Punkte',
+  matrix:'NZ-Matrix ({n} Fenster)',
+  cMonth:'Monat',cNz:'NZ',cWindow:'Fenster',cThr:'Schwelle m/s',
+  totalW:'Gesamtverlust NZ · Weibull ({n} WEA)',
+  totalTS:'Gesamtverlust NZ · Zeitreihe ({n} WEA)',
+  meteo:'Meteo: ',
+  manualHours:' · Weibull-Stunden: manuell',
+  dateUsed:' · Verwendetes Datumsformat: ',
+  langNote:'Alle Ergebnisse, Tabellen und Exporte sind grundsätzlich auf Deutsch.',
+  hCol:'h/a',mCol:'MWh',
+  xWea:'WEA',xMethod:'Methode',xValue:'Wert',
+  xSheetSummary:'Gesamtuebersicht',
+  xMonth:'Monat',xNz:'NZ',xStart:'Beginn',xEnd:'Ende',xThr:'Schwellenwert_ms',
+  xHours:'Stunden_pro_Jahr',xEkw:'Erwartete_kW_unter_Schwelle',xLoss:'Verlust_MWh',
+  fileName:'fledermaus_nz_verluste.xlsx'
+};
+function rfmt(s,p){for(const k in p)s=s.split('{'+k+'}').join(p[k]);return s;}
+
+// ============================================================
+// MONTHS (editable/flexible — full 12-month calendar, German + English aliases)
 // ============================================================
 const MONTH_ALIASES={
   januar:1, january:1, jan:1,
@@ -400,7 +738,7 @@ const MONTH_ALIASES={
   november:11, nov:11,
   dezember:12, december:12, dez:12, dec:12
 };
-// Canonical display name for each calendar month number (German, matches original defaults)
+// Canonical display name for each calendar month number (German — results are German)
 const MONTH_CANON={1:'Januar',2:'Februar',3:'März',4:'April',5:'Mai',6:'Juni',7:'Juli',8:'August',9:'September',10:'Oktober',11:'November',12:'Dezember'};
 
 const CFG_MONTHS_DEFAULT=`April
@@ -416,19 +754,19 @@ Oktober`;
 function resolveMonth(raw,scopeSet){
   const key=raw.trim().toLowerCase();
   const num=MONTH_ALIASES[key];
-  if(num===undefined)throw`Unknown month "${raw}" — check spelling (German or English names accepted).`;
+  if(num===undefined)throw t('m.unknownMonth',{raw});
   const canon=MONTH_CANON[num];
-  if(scopeSet && !scopeSet.has(num))throw`Month "${raw}" is not listed in "Months in scope" — add it there first.`;
+  if(scopeSet && !scopeSet.has(num))throw t('m.monthNotInScope',{raw});
   return{canon,num};
 }
 function parseMonthsScope(){
   const lines=$('cfgMonths').value.split('\n').map(l=>l.trim()).filter(Boolean);
-  if(!lines.length)throw'Months in scope: add at least one month.';
+  if(!lines.length)throw t('m.monthsEmpty');
   const nums=new Set(),order=[];
   for(const l of lines){
     const key=l.toLowerCase();
     const num=MONTH_ALIASES[key];
-    if(num===undefined)throw`Months in scope: unknown month "${l}".`;
+    if(num===undefined)throw t('m.monthsUnknown',{l});
     if(!nums.has(num)){nums.add(num);order.push(num);}
   }
   return{nums,order};
@@ -577,8 +915,12 @@ function num(s){if(s===undefined||s===null)return NaN;return parseFloat(String(s
 function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
 function minToStr(m){m=((Math.floor(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
 function inIv(min,s,e){return s<=e?(min>=s&&min<e):(min>=s||min<e);}
-function fmt(n,d=1){if(n===null||n===undefined||isNaN(n))return'\u2014';return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+// Results are German → German number formatting (1.234,5)
+function fmt(n,d=1){if(n===null||n===undefined||isNaN(n))return'\u2014';return n.toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});}
+// German decimal comma for TSV clipboard export (pastes cleanly into German Excel)
+function deNum(n,d){return n.toFixed(d).replace('.',',');}
 function wpdf(v,A,k){return(k/A)*Math.pow(v/A,k-1)*Math.exp(-Math.pow(v/A,k));}
+function syncNz0Label(){const lbl=$('nz0FactorLbl');if(lbl)lbl.textContent=Math.round((num($('nz0Factor').value)||0)*100);}
 
 const WIND_STEP=0.05,WIND_MAX=35;
 function buildGrid(curve){ // curve: [{v,kw}] sorted
@@ -592,7 +934,7 @@ function buildGrid(curve){ // curve: [{v,kw}] sorted
 }
 function interpCurve(curve,v){
   if(!curve.length)return 0;
-  if(v<curve[0].v||v>curve[curve.length-1].v)return 0; // like np.interp with left=0,right=0 outside grid... 
+  if(v<curve[0].v||v>curve[curve.length-1].v)return 0; // like np.interp with left=0,right=0 outside grid
   // find bracket
   let lo=0,hi=curve.length-1;
   while(hi-lo>1){const mid=(lo+hi)>>1;(curve[mid].v<=v)?lo=mid:hi=mid;}
@@ -631,7 +973,7 @@ function parseNzConfig(){
   const byMonth={};
   for(const l of lines){
     const p=l.split(/[\s;,\t]+/);
-    if(p.length<4)throw`NZ windows: bad line "${l}"`;
+    if(p.length<4)throw t('m.nzBadLine',{l});
     const{canon:mo}=resolveMonth(p[0],scope.nums);
     const nz=parseInt(p[1].replace(/\D/g,''));
     if(!(byMonth[mo]))byMonth[mo]=[];
@@ -645,14 +987,14 @@ function parseNzConfig(){
     const mo=MONTH_CANON[num_];
     const list=(byMonth[mo]||[]).sort((a,b)=>a.nz-b.nz);
     if(!list.length)continue;
-    if(!thr[mo])throw`Thresholds: month "${mo}" missing`;
+    if(!thr[mo])throw t('m.thrMissingMonth',{mo});
     // NZ0
     const s=toMin(list[0].start);let e=toMin(list[list.length-1].end);
     let e2=e;if(e2<=s)e2+=1440;
     const z0=minToStr(s-(e2-s)*f);
     rows.push({month:mo,monthNum:num_,nz:0,start:z0,end:list[0].start,thr:thr[mo][0]});
     for(const w of list){
-      if(thr[mo][w.nz]===undefined)throw`Thresholds: ${mo} NZ${w.nz} missing`;
+      if(thr[mo][w.nz]===undefined)throw t('m.thrMissing',{mo,nz:w.nz});
       rows.push({month:mo,monthNum:num_,nz:w.nz,start:w.start,end:w.end,thr:thr[mo][w.nz]});
     }
   }
@@ -674,7 +1016,7 @@ function parseClassicConfig(){
   const out={};
   for(const l of $('cfgClassic').value.split('\n').map(x=>x.trim()).filter(Boolean)){
     const p=l.split(/[\s;,\t]+/);
-    if(p.length<3)throw`Classic windows: bad line "${l}"`;
+    if(p.length<3)throw t('m.classicBadLine',{l});
     const{num:monthNum}=resolveMonth(p[0],scope.nums);
     out[monthNum]={s:toMin(p[1]),e:toMin(p[2])};
   }
@@ -684,14 +1026,14 @@ function parseClassicConfig(){
 // ============================================================
 // METEO CSV
 // ============================================================
-let METEO=null; // {month:Int8Array,minute:Int16Array,T:Float32Array,V:Float32Array|null,years:int,dtH:number,n:int,name:string}
-let RAW=null;   // {header:[], lines:[], sep}
+let METEO=null; // {month,minute,T,V,years,dtH,n,name}
+let RAW=null;   // {header:[], text, sep}
 
 function setStatus(el,cls,msg){el.className='status '+cls;el.textContent=msg;}
 
 $('meteoFile').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
-  setStatus($('meteoStatus'),'info','Reading file\u2026');
+  setStatus($('meteoStatus'),'info',t('m.reading'));
   try{
     const text=await f.text();
     const nl=text.indexOf('\n');
@@ -703,27 +1045,27 @@ $('meteoFile').addEventListener('change',async e=>{
       sel.innerHTML='';
       header.forEach((h,i)=>{const o=document.createElement('option');o.value=i;o.textContent=h||('col '+(i+1));sel.appendChild(o);});
     }
-    const opt=document.createElement('option');opt.value=-1;opt.textContent='\u2014 none \u2014';$('colV').insertBefore(opt,$('colV').firstChild);
+    const opt=document.createElement('option');opt.value=-1;opt.textContent=t('m.none');$('colV').insertBefore(opt,$('colV').firstChild);
     // guesses
     const gi=(re)=>header.findIndex(h=>re.test(h));
-    let i=gi(/date|time|stamp/i);$('colDt').value=i>=0?i:0;
+    let i=gi(/date|time|stamp|datum|zeit/i);$('colDt').value=i>=0?i:0;
     i=header.findIndex(h=>/temp|(^|[^a-z])t(\b|[^a-z])/i.test(h)||/°?c\]?$/i.test(h));if(i<0)i=gi(/temp|^t$/i);$('colT').value=i>=0?i:0;
-    i=gi(/mean.?wind|wind.?speed|^ws|^v$|speed|m\/s/i);$('colV').value=i>=0?i:-1;
-    setStatus($('meteoStatus'),'info',`Loaded "${f.name}" (${(f.size/1048576).toFixed(1)} MB). Check the column mapping and date format, then press Parse file.`);
-    $('meteoBadge').textContent='file loaded';
-  }catch(err){setStatus($('meteoStatus'),'err','Could not read file: '+err);}
+    i=gi(/mean.?wind|wind.?speed|windgeschw|^ws|^v$|speed|m\/s/i);$('colV').value=i>=0?i:-1;
+    setStatus($('meteoStatus'),'info',t('m.loaded',{name:f.name,size:(f.size/1048576).toFixed(1)}));
+    setBadge('badge.file');
+  }catch(err){setStatus($('meteoStatus'),'err',t('m.readErr',{err:String(err)}));}
 });
 
 // ---- Date parsing: supports ISO, day-first and month-first formats, with auto-detection ----
-function parseTsRaw(s,fmt){
+function parseTsRaw(s,fmtCode){
   s=s.trim();
   let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[T ](\d{1,2}):(\d{2})/);
   if(m)return{y:+m[1],mo:+m[2],day:+m[3],min:(+m[4])*60+(+m[5])};
   m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})[ T](\d{1,2}):(\d{2})/);
   if(!m)return null;
   const g1=+m[1],g2=+m[2],y=+m[3],min=(+m[4])*60+(+m[5]);
-  if(fmt==='mdy')return{y,mo:g1,day:g2,min};
-  // default / 'dmy' / 'auto' fallback (auto resolves format before calling this in bulk parse)
+  if(fmtCode==='mdy')return{y,mo:g1,day:g2,min};
+  // default / 'dmy' fallback (auto resolves the format before the bulk parse)
   return{y,mo:g2,day:g1,min};
 }
 // Scan a sample of raw lines to determine whether the ambiguous slash/dot format
@@ -745,63 +1087,63 @@ function detectDateFormat(lines,sep,iDt,sampleSize){
   if(g1Over12&&!g2Over12)return{fmt:'dmy',confident:true,checked};
   if(g2Over12&&!g1Over12)return{fmt:'mdy',confident:true,checked};
   if(g1Over12&&g2Over12)return{fmt:'dmy',confident:false,checked,conflict:true};
-  return{fmt:'dmy',confident:false,checked}; // fully ambiguous (all values ≤12) — cannot tell, default to day-first
+  return{fmt:'dmy',confident:false,checked}; // fully ambiguous (all values ≤12)
 }
-function parseTs(s,fmt){
+function parseTs(s,fmtCode){
   if(/^\d{4}-\d{1,2}-\d{1,2}[T ]/.test(s)){
     const m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[T ](\d{1,2}):(\d{2})/);
     if(m)return{y:+m[1],mo:+m[2],min:(+m[4])*60+(+m[5])};
     return null;
   }
-  const r=parseTsRaw(s,fmt);
+  const r=parseTsRaw(s,fmtCode);
   return r?{y:r.y,mo:r.mo,min:r.min}:null;
 }
 
 $('parseBtn').addEventListener('click',()=>{
-  if(!RAW){setStatus($('meteoStatus'),'err','Select a CSV file first.');return;}
+  if(!RAW){setStatus($('meteoStatus'),'err',t('m.selectFirst'));return;}
   const iDt=+$('colDt').value,iT=+$('colT').value,iV=+$('colV').value;
   const y0=+$('yearFrom').value,y1=+$('yearTo').value;
   const lines=RAW.text.split('\n');
   const n=lines.length;
 
-  let fmt=$('dateFmt').value,detectNote='';
-  if(fmt==='auto'){
+  let fmtCode=$('dateFmt').value,detectNote='';
+  if(fmtCode==='auto'){
     const det=detectDateFormat(lines,RAW.sep,iDt,2000);
-    fmt=det.fmt;
-    if(det.fmt==='iso')detectNote='Detected date format: ISO (YYYY-MM-DD).';
-    else if(det.confident)detectNote=`Detected date format: ${det.fmt==='mdy'?'MM/DD/YYYY (US, month first)':'DD.MM.YYYY (day first)'} — a day value >12 appeared in the sample, so this is unambiguous.`;
-    else if(det.conflict)detectNote=`Warning: sample has day values >12 in BOTH date positions — the file may mix formats or use an unsupported one. Falling back to day-first; please verify results, or pick the format manually.`;
-    else detectNote=`Warning: all sampled dates have both components ≤12, so day-first vs month-first is ambiguous. Assuming DD.MM.YYYY (day first) — if your file is US-style MM/DD/YYYY, set "Date format" manually and re-parse.`;
+    fmtCode=det.fmt;
+    if(det.fmt==='iso')detectNote=t('m.detIso');
+    else if(det.confident)detectNote=t('m.detOk',{fmt:det.fmt==='mdy'?t('m.fmtMdy'):t('m.fmtDmy')});
+    else if(det.conflict)detectNote=t('m.detConflict');
+    else detectNote=t('m.detAmbig');
   }
 
   const month=new Int8Array(n),minute=new Int16Array(n),T=new Float32Array(n);
   const V=iV>=0?new Float32Array(n):null;
   const years=new Set();
   let k=0,row=0,badMonth=0;
-  setStatus($('meteoStatus'),'info','Parsing\u2026');
+  setStatus($('meteoStatus'),'info',t('m.parsing'));
   function chunk(){
     const end=Math.min(row+80000,n);
     for(;row<end;row++){
       if(row===0)continue; // header
       const l=lines[row];if(!l||l.length<5)continue;
       const p=l.split(RAW.sep);
-      const ts=parseTs((p[iDt]||'').trim(),fmt);if(!ts)continue;
+      const ts=parseTs((p[iDt]||'').trim(),fmtCode);if(!ts)continue;
       if(ts.mo<1||ts.mo>12){badMonth++;continue;}
       if(ts.y<y0||ts.y>y1)continue;
-      const t=num(p[iT]);if(isNaN(t))continue;
+      const tv=num(p[iT]);if(isNaN(tv))continue;
       let v=NaN;
       if(V){v=num(p[iV]);if(isNaN(v))continue;}
-      month[k]=ts.mo;minute[k]=ts.min;T[k]=t;if(V)V[k]=v;
+      month[k]=ts.mo;minute[k]=ts.min;T[k]=tv;if(V)V[k]=v;
       years.add(ts.y);k++;
     }
-    if(row<n){setStatus($('meteoStatus'),'info',`Parsing\u2026 ${Math.round(row/n*100)}%`);setTimeout(chunk,0);return;}
-    if(k===0){setStatus($('meteoStatus'),'err','No valid rows found. Check the DateTime column, date format and year range.');return;}
+    if(row<n){setStatus($('meteoStatus'),'info',t('m.parsingPct',{pct:Math.round(row/n*100)}));setTimeout(chunk,0);return;}
+    if(k===0){setStatus($('meteoStatus'),'err',t('m.noRows'));return;}
     METEO={month:month.subarray(0,k),minute:minute.subarray(0,k),T:T.subarray(0,k),
-      V:V?V.subarray(0,k):null,years:years.size,dtH:(+$('timestep').value)/60,n:k,name:RAW.name,dateFmt:fmt};
-    $('meteoBadge').textContent=`${k.toLocaleString()} rows \u00b7 ${years.size} yrs`;
-    const badNote=badMonth>0?` ${badMonth.toLocaleString()} row(s) had an invalid month and were skipped — check the date format if this number looks large.`:'';
-    const okMsg=`Parsed ${k.toLocaleString()} rows, ${years.size} full years${V?', wind speed available':', no wind column (Weibull hours only)'}.${badNote}`;
-    if(detectNote)setStatus($('meteoStatus'),(badMonth>0||!fmt)?'warn':'ok',detectNote+' '+okMsg);
+      V:V?V.subarray(0,k):null,years:years.size,dtH:(+$('timestep').value)/60,n:k,name:RAW.name,dateFmt:fmtCode};
+    setBadge('badge.rows',{k,y:years.size});
+    const badNote=badMonth>0?t('m.badMonth',{n:badMonth.toLocaleString(LANG==='de'?'de-DE':'en-US')}):'';
+    const okMsg=t('m.parsed',{k:k.toLocaleString(LANG==='de'?'de-DE':'en-US'),y:years.size,wind:V?t('m.windYes'):t('m.windNo')})+badNote;
+    if(detectNote)setStatus($('meteoStatus'),badMonth>0?'warn':'ok',detectNote+' '+okMsg);
     else setStatus($('meteoStatus'),badMonth>0?'warn':'ok',okMsg);
     saveState();
   }
@@ -810,13 +1152,13 @@ $('parseBtn').addEventListener('click',()=>{
 
 // hours accumulation from meteo (per NZ row + classic)
 function hoursFromMeteo(nzRows,classicWin,tmin,tmax){
-  if(!METEO)throw'No parsed meteo data \u2014 parse the CSV first or switch to manual hours.';
+  if(!METEO)throw t('m.noMeteo');
   const{month,minute,T,dtH,years,n}=METEO;
   const byMonth={};
   nzRows.forEach((r,i)=>{(byMonth[r.monthNum]=byMonth[r.monthNum]||[]).push({i,s:toMin(r.start),e:toMin(r.end)});});
   const acc=new Float64Array(nzRows.length);let cls=0;
   for(let j=0;j<n;j++){
-    const t=T[j];if(t<tmin||t>tmax)continue;
+    const tv=T[j];if(tv<tmin||tv>tmax)continue;
     const mo=month[j],mi=minute[j];
     const cw=classicWin[mo];if(cw&&inIv(mi,cw.s,cw.e))cls+=dtH;
     const list=byMonth[mo];if(!list)continue;
@@ -827,8 +1169,8 @@ function hoursFromMeteo(nzRows,classicWin,tmin,tmax){
 
 // time-series losses per turbine
 function timeseriesLosses(nzRows,classicWin,tmin,tmax,clsThr,curve,scale){
-  if(!METEO)throw'Time-series method needs parsed meteo data.';
-  if(!METEO.V)throw'Time-series method needs a wind speed column \u2014 remap and re-parse the CSV.';
+  if(!METEO)throw t('m.tsNoMeteo');
+  if(!METEO.V)throw t('m.tsNoWind');
   const{month,minute,T,V,dtH,years,n}=METEO;
   const byMonth={};
   nzRows.forEach((r,i)=>{(byMonth[r.monthNum]=byMonth[r.monthNum]||[]).push({i,s:toMin(r.start),e:toMin(r.end),thr:r.thr});});
@@ -837,7 +1179,7 @@ function timeseriesLosses(nzRows,classicWin,tmin,tmax,clsThr,curve,scale){
   for(let j=0;j<n;j++){
     const v=V[j]*scale;
     aepE+=interpCurve(curve,v)*dtH;
-    const t=T[j];if(t<tmin||t>tmax)continue;
+    const tv=T[j];if(tv<tmin||tv>tmax)continue;
     const mo=month[j],mi=minute[j];
     const cw=classicWin[mo];
     if(cw&&inIv(mi,cw.s,cw.e)){clsH+=dtH;if(v<clsThr)clsE+=interpCurve(curve,v)*dtH;}
@@ -877,7 +1219,7 @@ function parseManualHours(nzRows){
   }
   const nzHours=nzRows.map(r=>{
     const v=map[r.month+'|'+r.nz];
-    if(v===undefined||isNaN(v))throw`Manual hours: missing value for ${r.month} NZ${r.nz}`;
+    if(v===undefined||isNaN(v))throw t('m.manualMissing',{mo:r.month,nz:r.nz});
     return v;
   });
   const ch=num($('manualClassicHours').value);
@@ -923,6 +1265,7 @@ function renderWts(){
     list.appendChild(b);
   });
   $('noWt').style.display=wts.length?'none':'block';
+  applyI18n(); // translate the freshly cloned turbine blocks
 }
 function captureWts(){
   document.querySelectorAll('.wt-block').forEach(b=>{
@@ -943,7 +1286,7 @@ function parseSectors(text,name){
     if(p.length>=7&&p.slice(0,7).every(x=>!isNaN(x)))
       rows.push({sector:p[0],angle:p[1],freq:p[2],A:p[3],k:p[4],vFree:p[5],vWake:p[6]});
   }
-  if(rows.length<2)throw`${name}: sector data needs numeric rows "sector angle freq% A k v_free v_wake"`;
+  if(rows.length<2)throw t('m.sectorsBad',{name});
   const fSum=rows.reduce((a,r)=>a+r.freq,0);
   return rows.map(r=>({...r,ff:r.freq/fSum,Aw:r.A*r.vWake/r.vFree,k:r.k}));
 }
@@ -953,7 +1296,7 @@ function parseCurve(text,name){
     const p=l.split(/[\s;\t]+/).map(num);
     if(p.length>=2&&!isNaN(p[0])&&!isNaN(p[1]))rows.push({v:p[0],p:p[1]});
   }
-  if(rows.length<3)throw`${name}: power curve needs numeric rows "wind_speed power"`;
+  if(rows.length<3)throw t('m.curveBad',{name});
   rows.sort((a,b)=>a.v-b.v);
   const maxP=Math.max(...rows.map(r=>r.p));
   const div=maxP>20000?1000:1; // W -> kW auto-detect
@@ -968,7 +1311,7 @@ $('calcBtn').addEventListener('click',()=>{
   const st=$('calcStatus');st.className='status';
   try{
     captureWts();
-    if(!wts.length)throw'Add at least one turbine.';
+    if(!wts.length)throw t('m.addWt');
     const method=document.querySelector('input[name=method]:checked').value;
     const hoursSrc=document.querySelector('input[name=hoursSrc]:checked').value;
     const nzRows=parseNzConfig();
@@ -982,7 +1325,7 @@ $('calcBtn').addEventListener('click',()=>{
     if(needW)wHours=(hoursSrc==='manual')?parseManualHours(nzRows):hoursFromMeteo(nzRows,classicWin,tmin,tmax);
 
     const out={method,nzRows,turbines:[],hoursSrc,
-      meteoInfo:METEO?`${METEO.name} \u00b7 ${METEO.n.toLocaleString()} rows \u00b7 ${METEO.years} years`:null};
+      meteoInfo:METEO?`${METEO.name} \u00b7 ${METEO.n.toLocaleString('de-DE')} Zeilen \u00b7 ${METEO.years} Jahre`:null};
 
     for(const w of wts){
       const name=w.name||'WEA';
@@ -997,7 +1340,7 @@ $('calcBtn').addEventListener('click',()=>{
 
       if(needW){
         const thrSet=[...new Set(nzRows.map(r=>r.thr))];
-        const thrMap={};thrSet.forEach(t=>thrMap[t]=expectedBelow(sectors,t,grid,pw));
+        const thrMap={};thrSet.forEach(x=>thrMap[x]=expectedBelow(sectors,x,grid,pw));
         const rows=nzRows.map((r,i)=>({...r,hours:wHours.nzHours[i],
           ekw:thrMap[r.thr],loss:wHours.nzHours[i]*thrMap[r.thr]/1000}));
         const nzLoss=rows.reduce((a,r)=>a+r.loss,0);
@@ -1026,46 +1369,48 @@ $('calcBtn').addEventListener('click',()=>{
 });
 
 // ============================================================
-// RENDER RESULTS
+// RENDER RESULTS — ALWAYS IN GERMAN
 // ============================================================
-function methodLabel(m){return m==='weibull'?'Weibull':'Time series';}
+function methodLabel(m){return m==='weibull'?R.mWeibull:R.mTs;}
 function renderResults(out){
   const body=$('resultsBody');body.innerHTML='';
   const methods=Object.keys(out.turbines[0].methods);
   let totalW=0,totalTS=0;
 
+  const note=document.createElement('div');note.className='result-lang-note';note.textContent=R.langNote;body.appendChild(note);
+
   out.turbines.forEach(T=>{
     const wrap=document.createElement('div');wrap.className='result-wt';
-    let badges=`<span class="badge badge-violet">${fmt(T.fullAep,1)} MWh/a AEP</span>`;
-    if(T.dev!==null)badges+=` <span class="badge ${Math.abs(T.dev)<1?'badge-green':'badge-amber'}">${T.dev>=0?'+':''}${fmt(T.dev,2)}% vs windPRO</span>`;
+    let badges=`<span class="badge badge-violet">${fmt(T.fullAep,1)} ${R.aepBadge}</span>`;
+    if(T.dev!==null)badges+=` <span class="badge ${Math.abs(T.dev)<1?'badge-green':'badge-amber'}">${T.dev>=0?'+':''}${fmt(T.dev,2)}${R.devBadge}</span>`;
     wrap.innerHTML=`<div class="result-wt-header"><span class="result-wt-title">${T.name}</span><span style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap">${badges}</span></div>`;
 
     // summary table
     const sum=document.createElement('div');sum.className='data-table-wrap';
-    let h=`<table class="data-table"><thead><tr><th>Metric</th>`;
+    let h=`<table class="data-table"><thead><tr><th>${R.metric}</th>`;
     methods.forEach(m=>h+=`<th>${methodLabel(m)}</th>`);
-    h+=`<th>Unit</th></tr></thead><tbody>`;
+    h+=`<th>${R.unit}</th></tr></thead><tbody>`;
     const row=(label,key,d,unit,hl)=>{
       h+=`<tr${hl?' class="hl"':''}><td>${label}</td>`;
       methods.forEach(m=>{h+=`<td>${fmt(T.methods[m][key],d)}</td>`;});
       h+=`<td style="text-align:left;color:var(--text-3)">${unit}</td></tr>`;
     };
-    row('Classic active hours','classicHours',1,'h/a');
-    row('Classic loss','classicLoss',1,'MWh/a');
-    row('Classic loss','classicPct',2,'%');
-    row('NZ loss','nzLoss',1,'MWh/a',true);
-    row('NZ loss','nzPct',2,'%',true);
-    row('Saving vs classic','saving',1,'MWh/a');
-    row('Saving vs classic','savingPP',2,'%-pts');
+    row(R.rClassicHours,'classicHours',1,R.uH);
+    row(R.rClassicLoss,'classicLoss',1,R.uMwh);
+    row(R.rClassicLoss,'classicPct',2,R.uPct);
+    row(R.rNzLoss,'nzLoss',1,R.uMwh,true);
+    row(R.rNzLoss,'nzPct',2,R.uPct,true);
+    row(R.rSaving,'saving',1,R.uMwh);
+    row(R.rSaving,'savingPP',2,R.uPp);
     if(methods.includes('timeseries')&&T.methods.timeseries.tsAep)
-      h+=`<tr><td>Time-series AEP (info)</td>${methods.map(m=>`<td>${m==='timeseries'?fmt(T.methods.timeseries.tsAep,1):'\u2014'}</td>`).join('')}<td style="text-align:left;color:var(--text-3)">MWh/a</td></tr>`;
+      h+=`<tr><td>${R.rTsAep}</td>${methods.map(m=>`<td>${m==='timeseries'?fmt(T.methods.timeseries.tsAep,1):'\u2014'}</td>`).join('')}<td style="text-align:left;color:var(--text-3)">${R.uMwh}</td></tr>`;
     h+=`</tbody></table>`;
     sum.innerHTML=h;wrap.appendChild(sum);
 
     // NZ matrix (collapsible)
     const det=document.createElement('details');det.className='cfg';det.style.marginTop='8px';
-    let mh=`<summary>NZ matrix (${out.nzRows.length} windows)</summary><div class="cfg-body"><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Month</th><th>NZ</th><th>Window</th><th>Thr m/s</th>`;
-    methods.forEach(m=>mh+=`<th>h/a (${methodLabel(m)[0]})</th><th>MWh (${methodLabel(m)[0]})</th>`);
+    let mh=`<summary>${rfmt(R.matrix,{n:out.nzRows.length})}</summary><div class="cfg-body"><div class="data-table-wrap"><table class="data-table"><thead><tr><th>${R.cMonth}</th><th>${R.cNz}</th><th>${R.cWindow}</th><th>${R.cThr}</th>`;
+    methods.forEach(m=>mh+=`<th>${R.hCol} (${methodLabel(m)[0]})</th><th>${R.mCol} (${methodLabel(m)[0]})</th>`);
     mh+=`</tr></thead><tbody>`;
     out.nzRows.forEach((r,i)=>{
       mh+=`<tr><td>${r.month}</td><td>NZ${r.nz}</td><td>${r.start}\u2013${r.end}</td><td>${fmt(r.thr,1)}</td>`;
@@ -1083,39 +1428,39 @@ function renderResults(out){
   // totals
   const tb=document.createElement('div');tb.className='totals-bar';tb.style.marginTop='4px';
   let th='';
-  if(methods.includes('weibull'))th+=`<div class="totals-item"><span class="val">${fmt(totalW,1)} <span style="font-size:12px;font-weight:400">MWh/a</span></span><span class="lbl">Total NZ loss \u00b7 Weibull (${out.turbines.length} WEA)</span></div>`;
-  if(methods.includes('timeseries'))th+=`<div class="totals-item"><span class="val">${fmt(totalTS,1)} <span style="font-size:12px;font-weight:400">MWh/a</span></span><span class="lbl">Total NZ loss \u00b7 Time series (${out.turbines.length} WEA)</span></div>`;
+  if(methods.includes('weibull'))th+=`<div class="totals-item"><span class="val">${fmt(totalW,1)} <span style="font-size:12px;font-weight:400">MWh/a</span></span><span class="lbl">${rfmt(R.totalW,{n:out.turbines.length})}</span></div>`;
+  if(methods.includes('timeseries'))th+=`<div class="totals-item"><span class="val">${fmt(totalTS,1)} <span style="font-size:12px;font-weight:400">MWh/a</span></span><span class="lbl">${rfmt(R.totalTS,{n:out.turbines.length})}</span></div>`;
   tb.innerHTML=th;body.appendChild(tb);
 
   if(out.meteoInfo){const p=document.createElement('p');p.className='hint';p.style.marginTop='10px';
-    p.textContent='Meteo: '+out.meteoInfo+(out.hoursSrc==='manual'?' \u00b7 Weibull hours: manual':'')+(METEO&&METEO.dateFmt?` \u00b7 Date format used: ${METEO.dateFmt==='iso'?'ISO':METEO.dateFmt==='mdy'?'MM/DD/YYYY':'DD.MM.YYYY'}`:'');body.appendChild(p);}
+    p.textContent=R.meteo+out.meteoInfo+(out.hoursSrc==='manual'?R.manualHours:'')+(METEO&&METEO.dateFmt?R.dateUsed+(METEO.dateFmt==='iso'?'ISO':METEO.dateFmt==='mdy'?'MM/TT/JJJJ':'TT.MM.JJJJ'):'');body.appendChild(p);}
 
   $('resultsCard').style.display='';
   $('resultsPlaceholder').style.display='none';
 }
 
 // ============================================================
-// EXPORT
+// EXPORT — ALWAYS IN GERMAN
 // ============================================================
 $('copyTSV').addEventListener('click',async()=>{
   if(!RESULTS)return;
   const methods=Object.keys(RESULTS.turbines[0].methods);
-  const lines=[['WEA','Metric',...methods.map(methodLabel),'Unit'].join('\t')];
+  const lines=[[R.xWea,R.metric,...methods.map(methodLabel),R.unit].join('\t')];
   for(const T of RESULTS.turbines){
-    const push=(l,k,d,u)=>lines.push([T.name,l,...methods.map(m=>T.methods[m][k].toFixed(d)),u].join('\t'));
-    lines.push([T.name,'Model full AEP',...methods.map(()=>T.fullAep.toFixed(1)),'MWh/a'].join('\t'));
-    if(T.ref!==null){lines.push([T.name,'windPRO AEP ref',...methods.map(()=>T.ref.toFixed(1)),'MWh/a'].join('\t'));
-      lines.push([T.name,'Deviation vs windPRO',...methods.map(()=>T.dev.toFixed(2)),'%'].join('\t'));}
-    push('Classic active hours','classicHours',1,'h/a');
-    push('Classic loss','classicLoss',2,'MWh/a');
-    push('Classic loss','classicPct',3,'%');
-    push('NZ loss','nzLoss',2,'MWh/a');
-    push('NZ loss','nzPct',3,'%');
-    push('Saving vs classic','saving',2,'MWh/a');
-    push('Saving vs classic','savingPP',3,'%-pts');
+    const push=(l,k,d,u)=>lines.push([T.name,l,...methods.map(m=>deNum(T.methods[m][k],d)),u].join('\t'));
+    lines.push([T.name,R.rFullAep,...methods.map(()=>deNum(T.fullAep,1)),R.uMwh].join('\t'));
+    if(T.ref!==null){lines.push([T.name,R.rRef,...methods.map(()=>deNum(T.ref,1)),R.uMwh].join('\t'));
+      lines.push([T.name,R.rDev,...methods.map(()=>deNum(T.dev,2)),R.uPct].join('\t'));}
+    push(R.rClassicHours,'classicHours',1,R.uH);
+    push(R.rClassicLoss,'classicLoss',2,R.uMwh);
+    push(R.rClassicLoss,'classicPct',3,R.uPct);
+    push(R.rNzLoss,'nzLoss',2,R.uMwh);
+    push(R.rNzLoss,'nzPct',3,R.uPct);
+    push(R.rSaving,'saving',2,R.uMwh);
+    push(R.rSaving,'savingPP',3,R.uPp);
   }
   try{await navigator.clipboard.writeText(lines.join('\n'));
-    setStatus($('calcStatus'),'ok','Summary copied to clipboard.');
+    setStatus($('calcStatus'),'ok',t('m.copied'));
     setTimeout(()=>{$('calcStatus').className='status';},2500);
   }catch(e){}
 });
@@ -1126,35 +1471,40 @@ $('downloadXLSX').addEventListener('click',()=>{
   const methods=Object.keys(RESULTS.turbines[0].methods);
   // All summary
   const sumRows=[];
+  const rec=(wea,ml,metric,value,unit)=>{const o={};o[R.xWea]=wea;o[R.xMethod]=ml;o[R.metric]=metric;o[R.xValue]=value;o[R.unit]=unit;return o;};
   for(const T of RESULTS.turbines){
     for(const m of methods){
       const M=T.methods[m],ml=methodLabel(m);
-      sumRows.push({WEA:T.name,Method:ml,Metric:'Model full AEP',Value:+T.fullAep.toFixed(2),Unit:'MWh/a'});
-      if(T.ref!==null){sumRows.push({WEA:T.name,Method:ml,Metric:'windPRO AEP ref',Value:T.ref,Unit:'MWh/a'});
-        sumRows.push({WEA:T.name,Method:ml,Metric:'Deviation vs windPRO',Value:+T.dev.toFixed(3),Unit:'%'});}
-      sumRows.push({WEA:T.name,Method:ml,Metric:'Classic active hours',Value:+M.classicHours.toFixed(2),Unit:'h/a'});
-      sumRows.push({WEA:T.name,Method:ml,Metric:'Classic loss',Value:+M.classicLoss.toFixed(2),Unit:'MWh/a'});
-      sumRows.push({WEA:T.name,Method:ml,Metric:'Classic loss',Value:+M.classicPct.toFixed(3),Unit:'%'});
-      sumRows.push({WEA:T.name,Method:ml,Metric:'NZ loss',Value:+M.nzLoss.toFixed(2),Unit:'MWh/a'});
-      sumRows.push({WEA:T.name,Method:ml,Metric:'NZ loss',Value:+M.nzPct.toFixed(3),Unit:'%'});
-      sumRows.push({WEA:T.name,Method:ml,Metric:'Saving vs classic',Value:+M.saving.toFixed(2),Unit:'MWh/a'});
-      sumRows.push({WEA:T.name,Method:ml,Metric:'Saving vs classic',Value:+M.savingPP.toFixed(3),Unit:'%-points'});
-      if(M.tsAep)sumRows.push({WEA:T.name,Method:ml,Metric:'Time-series AEP (info)',Value:+M.tsAep.toFixed(2),Unit:'MWh/a'});
+      sumRows.push(rec(T.name,ml,R.rFullAep,+T.fullAep.toFixed(2),R.uMwh));
+      if(T.ref!==null){sumRows.push(rec(T.name,ml,R.rRef,T.ref,R.uMwh));
+        sumRows.push(rec(T.name,ml,R.rDev,+T.dev.toFixed(3),R.uPct));}
+      sumRows.push(rec(T.name,ml,R.rClassicHours,+M.classicHours.toFixed(2),R.uH));
+      sumRows.push(rec(T.name,ml,R.rClassicLoss,+M.classicLoss.toFixed(2),R.uMwh));
+      sumRows.push(rec(T.name,ml,R.rClassicLoss,+M.classicPct.toFixed(3),R.uPct));
+      sumRows.push(rec(T.name,ml,R.rNzLoss,+M.nzLoss.toFixed(2),R.uMwh));
+      sumRows.push(rec(T.name,ml,R.rNzLoss,+M.nzPct.toFixed(3),R.uPct));
+      sumRows.push(rec(T.name,ml,R.rSaving,+M.saving.toFixed(2),R.uMwh));
+      sumRows.push(rec(T.name,ml,R.rSaving,+M.savingPP.toFixed(3),R.uPp));
+      if(M.tsAep)sumRows.push(rec(T.name,ml,R.rTsAep,+M.tsAep.toFixed(2),R.uMwh));
     }
   }
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(sumRows),'All_Summary');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(sumRows),R.xSheetSummary);
   // per turbine NZ matrix
   for(const T of RESULTS.turbines){
     for(const m of methods){
-      const rows=T.methods[m].rows.map(r=>({Month:r.month,NZ:'NZ'+r.nz,Start:r.start,End:r.end,
-        'Threshold_mps':r.thr,'Hours_per_year':+r.hours.toFixed(3),
-        ...(r.ekw!==undefined?{'Expected_kW_below_thr':+r.ekw.toFixed(3)}:{}),
-        'Loss_MWh':+r.loss.toFixed(4)}));
-      const sheet=(T.name+'_'+(m==='weibull'?'WB':'TS')+'_NZ').slice(0,31);
+      const rows=T.methods[m].rows.map(r=>{
+        const o={};
+        o[R.xMonth]=r.month;o[R.xNz]='NZ'+r.nz;o[R.xStart]=r.start;o[R.xEnd]=r.end;
+        o[R.xThr]=r.thr;o[R.xHours]=+r.hours.toFixed(3);
+        if(r.ekw!==undefined)o[R.xEkw]=+r.ekw.toFixed(3);
+        o[R.xLoss]=+r.loss.toFixed(4);
+        return o;
+      });
+      const sheet=(T.name+'_'+(m==='weibull'?'WB':'ZR')+'_NZ').slice(0,31);
       XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),sheet);
     }
   }
-  XLSX.writeFile(wb,'fledermaus_nz_losses.xlsx');
+  XLSX.writeFile(wb,R.fileName);
 });
 
 // ============================================================
@@ -1189,6 +1539,7 @@ $('resetAll').addEventListener('click',()=>{
   RESULTS=null;$('resultsBody').innerHTML='';
   $('resultsCard').style.display='none';$('resultsPlaceholder').style.display='';
   $('calcStatus').className='status';
+  syncNz0Label();
   saveState();
 });
 
@@ -1197,7 +1548,7 @@ $('helpBtn').addEventListener('click',()=>helpModal.classList.add('open'));
 $('closeHelp').addEventListener('click',()=>helpModal.classList.remove('open'));
 $('closeHelp2').addEventListener('click',()=>helpModal.classList.remove('open'));
 helpModal.addEventListener('click',e=>{if(e.target===helpModal)helpModal.classList.remove('open');});
-$('nz0Factor').addEventListener('input',()=>{$('nz0FactorLbl').textContent=Math.round((num($('nz0Factor').value)||0)*100);});
+$('nz0Factor').addEventListener('input',syncNz0Label);
 
 // ============================================================
 // PERSISTENCE
@@ -1205,6 +1556,7 @@ $('nz0Factor').addEventListener('input',()=>{$('nz0FactorLbl').textContent=Math.
 function saveState(){
   captureWts();
   const st={
+    lang:LANG,
     method:document.querySelector('input[name=method]:checked').value,
     hoursSrc:document.querySelector('input[name=hoursSrc]:checked').value,
     cfgMonths:$('cfgMonths').value,
@@ -1250,6 +1602,7 @@ function loadState(){
   syncVisibility();
 }
 loadState();
+applyI18n();
 </script>
 </body>
 </html>
