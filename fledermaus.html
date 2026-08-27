@@ -76,7 +76,8 @@ select:focus{border-color:var(--accent)}
 .seg input:focus-visible+span{outline:2px solid var(--accent)}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-@media(max-width:520px){.grid-3{grid-template-columns:1fr}}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+@media(max-width:520px){.grid-3{grid-template-columns:1fr}.grid-4{grid-template-columns:1fr 1fr}}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500}
 .badge-violet{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border)}
 .badge-green{background:var(--success-bg);color:var(--success)}
@@ -85,6 +86,7 @@ select:focus{border-color:var(--accent)}
 .status.ok{display:block;background:var(--success-bg);color:var(--success)}
 .status.err{display:block;background:var(--danger-bg);color:var(--danger)}
 .status.info{display:block;background:var(--accent-bg);color:var(--accent)}
+.status.warn{display:block;background:var(--warn-bg);color:var(--warn)}
 .wt-block{border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
 .wt-header{padding:9px 12px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
 .wt-num{width:22px;height:22px;border-radius:6px;background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border);display:grid;place-items:center;font-size:11px;font-weight:600;flex-shrink:0}
@@ -187,7 +189,15 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
         <div class="field" style="margin:0"><label class="label">Temperature column</label><select id="colT"></select></div>
         <div class="field" style="margin:0"><label class="label">Wind speed column</label><select id="colV"></select></div>
       </div>
-      <div class="grid-3" style="margin-top:10px">
+      <div class="grid-4" style="margin-top:10px">
+        <div class="field" style="margin:0"><label class="label">Date format</label>
+          <select id="dateFmt">
+            <option value="auto">Auto-detect</option>
+            <option value="iso">YYYY-MM-DD</option>
+            <option value="dmy">DD.MM.YYYY (day first)</option>
+            <option value="mdy">MM/DD/YYYY (US, month first)</option>
+          </select>
+        </div>
         <div class="field" style="margin:0"><label class="label">Year from</label><input type="number" id="yearFrom" value="2010"/></div>
         <div class="field" style="margin:0"><label class="label">Year to</label><input type="number" id="yearTo" value="2025"/></div>
         <div class="field" style="margin:0"><label class="label">Timestep (min)</label><select id="timestep"><option>10</option><option>15</option><option>30</option><option>60</option></select></div>
@@ -310,7 +320,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
     <div class="card-body" style="font-size:12px;color:var(--text-2)">
       <p style="margin-bottom:8px"><strong style="color:var(--text)">Weibull:</strong> loss = frequency-weighted <code>E[P | v &lt; threshold]</code> from the sector wake-Weibull, multiplied by active hours. Assumes the annual wind distribution also holds during bat-active hours.</p>
       <p style="margin-bottom:8px"><strong style="color:var(--text)">Time series:</strong> every timestep inside an NZ window with valid temperature is checked against the threshold; if wind &lt; threshold, the power-curve value is added as loss. Captures the night/summer wind correlation. Optional per-turbine wind scale adjusts meteo wind to hub conditions.</p>
-      <p style="margin-bottom:8px"><strong style="color:var(--text)">Months in scope:</strong> the season is now fully configurable in the Configuration card &mdash; any subset of the 12 calendar months, in German or English spelling.</p>
+      <p style="margin-bottom:8px"><strong style="color:var(--text)">Date parsing:</strong> the DateTime column supports ISO (<code>YYYY-MM-DD</code>), day-first (<code>DD.MM.YYYY</code>) and US month-first (<code>MM/DD/YYYY</code>) formats. Auto-detect scans a sample of rows and locks in whichever format is unambiguous from the data (a component &gt;12 can only be a day); it warns you if the sample is fully ambiguous.</p>
       <p>All computation runs locally in your browser.</p>
     </div>
   </div>
@@ -326,7 +336,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
     </div>
     <div class="modal-body">
       <div class="help-step"><div class="help-num">1</div><div class="help-content"><h4>Choose a method</h4><p><strong>Weibull</strong> reproduces the windPRO-style sector-statistics calculation. <strong>Time series</strong> evaluates every 10-min step of the meteo data (needs a wind speed column). <strong>Compare both</strong> shows them side by side.</p></div></div>
-      <div class="help-step"><div class="help-num">2</div><div class="help-content"><h4>Load meteo data</h4><p>Select the windPRO raw CSV (<code>;</code> or <code>,</code> separated), map the DateTime, temperature and wind columns, set the year range, then press <strong>Parse file</strong>. German decimal commas are handled automatically. Alternatively enter active hours manually.</p></div></div>
+      <div class="help-step"><div class="help-num">2</div><div class="help-content"><h4>Load meteo data</h4><p>Select the meteo CSV (<code>;</code> or <code>,</code> separated), map the DateTime, temperature and wind columns, choose the date format (or leave it on Auto-detect), set the year range, then press <strong>Parse file</strong>. German decimal commas are handled automatically.</p></div></div>
       <div class="help-step"><div class="help-num">3</div><div class="help-content"><h4>Add turbines</h4><p>Per turbine paste the 12-row sector table (<code>sector angle freq% A k v_free v_wake</code>) and the power curve (<code>wind_speed power</code>, in W or kW &mdash; detected automatically). Optionally add a windPRO AEP reference for validation and a wind scale factor for the time-series method.</p></div></div>
       <div class="help-step"><div class="help-num">4</div><div class="help-content"><h4>Set your months and check configuration</h4><p>The <strong>Months in scope</strong> box defines your bat-active season &mdash; any subset of the 12 calendar months, in any order, German or English names. NZ windows, monthly thresholds, classic scheme and the temperature filter are pre-filled with the standard April&ndash;October defaults and fully editable.</p></div></div>
       <div class="help-step"><div class="help-num">5</div><div class="help-content"><h4>Calculate &amp; export</h4><p>Results show full AEP, classic loss, NZ loss and the saving per turbine, plus the full NZ matrix. Export everything as a multi-sheet <code>.xlsx</code>.</p></div></div>
@@ -697,19 +707,54 @@ $('meteoFile').addEventListener('change',async e=>{
     // guesses
     const gi=(re)=>header.findIndex(h=>re.test(h));
     let i=gi(/date|time|stamp/i);$('colDt').value=i>=0?i:0;
-    i=header.findIndex(h=>h.trim()==='T');if(i<0)i=gi(/temp|^t$/i);$('colT').value=i>=0?i:0;
-    i=gi(/mean.?wind|wind.?speed|^ws|^v$|speed/i);$('colV').value=i>=0?i:-1;
-    setStatus($('meteoStatus'),'info',`Loaded "${f.name}" (${(f.size/1048576).toFixed(1)} MB). Check the column mapping, then press Parse file.`);
+    i=header.findIndex(h=>/temp|(^|[^a-z])t(\b|[^a-z])/i.test(h)||/°?c\]?$/i.test(h));if(i<0)i=gi(/temp|^t$/i);$('colT').value=i>=0?i:0;
+    i=gi(/mean.?wind|wind.?speed|^ws|^v$|speed|m\/s/i);$('colV').value=i>=0?i:-1;
+    setStatus($('meteoStatus'),'info',`Loaded "${f.name}" (${(f.size/1048576).toFixed(1)} MB). Check the column mapping and date format, then press Parse file.`);
     $('meteoBadge').textContent='file loaded';
   }catch(err){setStatus($('meteoStatus'),'err','Could not read file: '+err);}
 });
 
-function parseTs(s){
+// ---- Date parsing: supports ISO, day-first and month-first formats, with auto-detection ----
+function parseTsRaw(s,fmt){
+  s=s.trim();
   let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[T ](\d{1,2}):(\d{2})/);
-  if(m)return{y:+m[1],mo:+m[2],min:(+m[4])*60+(+m[5])};
+  if(m)return{y:+m[1],mo:+m[2],day:+m[3],min:(+m[4])*60+(+m[5])};
   m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})[ T](\d{1,2}):(\d{2})/);
-  if(m)return{y:+m[3],mo:+m[2],min:(+m[4])*60+(+m[5])};
-  return null;
+  if(!m)return null;
+  const g1=+m[1],g2=+m[2],y=+m[3],min=(+m[4])*60+(+m[5]);
+  if(fmt==='mdy')return{y,mo:g1,day:g2,min};
+  // default / 'dmy' / 'auto' fallback (auto resolves format before calling this in bulk parse)
+  return{y,mo:g2,day:g1,min};
+}
+// Scan a sample of raw lines to determine whether the ambiguous slash/dot format
+// is day-first (DMY) or month-first (MDY, US-style). A component >12 can only be
+// a day, which disambiguates. Falls back to 'dmy' with a warning if never resolved.
+function detectDateFormat(lines,sep,iDt,sampleSize){
+  let sawIso=false,g1Over12=false,g2Over12=false,checked=0;
+  for(let row=1;row<lines.length&&checked<sampleSize;row++){
+    const l=lines[row];if(!l||l.length<5)continue;
+    const p=l.split(sep);const s=(p[iDt]||'').trim();if(!s)continue;
+    if(/^\d{4}-\d{1,2}-\d{1,2}[T ]/.test(s)){sawIso=true;checked++;continue;}
+    const m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-]\d{4}[ T]\d{1,2}:\d{2}/);
+    if(!m)continue;
+    checked++;
+    if(+m[1]>12)g1Over12=true;
+    if(+m[2]>12)g2Over12=true;
+  }
+  if(sawIso)return{fmt:'iso',confident:true,checked};
+  if(g1Over12&&!g2Over12)return{fmt:'dmy',confident:true,checked};
+  if(g2Over12&&!g1Over12)return{fmt:'mdy',confident:true,checked};
+  if(g1Over12&&g2Over12)return{fmt:'dmy',confident:false,checked,conflict:true};
+  return{fmt:'dmy',confident:false,checked}; // fully ambiguous (all values ≤12) — cannot tell, default to day-first
+}
+function parseTs(s,fmt){
+  if(/^\d{4}-\d{1,2}-\d{1,2}[T ]/.test(s)){
+    const m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[T ](\d{1,2}):(\d{2})/);
+    if(m)return{y:+m[1],mo:+m[2],min:(+m[4])*60+(+m[5])};
+    return null;
+  }
+  const r=parseTsRaw(s,fmt);
+  return r?{y:r.y,mo:r.mo,min:r.min}:null;
 }
 
 $('parseBtn').addEventListener('click',()=>{
@@ -718,10 +763,21 @@ $('parseBtn').addEventListener('click',()=>{
   const y0=+$('yearFrom').value,y1=+$('yearTo').value;
   const lines=RAW.text.split('\n');
   const n=lines.length;
+
+  let fmt=$('dateFmt').value,detectNote='';
+  if(fmt==='auto'){
+    const det=detectDateFormat(lines,RAW.sep,iDt,2000);
+    fmt=det.fmt;
+    if(det.fmt==='iso')detectNote='Detected date format: ISO (YYYY-MM-DD).';
+    else if(det.confident)detectNote=`Detected date format: ${det.fmt==='mdy'?'MM/DD/YYYY (US, month first)':'DD.MM.YYYY (day first)'} — a day value >12 appeared in the sample, so this is unambiguous.`;
+    else if(det.conflict)detectNote=`Warning: sample has day values >12 in BOTH date positions — the file may mix formats or use an unsupported one. Falling back to day-first; please verify results, or pick the format manually.`;
+    else detectNote=`Warning: all sampled dates have both components ≤12, so day-first vs month-first is ambiguous. Assuming DD.MM.YYYY (day first) — if your file is US-style MM/DD/YYYY, set "Date format" manually and re-parse.`;
+  }
+
   const month=new Int8Array(n),minute=new Int16Array(n),T=new Float32Array(n);
   const V=iV>=0?new Float32Array(n):null;
   const years=new Set();
-  let k=0,row=0;
+  let k=0,row=0,badMonth=0;
   setStatus($('meteoStatus'),'info','Parsing\u2026');
   function chunk(){
     const end=Math.min(row+80000,n);
@@ -729,7 +785,8 @@ $('parseBtn').addEventListener('click',()=>{
       if(row===0)continue; // header
       const l=lines[row];if(!l||l.length<5)continue;
       const p=l.split(RAW.sep);
-      const ts=parseTs((p[iDt]||'').trim());if(!ts)continue;
+      const ts=parseTs((p[iDt]||'').trim(),fmt);if(!ts)continue;
+      if(ts.mo<1||ts.mo>12){badMonth++;continue;}
       if(ts.y<y0||ts.y>y1)continue;
       const t=num(p[iT]);if(isNaN(t))continue;
       let v=NaN;
@@ -738,11 +795,14 @@ $('parseBtn').addEventListener('click',()=>{
       years.add(ts.y);k++;
     }
     if(row<n){setStatus($('meteoStatus'),'info',`Parsing\u2026 ${Math.round(row/n*100)}%`);setTimeout(chunk,0);return;}
-    if(k===0){setStatus($('meteoStatus'),'err','No valid rows found. Check the DateTime column and year range.');return;}
+    if(k===0){setStatus($('meteoStatus'),'err','No valid rows found. Check the DateTime column, date format and year range.');return;}
     METEO={month:month.subarray(0,k),minute:minute.subarray(0,k),T:T.subarray(0,k),
-      V:V?V.subarray(0,k):null,years:years.size,dtH:(+$('timestep').value)/60,n:k,name:RAW.name};
+      V:V?V.subarray(0,k):null,years:years.size,dtH:(+$('timestep').value)/60,n:k,name:RAW.name,dateFmt:fmt};
     $('meteoBadge').textContent=`${k.toLocaleString()} rows \u00b7 ${years.size} yrs`;
-    setStatus($('meteoStatus'),'ok',`Parsed ${k.toLocaleString()} rows, ${years.size} full years${V?', wind speed available':', no wind column (Weibull hours only)'}.`);
+    const badNote=badMonth>0?` ${badMonth.toLocaleString()} row(s) had an invalid month and were skipped — check the date format if this number looks large.`:'';
+    const okMsg=`Parsed ${k.toLocaleString()} rows, ${years.size} full years${V?', wind speed available':', no wind column (Weibull hours only)'}.${badNote}`;
+    if(detectNote)setStatus($('meteoStatus'),(badMonth>0||!fmt)?'warn':'ok',detectNote+' '+okMsg);
+    else setStatus($('meteoStatus'),badMonth>0?'warn':'ok',okMsg);
     saveState();
   }
   chunk();
@@ -1028,7 +1088,7 @@ function renderResults(out){
   tb.innerHTML=th;body.appendChild(tb);
 
   if(out.meteoInfo){const p=document.createElement('p');p.className='hint';p.style.marginTop='10px';
-    p.textContent='Meteo: '+out.meteoInfo+(out.hoursSrc==='manual'?' \u00b7 Weibull hours: manual':'');body.appendChild(p);}
+    p.textContent='Meteo: '+out.meteoInfo+(out.hoursSrc==='manual'?' \u00b7 Weibull hours: manual':'')+(METEO&&METEO.dateFmt?` \u00b7 Date format used: ${METEO.dateFmt==='iso'?'ISO':METEO.dateFmt==='mdy'?'MM/DD/YYYY':'DD.MM.YYYY'}`:'');body.appendChild(p);}
 
   $('resultsCard').style.display='';
   $('resultsPlaceholder').style.display='none';
@@ -1109,6 +1169,7 @@ function syncVisibility(){
 }
 document.querySelectorAll('input[name=method],input[name=hoursSrc]').forEach(el=>el.addEventListener('change',()=>{syncVisibility();saveState();}));
 $('cfgMonths').addEventListener('input',saveState);
+$('dateFmt').addEventListener('change',saveState);
 
 $('loadExample').addEventListener('click',()=>{
   wts=[];nextId=1;$('wtList').innerHTML='';
@@ -1123,6 +1184,7 @@ $('resetAll').addEventListener('click',()=>{
   $('cfgMonths').value=CFG_MONTHS_DEFAULT;
   $('cfgNz').value=CFG_NZ_DEFAULT;$('cfgThr').value=CFG_THR_DEFAULT;$('cfgClassic').value=CFG_CLASSIC_DEFAULT;
   $('classicThr').value=6.5;$('tempMin').value=10;$('tempMax').value=75;$('nz0Factor').value=0.15;
+  $('dateFmt').value='auto';
   $('manualHours').value=manualHoursTemplate();$('manualClassicHours').value='';
   RESULTS=null;$('resultsBody').innerHTML='';
   $('resultsCard').style.display='none';$('resultsPlaceholder').style.display='';
@@ -1151,6 +1213,7 @@ function saveState(){
     nz0Factor:$('nz0Factor').value,manualHours:$('manualHours').value,
     manualClassicHours:$('manualClassicHours').value,
     yearFrom:$('yearFrom').value,yearTo:$('yearTo').value,timestep:$('timestep').value,
+    dateFmt:$('dateFmt').value,
     wts:wts.map(w=>({...w})),nextId};
   try{localStorage.setItem('fm_state',JSON.stringify(st));}catch(e){}
 }
@@ -1177,6 +1240,7 @@ function loadState(){
     if(st.yearFrom)$('yearFrom').value=st.yearFrom;
     if(st.yearTo)$('yearTo').value=st.yearTo;
     if(st.timestep)$('timestep').value=st.timestep;
+    if(st.dateFmt)$('dateFmt').value=st.dateFmt;
     if(st.method)document.querySelector(`input[name=method][value=${st.method}]`).checked=true;
     if(st.hoursSrc)document.querySelector(`input[name=hoursSrc][value=${st.hoursSrc}]`).checked=true;
     nextId=st.nextId||1;
