@@ -455,14 +455,14 @@ en:{
 'btn.reset':'Reset',
 'card.results':'Results',
 'btn.copy':'Copy',
-'title.copy':'Copy summary as TSV (German)',
-'title.xlsx':'Download Excel workbook (German)',
+'title.copy':'Copy summary as TSV (German labels)',
+'title.xlsx':'Download Excel workbook (German labels)',
 'placeholder.results':'Load your turbines and meteo data, then calculate.<br/>Results and Excel export appear here.',
 'card.notes':'Method notes',
 'notes.weibull':'<strong style="color:var(--text)">Weibull:</strong> loss = frequency-weighted <code>E[P | v &lt; threshold]</code> from the sector wake-Weibull, multiplied by active hours. Assumes the annual wind distribution also holds during bat-active hours.',
 'notes.ts':'<strong style="color:var(--text)">Time series:</strong> every timestep inside an NZ window with valid temperature is checked against the threshold; if wind &lt; threshold, the power-curve value is added as loss. Captures the night/summer wind correlation. Optional per-turbine wind scale adjusts meteo wind to hub conditions.',
 'notes.date':'<strong style="color:var(--text)">Date parsing:</strong> the DateTime column supports ISO (<code>YYYY-MM-DD</code>), day-first (<code>DD.MM.YYYY</code>) and US month-first (<code>MM/DD/YYYY</code>) formats. Auto-detect scans a sample of rows and locks in whichever format is unambiguous from the data (a component &gt;12 can only be a day); it warns you if the sample is fully ambiguous.',
-'notes.results':'<strong style="color:var(--text)">Result language:</strong> the interface can be switched between English and German, but all results, tables and exports are always written in German so reports stay consistent.',
+'notes.results':'<strong style="color:var(--text)">Result language:</strong> result labels (e.g. "Verlust NZ") are always written in German so reports stay consistent, but the number formatting (comma/period, thousands separator) follows whichever interface language is selected.',
 'notes.local':'All computation runs locally in your browser.',
 'help.title':'How to use',
 'help.s1t':'Choose a method',
@@ -512,7 +512,7 @@ en:{
 'm.sectorsBad':'{name}: sector data needs numeric rows "sector angle freq% A k v_free v_wake"',
 'm.curveBad':'{name}: power curve needs numeric rows "wind_speed power"',
 'm.addWt':'Add at least one turbine.',
-'m.copied':'Summary copied to clipboard (German).',
+'m.copied':'Summary copied to clipboard.',
 'm.unknownMonth':'Unknown month "{raw}" \u2014 check spelling (German or English names accepted).',
 'm.monthNotInScope':'Month "{raw}" is not listed in "Months in scope" \u2014 add it there first.',
 'm.monthsEmpty':'Months in scope: add at least one month.',
@@ -584,7 +584,7 @@ de:{
 'notes.weibull':'<strong style="color:var(--text)">Weibull:</strong> Verlust = h&auml;ufigkeitsgewichteter <code>E[P | v &lt; Schwelle]</code> aus der Sektor-Nachlauf-Weibullverteilung, multipliziert mit den Aktivstunden. Setzt voraus, dass die Jahres-Windverteilung auch w&auml;hrend der Fledermaus-Aktivstunden gilt.',
 'notes.ts':'<strong style="color:var(--text)">Zeitreihe:</strong> Jeder Zeitschritt innerhalb eines NZ-Fensters mit g&uuml;ltiger Temperatur wird gegen den Schwellenwert gepr&uuml;ft; liegt der Wind darunter, wird der Wert der Leistungskennlinie als Verlust addiert. Bildet die Nacht-/Sommer-Windkorrelation ab. Eine optionale Windskalierung je Anlage passt den Meteo-Wind an die Nabenbedingungen an.',
 'notes.date':'<strong style="color:var(--text)">Datumsauswertung:</strong> Die Zeitstempel-Spalte unterst&uuml;tzt ISO (<code>JJJJ-MM-TT</code>), Tag-zuerst (<code>TT.MM.JJJJ</code>) und US-Monat-zuerst (<code>MM/TT/JJJJ</code>). Die automatische Erkennung pr&uuml;ft eine Stichprobe von Zeilen und legt das Format fest, sobald es aus den Daten eindeutig ist (ein Wert &gt;12 kann nur ein Tag sein); bei durchgehender Mehrdeutigkeit erfolgt eine Warnung.',
-'notes.results':'<strong style="color:var(--text)">Ergebnissprache:</strong> Die Oberfl&auml;che l&auml;sst sich zwischen Englisch und Deutsch umschalten, alle Ergebnisse, Tabellen und Exporte sind jedoch immer auf Deutsch, damit Berichte einheitlich bleiben.',
+'notes.results':'<strong style="color:var(--text)">Ergebnissprache:</strong> Die Bezeichnungen der Ergebnisse (z.&nbsp;B. &bdquo;Verlust NZ&ldquo;) sind immer auf Deutsch, damit Berichte einheitlich bleiben. Die Zahlenformatierung (Komma/Punkt, Tausendertrennzeichen) folgt jedoch der jeweils gew&auml;hlten Oberfl&auml;chensprache.',
 'notes.local':'Die gesamte Berechnung l&auml;uft lokal in Ihrem Browser.',
 'help.title':'Bedienung',
 'help.s1t':'Methode w&auml;hlen',
@@ -689,7 +689,7 @@ document.querySelectorAll('#langSeg .langbtn').forEach(b=>b.addEventListener('cl
 // RESULT LABELS — ALWAYS GERMAN (both interface languages)
 // ============================================================
 const R={
-  aepBadge:'MWh/a Jahresertrag',
+  aepBadge:'kWh/a Jahresertrag',
   devBadge:'% ggü. windPRO',
   metric:'Kennwert',
   unit:'Einheit',
@@ -703,7 +703,7 @@ const R={
   rFullAep:'Modell-Jahresertrag',
   rRef:'windPRO-Ertragsreferenz',
   rDev:'Abweichung ggü. windPRO',
-  uH:'h/a',uMwh:'MWh/a',uPct:'%',uPp:'%-Punkte',
+  uH:'h/a',uKwh:'kWh/a',uPct:'%',uPp:'%-Punkte',
   matrix:'NZ-Matrix ({n} Fenster)',
   cMonth:'Monat',cNz:'NZ',cWindow:'Fenster',cThr:'Schwelle m/s',
   totalW:'Gesamtverlust NZ · Weibull ({n} WEA)',
@@ -711,12 +711,12 @@ const R={
   meteo:'Meteo: ',
   manualHours:' · Weibull-Stunden: manuell',
   dateUsed:' · Verwendetes Datumsformat: ',
-  langNote:'Alle Ergebnisse, Tabellen und Exporte sind grundsätzlich auf Deutsch.',
-  hCol:'h/a',mCol:'MWh',
+  langNote:'Bezeichnungen sind grundsätzlich auf Deutsch · Zahlenformat folgt der Oberflächensprache.',
+  hCol:'h/a',mCol:'kWh',
   xWea:'WEA',xMethod:'Methode',xValue:'Wert',
   xSheetSummary:'Gesamtuebersicht',
   xMonth:'Monat',xNz:'NZ',xStart:'Beginn',xEnd:'Ende',xThr:'Schwellenwert_ms',
-  xHours:'Stunden_pro_Jahr',xEkw:'Erwartete_kW_unter_Schwelle',xLoss:'Verlust_MWh',
+  xHours:'Stunden_pro_Jahr',xEkw:'Erwartete_kW_unter_Schwelle',xLoss:'Verlust_kWh',
   fileName:'fledermaus_nz_verluste.xlsx'
 };
 function rfmt(s,p){for(const k in p)s=s.split('{'+k+'}').join(p[k]);return s;}
@@ -915,10 +915,13 @@ function num(s){if(s===undefined||s===null)return NaN;return parseFloat(String(s
 function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
 function minToStr(m){m=((Math.floor(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
 function inIv(min,s,e){return s<=e?(min>=s&&min<e):(min>=s||min<e);}
-// Results are German → German number formatting (1.234,5)
-function fmt(n,d=1){if(n===null||n===undefined||isNaN(n))return'\u2014';return n.toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});}
-// German decimal comma for TSV clipboard export (pastes cleanly into German Excel)
-function deNum(n,d){return n.toFixed(d).replace('.',',');}
+// Result LABELS are always German; number FORMATTING (comma/period, thousands
+// separator) follows the selected interface language (LANG: 'de' or 'en').
+function fmt(n,d=1){if(n===null||n===undefined||isNaN(n))return'\u2014';return n.toLocaleString(LANG==='de'?'de-DE':'en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+// Locale-aware plain decimal for TSV clipboard export (no thousands separator,
+// so it pastes cleanly into a single Excel cell either way): German UI -> comma
+// decimal, English UI -> period decimal.
+function deNum(n,d){const s=n.toFixed(d);return LANG==='de'?s.replace('.',','):s;}
 function wpdf(v,A,k){return(k/A)*Math.pow(v/A,k-1)*Math.exp(-Math.pow(v/A,k));}
 function syncNz0Label(){const lbl=$('nz0FactorLbl');if(lbl)lbl.textContent=Math.round((num($('nz0Factor').value)||0)*100);}
 
@@ -1325,7 +1328,7 @@ $('calcBtn').addEventListener('click',()=>{
     if(needW)wHours=(hoursSrc==='manual')?parseManualHours(nzRows):hoursFromMeteo(nzRows,classicWin,tmin,tmax);
 
     const out={method,nzRows,turbines:[],hoursSrc,
-      meteoInfo:METEO?`${METEO.name} \u00b7 ${METEO.n.toLocaleString('de-DE')} Zeilen \u00b7 ${METEO.years} Jahre`:null};
+      meteoInfo:METEO?`${METEO.name} \u00b7 ${METEO.n.toLocaleString(LANG==='de'?'de-DE':'en-US')} Zeilen \u00b7 ${METEO.years} Jahre`:null};
 
     for(const w of wts){
       const name=w.name||'WEA';
@@ -1381,7 +1384,7 @@ function renderResults(out){
 
   out.turbines.forEach(T=>{
     const wrap=document.createElement('div');wrap.className='result-wt';
-    let badges=`<span class="badge badge-violet">${fmt(T.fullAep,1)} ${R.aepBadge}</span>`;
+    let badges=`<span class="badge badge-violet">${fmt(T.fullAep*1000,0)} ${R.aepBadge}</span>`;
     if(T.dev!==null)badges+=` <span class="badge ${Math.abs(T.dev)<1?'badge-green':'badge-amber'}">${T.dev>=0?'+':''}${fmt(T.dev,2)}${R.devBadge}</span>`;
     wrap.innerHTML=`<div class="result-wt-header"><span class="result-wt-title">${T.name}</span><span style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap">${badges}</span></div>`;
 
@@ -1390,20 +1393,20 @@ function renderResults(out){
     let h=`<table class="data-table"><thead><tr><th>${R.metric}</th>`;
     methods.forEach(m=>h+=`<th>${methodLabel(m)}</th>`);
     h+=`<th>${R.unit}</th></tr></thead><tbody>`;
-    const row=(label,key,d,unit,hl)=>{
+    const row=(label,key,d,unit,hl,scale)=>{
       h+=`<tr${hl?' class="hl"':''}><td>${label}</td>`;
-      methods.forEach(m=>{h+=`<td>${fmt(T.methods[m][key],d)}</td>`;});
+      methods.forEach(m=>{h+=`<td>${fmt(T.methods[m][key]*(scale||1),d)}</td>`;});
       h+=`<td style="text-align:left;color:var(--text-3)">${unit}</td></tr>`;
     };
     row(R.rClassicHours,'classicHours',1,R.uH);
-    row(R.rClassicLoss,'classicLoss',1,R.uMwh);
+    row(R.rClassicLoss,'classicLoss',0,R.uKwh,false,1000);
     row(R.rClassicLoss,'classicPct',2,R.uPct);
-    row(R.rNzLoss,'nzLoss',1,R.uMwh,true);
+    row(R.rNzLoss,'nzLoss',0,R.uKwh,true,1000);
     row(R.rNzLoss,'nzPct',2,R.uPct,true);
-    row(R.rSaving,'saving',1,R.uMwh);
+    row(R.rSaving,'saving',0,R.uKwh,false,1000);
     row(R.rSaving,'savingPP',2,R.uPp);
     if(methods.includes('timeseries')&&T.methods.timeseries.tsAep)
-      h+=`<tr><td>${R.rTsAep}</td>${methods.map(m=>`<td>${m==='timeseries'?fmt(T.methods.timeseries.tsAep,1):'\u2014'}</td>`).join('')}<td style="text-align:left;color:var(--text-3)">${R.uMwh}</td></tr>`;
+      h+=`<tr><td>${R.rTsAep}</td>${methods.map(m=>`<td>${m==='timeseries'?fmt(T.methods.timeseries.tsAep*1000,0):'\u2014'}</td>`).join('')}<td style="text-align:left;color:var(--text-3)">${R.uKwh}</td></tr>`;
     h+=`</tbody></table>`;
     sum.innerHTML=h;wrap.appendChild(sum);
 
@@ -1414,7 +1417,7 @@ function renderResults(out){
     mh+=`</tr></thead><tbody>`;
     out.nzRows.forEach((r,i)=>{
       mh+=`<tr><td>${r.month}</td><td>NZ${r.nz}</td><td>${r.start}\u2013${r.end}</td><td>${fmt(r.thr,1)}</td>`;
-      methods.forEach(m=>{const rr=T.methods[m].rows[i];mh+=`<td>${fmt(rr.hours,1)}</td><td>${fmt(rr.loss,2)}</td>`;});
+      methods.forEach(m=>{const rr=T.methods[m].rows[i];mh+=`<td>${fmt(rr.hours,1)}</td><td>${fmt(rr.loss*1000,0)}</td>`;});
       mh+=`</tr>`;
     });
     mh+=`</tbody></table></div></div>`;
@@ -1428,8 +1431,8 @@ function renderResults(out){
   // totals
   const tb=document.createElement('div');tb.className='totals-bar';tb.style.marginTop='4px';
   let th='';
-  if(methods.includes('weibull'))th+=`<div class="totals-item"><span class="val">${fmt(totalW,1)} <span style="font-size:12px;font-weight:400">MWh/a</span></span><span class="lbl">${rfmt(R.totalW,{n:out.turbines.length})}</span></div>`;
-  if(methods.includes('timeseries'))th+=`<div class="totals-item"><span class="val">${fmt(totalTS,1)} <span style="font-size:12px;font-weight:400">MWh/a</span></span><span class="lbl">${rfmt(R.totalTS,{n:out.turbines.length})}</span></div>`;
+  if(methods.includes('weibull'))th+=`<div class="totals-item"><span class="val">${fmt(totalW*1000,0)} <span style="font-size:12px;font-weight:400">kWh/a</span></span><span class="lbl">${rfmt(R.totalW,{n:out.turbines.length})}</span></div>`;
+  if(methods.includes('timeseries'))th+=`<div class="totals-item"><span class="val">${fmt(totalTS*1000,0)} <span style="font-size:12px;font-weight:400">kWh/a</span></span><span class="lbl">${rfmt(R.totalTS,{n:out.turbines.length})}</span></div>`;
   tb.innerHTML=th;body.appendChild(tb);
 
   if(out.meteoInfo){const p=document.createElement('p');p.className='hint';p.style.marginTop='10px';
@@ -1440,23 +1443,23 @@ function renderResults(out){
 }
 
 // ============================================================
-// EXPORT — ALWAYS IN GERMAN
+// EXPORT — labels always German; numbers follow interface language
 // ============================================================
 $('copyTSV').addEventListener('click',async()=>{
   if(!RESULTS)return;
   const methods=Object.keys(RESULTS.turbines[0].methods);
   const lines=[[R.xWea,R.metric,...methods.map(methodLabel),R.unit].join('\t')];
   for(const T of RESULTS.turbines){
-    const push=(l,k,d,u)=>lines.push([T.name,l,...methods.map(m=>deNum(T.methods[m][k],d)),u].join('\t'));
-    lines.push([T.name,R.rFullAep,...methods.map(()=>deNum(T.fullAep,1)),R.uMwh].join('\t'));
-    if(T.ref!==null){lines.push([T.name,R.rRef,...methods.map(()=>deNum(T.ref,1)),R.uMwh].join('\t'));
+    const push=(l,k,d,u,scale)=>lines.push([T.name,l,...methods.map(m=>deNum(T.methods[m][k]*(scale||1),d)),u].join('\t'));
+    lines.push([T.name,R.rFullAep,...methods.map(()=>deNum(T.fullAep*1000,0)),R.uKwh].join('\t'));
+    if(T.ref!==null){lines.push([T.name,R.rRef,...methods.map(()=>deNum(T.ref*1000,0)),R.uKwh].join('\t'));
       lines.push([T.name,R.rDev,...methods.map(()=>deNum(T.dev,2)),R.uPct].join('\t'));}
     push(R.rClassicHours,'classicHours',1,R.uH);
-    push(R.rClassicLoss,'classicLoss',2,R.uMwh);
+    push(R.rClassicLoss,'classicLoss',0,R.uKwh,1000);
     push(R.rClassicLoss,'classicPct',3,R.uPct);
-    push(R.rNzLoss,'nzLoss',2,R.uMwh);
+    push(R.rNzLoss,'nzLoss',0,R.uKwh,1000);
     push(R.rNzLoss,'nzPct',3,R.uPct);
-    push(R.rSaving,'saving',2,R.uMwh);
+    push(R.rSaving,'saving',0,R.uKwh,1000);
     push(R.rSaving,'savingPP',3,R.uPp);
   }
   try{await navigator.clipboard.writeText(lines.join('\n'));
@@ -1475,17 +1478,17 @@ $('downloadXLSX').addEventListener('click',()=>{
   for(const T of RESULTS.turbines){
     for(const m of methods){
       const M=T.methods[m],ml=methodLabel(m);
-      sumRows.push(rec(T.name,ml,R.rFullAep,+T.fullAep.toFixed(2),R.uMwh));
-      if(T.ref!==null){sumRows.push(rec(T.name,ml,R.rRef,T.ref,R.uMwh));
+      sumRows.push(rec(T.name,ml,R.rFullAep,+(T.fullAep*1000).toFixed(0),R.uKwh));
+      if(T.ref!==null){sumRows.push(rec(T.name,ml,R.rRef,+(T.ref*1000).toFixed(0),R.uKwh));
         sumRows.push(rec(T.name,ml,R.rDev,+T.dev.toFixed(3),R.uPct));}
       sumRows.push(rec(T.name,ml,R.rClassicHours,+M.classicHours.toFixed(2),R.uH));
-      sumRows.push(rec(T.name,ml,R.rClassicLoss,+M.classicLoss.toFixed(2),R.uMwh));
+      sumRows.push(rec(T.name,ml,R.rClassicLoss,+(M.classicLoss*1000).toFixed(0),R.uKwh));
       sumRows.push(rec(T.name,ml,R.rClassicLoss,+M.classicPct.toFixed(3),R.uPct));
-      sumRows.push(rec(T.name,ml,R.rNzLoss,+M.nzLoss.toFixed(2),R.uMwh));
+      sumRows.push(rec(T.name,ml,R.rNzLoss,+(M.nzLoss*1000).toFixed(0),R.uKwh));
       sumRows.push(rec(T.name,ml,R.rNzLoss,+M.nzPct.toFixed(3),R.uPct));
-      sumRows.push(rec(T.name,ml,R.rSaving,+M.saving.toFixed(2),R.uMwh));
+      sumRows.push(rec(T.name,ml,R.rSaving,+(M.saving*1000).toFixed(0),R.uKwh));
       sumRows.push(rec(T.name,ml,R.rSaving,+M.savingPP.toFixed(3),R.uPp));
-      if(M.tsAep)sumRows.push(rec(T.name,ml,R.rTsAep,+M.tsAep.toFixed(2),R.uMwh));
+      if(M.tsAep)sumRows.push(rec(T.name,ml,R.rTsAep,+(M.tsAep*1000).toFixed(0),R.uKwh));
     }
   }
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(sumRows),R.xSheetSummary);
@@ -1497,7 +1500,7 @@ $('downloadXLSX').addEventListener('click',()=>{
         o[R.xMonth]=r.month;o[R.xNz]='NZ'+r.nz;o[R.xStart]=r.start;o[R.xEnd]=r.end;
         o[R.xThr]=r.thr;o[R.xHours]=+r.hours.toFixed(3);
         if(r.ekw!==undefined)o[R.xEkw]=+r.ekw.toFixed(3);
-        o[R.xLoss]=+r.loss.toFixed(4);
+        o[R.xLoss]=+(r.loss*1000).toFixed(0);
         return o;
       });
       const sheet=(T.name+'_'+(m==='weibull'?'WB':'ZR')+'_NZ').slice(0,31);
