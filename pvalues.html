@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title data-i18n="title">BOREAS · Exceedance probabilities</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#eef2f6;--panel:#ffffff;--panel-2:#f3f6f9;--border:#dce4ec;--border-strong:#c3cfda;
+  --ink:#0B2540;--text:#243441;--text-2:#5a6b79;--text-3:#8695a2;
+  --gust:#0a7c8a;--gust-2:#0EA5B7;--a:#2563eb;--a-bg:#eaf1ff;--a-bd:#c4d6fb;
+  --ok:#0f7a4f;--warn:#a9690a;
+  --sans:'Inter',system-ui,sans-serif;--disp:'Syne',var(--sans);--mono:'JetBrains Mono',monospace;
+  --r:14px;--maxw:1120px;
+  --shadow:0 1px 2px rgba(11,37,64,.05),0 10px 30px rgba(11,37,64,.06);
+}
+html[data-theme=dark]{
+  --bg:#081019;--panel:#0f1b28;--panel-2:#13202e;--border:#1e3243;--border-strong:#2c4457;
+  --ink:#eaf3f8;--text:#cddce7;--text-2:#8ba0b1;--text-3:#5f7482;
+  --gust:#22b8cf;--gust-2:#3bc9db;--a:#6ea8fe;--a-bg:#10203e;--a-bd:#2b4a86;
+  --ok:#34d08a;--warn:#f0b34a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.35);
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+
+.topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.topbar-in{max-width:var(--maxw);margin:0 auto;height:62px;display:flex;align-items:center;gap:14px;padding:0 24px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(140deg,var(--ink),var(--gust));display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.brand-mark svg{width:21px;height:21px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.brand-name{font-family:var(--disp);font-weight:800;font-size:18px;color:var(--ink);line-height:1}
+.brand-sub{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-3);margin-top:3px}
+.back{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--text-2);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:7px 11px;transition:border-color .15s,color .15s}
+.back:hover{border-color:var(--gust);color:var(--gust)}
+.actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.lang{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--panel)}
+.lang button{background:none;border:none;font-family:var(--mono);font-size:11px;padding:7px 11px;cursor:pointer;color:var(--text-3)}
+.lang button.on{background:var(--gust);color:#fff}
+.icon-btn{width:36px;height:36px;border:1px solid var(--border);border-radius:9px;background:var(--panel);color:var(--text-2);cursor:pointer;display:grid;place-items:center}
+.icon-btn:hover{border-color:var(--gust);color:var(--gust)}
+.icon-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+html[data-theme=dark] .sun{display:block}html[data-theme=dark] .moon{display:none}
+.sun{display:none}.moon{display:block}
+
+.head{max-width:var(--maxw);margin:0 auto;padding:34px 24px 6px;width:100%}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--a)}
+.head h1{font-family:var(--disp);font-weight:800;font-size:clamp(24px,3.4vw,32px);letter-spacing:-.015em;color:var(--ink);margin:10px 0 0}
+.head p{color:var(--text-2);font-size:14.5px;margin-top:8px;max-width:70ch}
+.formula{font-family:var(--mono);font-size:12.5px;color:var(--text-2);background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-top:16px;display:inline-block}
+.formula b{color:var(--a)}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:22px 24px 60px;width:100%;flex:1;display:grid;grid-template-columns:400px 1fr;gap:22px;align-items:start}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:24px}
+.card h2{font-family:var(--disp);font-weight:700;font-size:16px;color:var(--ink);margin-bottom:4px}
+.card .hint{font-size:12px;color:var(--text-3);margin-bottom:16px}
+label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin:16px 0 6px}
+label:first-of-type{margin-top:0}
+textarea,input[type=text],input[type=number],select{width:100%;font:inherit;font-size:14px;color:var(--text);background:var(--panel-2);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;transition:border-color .15s,box-shadow .15s;outline:none}
+textarea:focus,input:focus,select:focus{border-color:var(--a);box-shadow:0 0 0 3px color-mix(in srgb,var(--a) 18%,transparent)}
+textarea{min-height:120px;resize:vertical;font-family:var(--mono);font-size:13px;line-height:1.5}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sumline{font-size:12.5px;color:var(--text-2);margin-top:8px;font-family:var(--mono)}
+.sumline b{color:var(--ok)}
+.sumline.bad b{color:var(--warn)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--mono);font-size:12px;font-weight:500;padding:7px 13px;border-radius:999px;border:1.5px solid var(--border);background:var(--panel-2);color:var(--text-2);cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--a-bd)}
+.chip.on{background:var(--a);border-color:var(--a);color:#fff}
+.addrow{display:flex;gap:8px;margin-top:10px}
+.addrow input{flex:1}
+.btn{font:inherit;font-weight:600;font-size:13px;border:none;border-radius:9px;padding:10px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;justify-content:center;transition:filter .15s,border-color .15s,color .15s}
+.btn-a{background:var(--a);color:#fff}.btn-a:hover{filter:brightness(1.08)}
+.btn-ghost{background:var(--panel-2);color:var(--text-2);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--a);color:var(--a)}
+.toggle{display:flex;align-items:center;gap:10px;margin-top:16px;cursor:pointer}
+.toggle input{width:17px;height:17px;accent-color:var(--a);cursor:pointer}
+.toggle span{font-size:13px;color:var(--text-2);font-weight:500}
+details.adv{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+details.adv summary{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);cursor:pointer;list-style:none}
+details.adv summary::-webkit-details-marker{display:none}
+details.adv summary::before{content:"+ ";color:var(--a)}
+details.adv[open] summary::before{content:"– "}
+.comp-row{display:flex;gap:8px;margin-top:8px}
+.comp-row input{flex:1}
+
+/* results */
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+@media(max-width:520px){.summary{grid-template-columns:1fr}}
+.stat{background:var(--panel-2);border:1px solid var(--border);border-radius:11px;padding:14px 16px}
+.stat small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:5px}
+.stat span{font-family:var(--disp);font-weight:700;font-size:19px;color:var(--ink)}
+.stat span i{font-style:normal;font-size:12px;color:var(--text-3);font-family:var(--mono);font-weight:400}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:11px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:10px 14px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3);font-weight:500;background:var(--panel-2);text-align:right}
+th:first-child,td:first-child{text-align:left}
+tr:last-child td{border-bottom:none}
+td.pcol{font-family:var(--mono);font-weight:600;color:var(--ink)}
+tr.pick td{background:color-mix(in srgb,var(--a) 8%,transparent)}
+tr.pick td.pcol{color:var(--a)}
+td.energy{font-weight:600;color:var(--ink)}
+.dev-neg{color:var(--warn)}.dev-pos{color:var(--ok)}
+.res-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.chart-box{margin-top:20px}
+.chart-box svg{width:100%;height:auto;display:block}
+.empty{color:var(--text-3);font-size:14px;text-align:center;padding:50px 20px}
+.copied{font-size:12px;color:var(--ok);font-weight:600;align-self:center}
+.foot{border-top:1px solid var(--border);background:var(--panel)}
+.foot-in{max-width:var(--maxw);margin:0 auto;padding:16px 24px;font-size:12px;color:var(--text-3);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.foot-in .fb{font-family:var(--disp);font-weight:700;color:var(--text-2)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 24 24"><path d="M3 8h9a3 3 0 1 0-3-3"/><path d="M3 12h13a3 3 0 1 1-3 3"/><path d="M3 16h7"/></svg></span>
+      <span><span class="brand-name">BOREAS</span><span class="brand-sub" data-i18n="brand_sub">Wind Tools</span></span>
+    </a>
+    <a class="back" href="index.html" data-i18n="back">← Overview</a>
+    <div class="actions">
+      <div class="lang"><button data-lang="en" onclick="setLang('en')">EN</button><button data-lang="de" onclick="setLang('de')">DE</button></div>
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
+        <svg class="moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="head">
+  <span class="eyebrow" data-i18n="eyebrow">Yield · Probability</span>
+  <h1 data-i18n="h1">Exceedance probabilities</h1>
+  <p data-i18n="lead">Turn an annual energy sum and a combined standard uncertainty into P50, P75, P90 — or any P-value you choose. Paste a column from Excel or enter a single value.</p>
+  <div class="formula"><span data-i18n="f_label">Formula:</span> <b>P(p) = E − z(p) · σ</b> &nbsp;·&nbsp; σ = (u% ⁄ 100) · E &nbsp;·&nbsp; z = NORMSINV(p)</div>
+</div>
+
+<div class="wrap">
+
+  <!-- INPUTS -->
+  <section class="card">
+    <h2 data-i18n="in_title">Inputs</h2>
+    <div class="hint" data-i18n="in_hint">One value, a whole column, or name + value pairs (e.g. copied straight from Excel).</div>
+
+    <label data-i18n="l_mode">Calculation mode</label>
+    <div class="chips" id="modeChips">
+      <button type="button" class="chip on" data-mode="sum" data-i18n="m_sum">Sum → one total</button>
+      <button type="button" class="chip" data-mode="rows" data-i18n="m_rows">Per turbine / row</button>
+    </div>
+
+    <label data-i18n="l_energy">Energy values</label>
+    <textarea id="energy" placeholder="GHD-1	22069000
+GHD-2	22326000
+GHD-3	21597000
+GHD-4	20159000
+GHD-5	21926000
+GHD-6	20875000"></textarea>
+    <div class="sumline" id="sumLine" data-i18n="sum_empty">Enter at least one value.</div>
+
+    <div class="row" style="margin-top:14px">
+      <div>
+        <label data-i18n="l_inunit">Input unit</label>
+        <select id="inUnit"><option value="kWh">kWh</option><option value="MWh" selected>MWh</option><option value="GWh">GWh</option></select>
+      </div>
+      <div>
+        <label data-i18n="l_numfmt">Number format</label>
+        <select id="numFmt"><option value="de" selected>1.234,56 (DE)</option><option value="en">1,234.56 (EN)</option></select>
+      </div>
+    </div>
+
+    <label data-i18n="l_unc">Combined standard uncertainty [%]</label>
+    <input type="number" id="unc" value="13" step="0.1" min="0"/>
+    <details class="adv">
+      <summary data-i18n="adv_unc">Build it from components (RSS)</summary>
+      <div class="hint" style="margin:10px 0 0" data-i18n="adv_unc_hint">Enter each uncertainty component in %. They are combined by root-sum-square and written above.</div>
+      <div id="comps"></div>
+      <div class="res-actions">
+        <button class="btn btn-ghost" type="button" onclick="addComp()" data-i18n="b_addcomp">+ Component</button>
+        <button class="btn btn-ghost" type="button" onclick="applyRSS()" data-i18n="b_applyrss">Combine → uncertainty</button>
+      </div>
+      <div class="sumline" id="rssLine"></div>
+    </details>
+
+    <label data-i18n="l_pvals">Which P-values?</label>
+    <div class="chips" id="chips"></div>
+    <div class="addrow">
+      <input type="number" id="customP" min="0.1" max="99.9" step="0.1" placeholder="e.g. 84"/>
+      <button class="btn btn-a" type="button" onclick="addCustom()" data-i18n="b_addp">Add</button>
+    </div>
+    <label class="toggle"><input type="checkbox" id="ladder"/><span data-i18n="t_ladder">Show full ladder (99% → 1%)</span></label>
+
+    <label data-i18n="l_outunit">Result unit</label>
+    <select id="outUnit"><option value="kWh">kWh</option><option value="MWh" selected>MWh</option><option value="GWh">GWh</option></select>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="card">
+    <h2 data-i18n="res_title">Results</h2>
+    <div class="hint" id="resHint" data-i18n="res_hint">P-values for the annual energy sum.</div>
+    <div id="results"><div class="empty" data-i18n="res_empty">Enter energy values to see results.</div></div>
+  </section>
+
+</div>
+
+<footer class="foot"><div class="foot-in"><span class="fb">© 2026 BOREAS</span><span data-i18n="foot_right">Internal engineering tools</span></div></footer>
+
+<script>
+"use strict";
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+var $=function(id){return document.getElementById(id)};
+var root=document.documentElement;
+
+/* theme */
+var st=lsGet('wt_theme');
+if(st==='dark'||(st===null&&matchMedia('(prefers-color-scheme:dark)').matches))root.dataset.theme='dark';
+$('themeBtn').addEventListener('click',function(){var d=root.dataset.theme==='dark';root.dataset.theme=d?'':'dark';lsSet('wt_theme',d?'light':'dark');draw();});
+
+/* inverse normal CDF (Acklam) — equals Excel NORMSINV */
+function normsinv(p){
+  if(p<=0)return -Infinity; if(p>=1)return Infinity;
+  var a=[-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+  var b=[-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];
+  var c=[-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+  var d=[7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+  var pl=0.02425,ph=1-pl,q,r;
+  if(p<pl){q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p<=ph){q=p-0.5;r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+  q=Math.sqrt(-2*Math.log(1-p));return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+}
+
+var UNIT={kWh:1,MWh:1000,GWh:1000000};      /* to kWh */
+var LADDER=[99,95,90,85,80,75,70,65,60,55,50,45,40,35,30,25,20,15,10,5,1];
+var QUICK=[50,75,90,95,99];
+var selected=new Set([90,75,50]);
+var LANG='en';
+var MODE='sum';
+
+function parseNumRaw(s,fmt){
+  s=s.trim();
+  if(fmt==='de'){ s=s.replace(/\./g,'').replace(/\s/g,'').replace(',','.'); }
+  else { s=s.replace(/,/g,'').replace(/\s/g,''); }
+  var v=parseFloat(s);
+  return (!isNaN(v)&&isFinite(v))?v:NaN;
+}
+/* parses "label \t value" / "label   value" / plain numbers, one per line */
+function parseRows(text,fmt){
+  var lines=text.split(/\r?\n/), rows=[], auto=1;
+  lines.forEach(function(line){
+    var raw=line.replace(/\r/g,''); if(!raw.trim())return;
+    var parts=null;
+    if(raw.indexOf('\t')>=0) parts=raw.split('\t').map(function(s){return s.trim();}).filter(Boolean);
+    else if(/\s{2,}/.test(raw)) parts=raw.split(/\s{2,}/).map(function(s){return s.trim();}).filter(Boolean);
+    var label=null,valStr=null;
+    if(parts&&parts.length>=2){ valStr=parts[parts.length-1]; label=parts.slice(0,-1).join(' '); }
+    else{
+      var m=raw.trim().match(/^(.*\S)\s+([+\-]?[\d.,\s]+)$/);
+      if(m && isNaN(parseNumRaw(raw.trim(),fmt))){ label=m[1]; valStr=m[2]; }
+      else { valStr=raw.trim(); }
+    }
+    var v=parseNumRaw(valStr,fmt);
+    if(!isNaN(v)) rows.push({label:label||('Row '+auto++),value:v});
+  });
+  return rows;
+}
+
+function parseNumbers(txt,fmt){
+  var out=[];
+  txt.split(/[\n\r;\t]+/).forEach(function(tok){
+    var s=tok.trim(); if(!s)return;
+    if(fmt==='de'){ s=s.replace(/\./g,'').replace(/\s/g,'').replace(',','.'); }
+    else { s=s.replace(/,/g,'').replace(/\s/g,''); }
+    var v=parseFloat(s);
+    if(!isNaN(v)&&isFinite(v)) out.push(v);
+  });
+  return out;
+}
+function nf(lang,dec){return new Intl.NumberFormat(lang==='de'?'de-DE':'en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});}
+function decFor(unit){return unit==='GWh'?3:(unit==='kWh'?0:1);}
+
+function renderChips(){
+  var all=[]; QUICK.forEach(function(p){all.push(p);});
+  Array.from(selected).forEach(function(p){if(all.indexOf(p)<0)all.push(p);});
+  all.sort(function(a,b){return b-a;});
+  var wrap=$('chips'); wrap.innerHTML='';
+  all.forEach(function(p){
+    var b=document.createElement('button');
+    b.type='button'; b.className='chip'+(selected.has(p)?' on':'');
+    b.textContent='P'+(Number.isInteger(p)?p:p);
+    b.onclick=function(){ if(selected.has(p))selected.delete(p); else selected.add(p); renderChips(); render(); };
+    wrap.appendChild(b);
+  });
+}
+function addCustom(){
+  var v=parseFloat($('customP').value); if(isNaN(v)||v<=0||v>=100){return;}
+  v=Math.round(v*10)/10; selected.add(v); $('customP').value=''; renderChips(); render();
+}
+
+/* uncertainty components (RSS) */
+var comps=[10,5,4];
+function renderComps(){
+  var w=$('comps'); w.innerHTML='';
+  comps.forEach(function(v,i){
+    var r=document.createElement('div'); r.className='comp-row';
+    r.innerHTML='<input type="number" step="0.1" min="0" value="'+v+'" data-i="'+i+'"/><button class="btn btn-ghost" type="button" data-del="'+i+'">✕</button>';
+    w.appendChild(r);
+  });
+  w.querySelectorAll('input').forEach(function(inp){inp.addEventListener('input',function(){comps[+inp.dataset.i]=parseFloat(inp.value)||0;updateRSS();});});
+  w.querySelectorAll('button[data-del]').forEach(function(b){b.onclick=function(){comps.splice(+b.dataset.del,1);renderComps();updateRSS();};});
+  updateRSS();
+}
+function addComp(){comps.push(0);renderComps();}
+function rssValue(){var s=0;comps.forEach(function(v){s+=v*v;});return Math.sqrt(s);}
+function updateRSS(){var v=rssValue();$('rssLine').innerHTML=T[LANG].rss_line.replace('{v}',(Math.round(v*100)/100));}
+function applyRSS(){$('unc').value=Math.round(rssValue()*100)/100;render();}
+
+function compute(){
+  var inU=$('inUnit').value, outU=$('outUnit').value, fmt=$('numFmt').value;
+  var conv=UNIT[inU]/UNIT[outU];
+  var u=parseFloat($('unc').value); if(isNaN(u))u=0;
+  var ps=$('ladder').checked?LADDER.slice():Array.from(selected);
+  ps=ps.map(function(p){return Math.round(p*10)/10;});
+  ps=Array.from(new Set(ps)).sort(function(a,b){return b-a;});
+
+  if(MODE==='rows'){
+    var parsed=parseRows($('energy').value,fmt);
+    var items=parsed.map(function(it){
+      var mean=it.value*conv, sigma=(u/100)*mean;
+      var vals={}; ps.forEach(function(pp){var z=normsinv(pp/100);vals[pp]=mean-z*sigma;});
+      return {label:it.label,mean:mean,sigma:sigma,vals:vals};
+    });
+    var totMean=items.reduce(function(a,b){return a+b.mean;},0);
+    var totVals={}; ps.forEach(function(pp){totVals[pp]=items.reduce(function(a,b){return a+b.vals[pp];},0);});
+    return {mode:'rows',n:items.length,items:items,ps:ps,totMean:totMean,totVals:totVals,u:u,unit:outU};
+  }
+
+  var vals=parseNumbers($('energy').value,fmt);
+  var meanIn=vals.reduce(function(a,b){return a+b;},0);
+  var mean=meanIn*conv;
+  var sigma=(u/100)*mean;
+  var rows=ps.map(function(pp){
+    var p=pp/100, z=normsinv(p), energy=mean-z*sigma, dev=mean?energy/mean-1:0;
+    return {p:pp,z:z,energy:energy,dev:dev,pick:selected.has(pp)};
+  });
+  return {mode:'sum',n:vals.length,mean:mean,sigma:sigma,u:u,rows:rows,unit:outU};
+}
+
+function render(){
+  var d=$('numFmt').value, inU=$('inUnit').value;
+  var box=$('results'), sl=$('sumLine');
+
+  if(MODE==='rows'){
+    var parsed=parseRows($('energy').value,d);
+    if(!parsed.length){ sl.className='sumline bad'; sl.innerHTML=T[LANG].sum_empty; box.innerHTML='<div class="empty">'+T[LANG].res_empty+'</div>'; return; }
+    var sumIn=parsed.reduce(function(a,b){return a+b.value;},0);
+    sl.className='sumline';
+    sl.innerHTML=T[LANG].sum_line_rows.replace('{n}',parsed.length).replace('{s}',nf(LANG,decFor(inU)).format(sumIn)).replace('{u}',inU);
+
+    var r=compute(), unit=r.unit, dec=decFor(unit), fmtE=nf(LANG,dec), fmtP=nf(LANG,1);
+    var html='<div class="summary">'
+      +'<div class="stat"><small>'+T[LANG].s_items+'</small><span>'+r.n+'</span></div>'
+      +'<div class="stat"><small>'+T[LANG].s_totmean+'</small><span>'+fmtE.format(r.totMean)+' <i>'+unit+'</i></span></div>'
+      +'<div class="stat"><small>'+T[LANG].s_unc+'</small><span>'+fmtP.format(r.u)+' <i>%</i></span></div>'
+      +'</div>';
+    html+='<div class="tbl-wrap"><table><thead><tr><th style="text-align:left">'+T[LANG].th_item+'</th>';
+    r.ps.forEach(function(pp){html+='<th>P'+(Number.isInteger(pp)?pp:fmtP.format(pp))+' ['+unit+']</th>';});
+    html+='</tr></thead><tbody>';
+    r.items.forEach(function(it){
+      html+='<tr><td style="text-align:left;font-weight:600;color:var(--ink)">'+it.label+'</td>';
+      r.ps.forEach(function(pp){html+='<td class="energy">'+fmtE.format(it.vals[pp])+'</td>';});
+      html+='</tr>';
+    });
+    html+='<tr class="pick"><td style="text-align:left;font-weight:700;color:var(--a)">'+T[LANG].th_total+'</td>';
+    r.ps.forEach(function(pp){html+='<td class="energy" style="color:var(--a)">'+fmtE.format(r.totVals[pp])+'</td>';});
+    html+='</tr></tbody></table></div>';
+    html+='<div class="hint" style="margin-top:12px">'+T[LANG].rows_note+'</div>';
+    html+='<div class="res-actions"><button class="btn btn-a" type="button" onclick="copyTbl()">'+T[LANG].b_copy+'</button>'
+         +'<button class="btn btn-ghost" type="button" onclick="dlCsv()">'+T[LANG].b_csv+'</button>'
+         +'<span class="copied" id="copied" style="display:none">'+T[LANG].copied+'</span></div>';
+    box.innerHTML=html;
+    return;
+  }
+
+  var vals=parseNumbers($('energy').value,d);
+  var meanIn=vals.reduce(function(a,b){return a+b;},0);
+  if(!vals.length){ sl.className='sumline bad'; sl.innerHTML=T[LANG].sum_empty; }
+  else{ sl.className='sumline'; sl.innerHTML=T[LANG].sum_line.replace('{n}',vals.length).replace('{s}',nf(LANG,decFor(inU)).format(meanIn)).replace('{u}',inU); }
+
+  if(!vals.length){ box.innerHTML='<div class="empty">'+T[LANG].res_empty+'</div>'; return; }
+
+  var r=compute(), unit=r.unit, dec=decFor(unit), fmtE=nf(LANG,dec), fmtP=nf(LANG,1);
+  var pct=function(x){var s=fmtP.format(x*100);return (x>0?'+':'')+s+' %';};
+
+  var html='<div class="summary">'
+    +'<div class="stat"><small>'+T[LANG].s_mean+'</small><span>'+fmtE.format(r.mean)+' <i>'+unit+'</i></span></div>'
+    +'<div class="stat"><small>'+T[LANG].s_sigma+'</small><span>'+fmtE.format(r.sigma)+' <i>'+unit+'</i></span></div>'
+    +'<div class="stat"><small>'+T[LANG].s_unc+'</small><span>'+fmtP.format(r.u)+' <i>%</i></span></div>'
+    +'</div>';
+
+  html+='<div class="tbl-wrap"><table><thead><tr>'
+    +'<th>'+T[LANG].th_p+'</th><th>'+T[LANG].th_z+'</th><th>'+T[LANG].th_e+' ['+unit+']</th><th>'+T[LANG].th_dev+'</th>'
+    +'</tr></thead><tbody>';
+  r.rows.forEach(function(x){
+    html+='<tr class="'+(x.pick?'pick':'')+'">'
+      +'<td class="pcol">P'+(Number.isInteger(x.p)?x.p:fmtP.format(x.p))+'</td>'
+      +'<td>'+nf(LANG,4).format(x.z)+'</td>'
+      +'<td class="energy">'+fmtE.format(x.energy)+'</td>'
+      +'<td class="'+(x.dev<0?'dev-neg':(x.dev>0?'dev-pos':''))+'">'+pct(x.dev)+'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  html+='<div class="res-actions"><button class="btn btn-a" type="button" onclick="copyTbl()">'+T[LANG].b_copy+'</button>'
+       +'<button class="btn btn-ghost" type="button" onclick="dlCsv()">'+T[LANG].b_csv+'</button>'
+       +'<span class="copied" id="copied" style="display:none">'+T[LANG].copied+'</span></div>';
+  html+='<div class="chart-box" id="chartBox"></div>';
+  box.innerHTML=html;
+  draw();
+}
+
+function draw(){
+  var box=$('chartBox'); if(!box)return;
+  var vals=parseNumbers($('energy').value,$('numFmt').value); if(!vals.length){box.innerHTML='';return;}
+  var r=compute(), unit=r.unit;
+  var W=box.clientWidth||600, H=230, mL=64, mR=16, mT=16, mB=34;
+  var pts=[]; for(var pp=1;pp<=99;pp++){var p=pp/100;pts.push({x:pp,y:r.mean-normsinv(p)*r.sigma});}
+  var ys=pts.map(function(o){return o.y;}), ymin=Math.min.apply(null,ys), ymax=Math.max.apply(null,ys);
+  if(ymin===ymax){ymin-=1;ymax+=1;}
+  var pad=(ymax-ymin)*0.08; ymin-=pad; ymax+=pad;
+  var X=function(v){return mL+(v-1)/(99-1)*(W-mL-mR);};
+  var Y=function(v){return mT+(ymax-v)/(ymax-ymin)*(H-mT-mB);};
+  var css=getComputedStyle(document.documentElement);
+  var cA=css.getPropertyValue('--a').trim(), cBd=css.getPropertyValue('--border').trim(),
+      cT3=css.getPropertyValue('--text-3').trim(), cInk=css.getPropertyValue('--ink').trim();
+  var fmtE=nf(LANG,decFor(unit));
+  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img">';
+  /* grid + y labels */
+  for(var g=0;g<=4;g++){var yv=ymin+(ymax-ymin)*g/4, yy=Y(yv);
+    s+='<line x1="'+mL+'" y1="'+yy+'" x2="'+(W-mR)+'" y2="'+yy+'" stroke="'+cBd+'" stroke-width="1"/>';
+    s+='<text x="'+(mL-8)+'" y="'+(yy+3)+'" text-anchor="end" font-family="monospace" font-size="9" fill="'+cT3+'">'+fmtE.format(yv)+'</text>';}
+  /* x labels */
+  [10,25,50,75,90].forEach(function(xv){s+='<text x="'+X(xv)+'" y="'+(H-12)+'" text-anchor="middle" font-family="monospace" font-size="9" fill="'+cT3+'">P'+xv+'</text>';});
+  s+='<text x="'+((mL+W-mR)/2)+'" y="'+(H-1)+'" text-anchor="middle" font-family="monospace" font-size="9" fill="'+cT3+'">'+T[LANG].chart_x+'</text>';
+  /* curve */
+  var dpath=pts.map(function(o,i){return (i?'L':'M')+X(o.x).toFixed(1)+' '+Y(o.y).toFixed(1);}).join(' ');
+  s+='<path d="'+dpath+'" fill="none" stroke="'+cA+'" stroke-width="2"/>';
+  /* markers for selected */
+  Array.from(selected).forEach(function(pp){ if(pp<1||pp>99)return; var yv=r.mean-normsinv(pp/100)*r.sigma;
+    s+='<circle cx="'+X(pp)+'" cy="'+Y(yv)+'" r="3.5" fill="'+cA+'" stroke="'+css.getPropertyValue('--panel').trim()+'" stroke-width="1.5"/>';
+    s+='<text x="'+X(pp)+'" y="'+(Y(yv)-8)+'" text-anchor="middle" font-family="monospace" font-size="9" font-weight="600" fill="'+cInk+'">P'+pp+'</text>';});
+  s+='</svg>';
+  box.innerHTML=s;
+}
+var rt; window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(draw,120);});
+
+function tblData(){
+  var r=compute(),unit=r.unit,dec=decFor(unit);
+  if(r.mode==='rows'){
+    var head=[T[LANG].th_item].concat(r.ps.map(function(pp){return 'P'+pp+' ['+unit+']';}));
+    var lines=[head.join('\t')];
+    r.items.forEach(function(it){lines.push([it.label].concat(r.ps.map(function(pp){return it.vals[pp].toFixed(dec);})).join('\t'));});
+    lines.push([T[LANG].th_total].concat(r.ps.map(function(pp){return r.totVals[pp].toFixed(dec);})).join('\t'));
+    return lines.join('\n');
+  }
+  var head=['P','z','Energie ['+unit+']','Abweichung [%]'];
+  var lines=[head.join('\t')];
+  r.rows.forEach(function(x){lines.push(['P'+x.p,x.z.toFixed(4),x.energy.toFixed(dec),(x.dev*100).toFixed(2)].join('\t'));});
+  return lines.join('\n');
+}
+function copyTbl(){
+  var text=tblData();
+  var c=$('copied');
+  function ok(){ if(c){ c.textContent=T[LANG].copied; c.style.color='var(--ok)'; c.style.display='inline'; setTimeout(function(){c.style.display='none';},1800);} }
+  function fail(){ if(c){ c.textContent=T[LANG].copy_failed; c.style.color='var(--warn)'; c.style.display='inline'; setTimeout(function(){c.style.display='none';},3200);} }
+  if(navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(ok).catch(function(){ legacyCopy(text)?ok():fail(); });
+  } else {
+    legacyCopy(text)?ok():fail();
+  }
+}
+function legacyCopy(text){
+  try{
+    var ta=document.createElement('textarea');
+    ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    var success=document.execCommand('copy');
+    document.body.removeChild(ta);
+    return success;
+  }catch(e){ return false; }
+}
+function dlCsv(){
+  var r=compute(),unit=r.unit,dec=decFor(unit),rows;
+  if(r.mode==='rows'){
+    rows=[[T[LANG].th_item].concat(r.ps.map(function(pp){return 'P'+pp+'_'+unit;}))];
+    r.items.forEach(function(it){rows.push([it.label].concat(r.ps.map(function(pp){return it.vals[pp].toFixed(dec);})));});
+    rows.push([T[LANG].th_total].concat(r.ps.map(function(pp){return r.totVals[pp].toFixed(dec);})));
+  } else {
+    rows=[['P','z','Energie_'+unit,'Abweichung_%']];
+    r.rows.forEach(function(x){rows.push(['P'+x.p,x.z.toFixed(4),x.energy.toFixed(dec),(x.dev*100).toFixed(2)]);});
+  }
+  var csv=rows.map(function(a){return a.join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='P-Werte.csv';a.click();
+}
+
+/* i18n */
+var T={
+ en:{title:"BOREAS · Exceedance probabilities",brand_sub:"Wind Tools",back:"← Overview",
+  eyebrow:"Yield · Probability",h1:"Exceedance probabilities",
+  lead:"Turn an annual energy sum and a combined standard uncertainty into P50, P75, P90 — or any P-value you choose. Paste a column from Excel or enter a single value.",
+  f_label:"Formula:",
+  in_title:"Inputs",in_hint:"One value, a whole column, or name + value pairs (e.g. copied straight from Excel).",
+  l_mode:"Calculation mode",m_sum:"Sum → one total",m_rows:"Per turbine / row",
+  l_energy:"Energy values",l_inunit:"Input unit",l_numfmt:"Number format",
+  l_unc:"Combined standard uncertainty [%]",adv_unc:"Build it from components (RSS)",
+  adv_unc_hint:"Enter each uncertainty component in %. They are combined by root-sum-square and written above.",
+  b_addcomp:"+ Component",b_applyrss:"Combine → uncertainty",rss_line:"Combined = {v} %",
+  l_pvals:"Which P-values?",b_addp:"Add",t_ladder:"Show full ladder (99% → 1%)",l_outunit:"Result unit",
+  res_title:"Results",res_hint:"P-values for the annual energy sum.",res_empty:"Enter energy values to see results.",
+  sum_empty:"Enter at least one value.",sum_line:"{n} value(s) · sum = {s} {u}",
+  sum_line_rows:"{n} row(s) detected · sum = {s} {u}",
+  s_mean:"P50 · mean energy",s_sigma:"Std. deviation σ",s_unc:"Uncertainty",
+  s_items:"Turbines / rows",s_totmean:"P50 · total energy",
+  th_p:"Exceedance",th_z:"z = NORMSINV",th_e:"Energy",th_dev:"Δ vs mean",
+  th_item:"Turbine / row",th_total:"Total (sum of rows)",
+  rows_note:"Each row uses the same uncertainty. The total row is the exact sum of the individual rows — no separate calculation.",
+  b_copy:"Copy table",b_csv:"Download CSV",copied:"Copied ✓",copy_failed:"Copy blocked — select the table and copy manually",chart_x:"Exceedance probability",
+  foot_right:"Internal engineering tools"},
+ de:{title:"BOREAS · Überschreitungswahrscheinlichkeiten",brand_sub:"Windwerkzeuge",back:"← Übersicht",
+  eyebrow:"Ertrag · Wahrscheinlichkeit",h1:"Überschreitungswahrscheinlichkeiten",
+  lead:"Aus jährlicher Ertragssumme und kombinierter Standardunsicherheit P50, P75, P90 — oder jeden gewünschten P-Wert. Spalte aus Excel einfügen oder einen einzelnen Wert eingeben.",
+  f_label:"Formel:",
+  in_title:"Eingaben",in_hint:"Ein Wert, eine ganze Spalte, oder Name+Wert-Paare (z. B. direkt aus Excel kopiert).",
+  l_mode:"Berechnungsmodus",m_sum:"Summe → ein Gesamtwert",m_rows:"Je Anlage / Zeile",
+  l_energy:"Ertragswerte",l_inunit:"Eingabe-Einheit",l_numfmt:"Zahlenformat",
+  l_unc:"Kombinierte Standardunsicherheit [%]",adv_unc:"Aus Komponenten bilden (RSS)",
+  adv_unc_hint:"Jede Unsicherheitskomponente in % eingeben. Sie werden quadratisch addiert und oben eingetragen.",
+  b_addcomp:"+ Komponente",b_applyrss:"Kombinieren → Unsicherheit",rss_line:"Kombiniert = {v} %",
+  l_pvals:"Welche P-Werte?",b_addp:"Hinzufügen",t_ladder:"Ganze Reihe zeigen (99% → 1%)",l_outunit:"Ergebnis-Einheit",
+  res_title:"Ergebnisse",res_hint:"P-Werte für die jährliche Ertragssumme.",res_empty:"Ertragswerte eingeben, um Ergebnisse zu sehen.",
+  sum_empty:"Mindestens einen Wert eingeben.",sum_line:"{n} Wert(e) · Summe = {s} {u}",
+  sum_line_rows:"{n} Zeile(n) erkannt · Summe = {s} {u}",
+  s_mean:"P50 · mittlerer Ertrag",s_sigma:"Standardabw. σ",s_unc:"Unsicherheit",
+  s_items:"Anlagen / Zeilen",s_totmean:"P50 · Gesamtertrag",
+  th_p:"Überschreitung",th_z:"z = NORMSINV",th_e:"Ertrag",th_dev:"Δ vom Mittel",
+  th_item:"Anlage / Zeile",th_total:"Gesamt (Summe der Zeilen)",
+  rows_note:"Jede Zeile nutzt dieselbe Unsicherheit. Die Gesamtzeile ist exakt die Summe der einzelnen Zeilen — keine separate Berechnung.",
+  b_copy:"Tabelle kopieren",b_csv:"CSV herunterladen",copied:"Kopiert ✓",copy_failed:"Kopieren blockiert — Tabelle markieren und manuell kopieren",chart_x:"Überschreitungswahrscheinlichkeit",
+  foot_right:"Interne Engineering-Werkzeuge"}
+};
+function applyLang(lang){
+  LANG=lang; var t=T[lang];
+  document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');if(t[k]!=null)el.textContent=t[k];});
+  document.title=t.title; root.lang=lang;
+  document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.dataset.lang===lang);});
+  updateRSS(); render();
+}
+function setLang(lang){lsSet('wt_lang',lang);applyLang(lang);}
+
+/* wire up */
+['energy','unc','inUnit','outUnit','numFmt','ladder'].forEach(function(id){
+  $(id).addEventListener('input',render); $(id).addEventListener('change',render);
+});
+document.querySelectorAll('#modeChips .chip').forEach(function(b){
+  b.addEventListener('click',function(){
+    MODE=b.dataset.mode;
+    document.querySelectorAll('#modeChips .chip').forEach(function(x){x.classList.toggle('on',x===b);});
+    render();
+  });
+});
+renderChips(); renderComps();
+applyLang(lsGet('wt_lang')||((navigator.language||'en').toLowerCase().indexOf('de')===0?'de':'en'));
+</script>
+</body>
+</html>
