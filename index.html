@@ -38,11 +38,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
 .a-green{--a:#0f7a4f;--a-bg:#e4f5ec;--a-bd:#aedcc4}
 .a-amber{--a:#a9690a;--a-bg:#fbefda;--a-bd:#efd3a0}
 .a-blue{--a:#2563eb;--a-bg:#eaf1ff;--a-bd:#c4d6fb}
+.a-rose{--a:#be185d;--a-bg:#fce7f1;--a-bd:#f6c3da}
 html[data-theme=dark] .a-violet{--a:#a78bfa;--a-bg:#1d1733;--a-bd:#3b2f60}
 html[data-theme=dark] .a-cyan{--a:#38c9db;--a-bg:#0e2a32;--a-bd:#1f5661}
 html[data-theme=dark] .a-green{--a:#34d08a;--a-bg:#0d2b21;--a-bd:#1d5741}
 html[data-theme=dark] .a-amber{--a:#f0b34a;--a-bg:#2a2210;--a-bd:#5b451d}
 html[data-theme=dark] .a-blue{--a:#6ea8fe;--a-bg:#10203e;--a-bd:#2b4a86}
+html[data-theme=dark] .a-rose{--a:#f472b6;--a-bg:#2e1424;--a-bd:#5c2744}
 
 /* ---------- header ---------- */
 .topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
@@ -211,6 +213,22 @@ footer{border-top:1px solid var(--border);background:var(--panel)}
 
   </div>
 
+  <div class="grouphead"><span data-i18n="grpS">Site data</span><div class="rule"></div></div>
+  <div class="grid one">
+
+    <a class="card a-rose" href="turbines.html">
+      <div class="card-top">
+        <span class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 12V22"/><path d="M12 12l0-9"/><path d="M12 12l7.8 4.5"/><path d="M12 12l-7.8 4.5"/><circle cx="12" cy="12" r="1.4"/></svg></span>
+        <span class="cat" data-i18n="c6_cat">Site data</span>
+      </div>
+      <h2 data-i18n="c6_h2">Turbine table matcher</h2>
+      <p data-i18n="c6_p">Compare two turbine lists by name and position, find turbines that exist in only one list and copy turbine types, hub heights and power from one table to the other.</p>
+      <div class="tags" data-i18n="c6_tags"><span class="tag">Name + coordinates</span><span class="tag">Excel paste</span><span class="tag">.csv</span></div>
+      <span class="open"><span data-i18n="open">Open</span><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    </a>
+
+  </div>
+
   <div class="grouphead"><span data-i18n="grp2">Reporting &amp; coordination</span><div class="rule"></div></div>
   <div class="grid">
 
@@ -273,6 +291,10 @@ var T={
   grp1:"Curtailment losses",
   grpY:"Yield &amp; probability",
   grp2:"Reporting &amp; coordination",
+  grpS:"Site data",
+  c6_cat:"Site data", c6_h2:"Turbine table matcher",
+  c6_p:"Compare two turbine lists by name and position, find turbines that exist in only one list and copy turbine types, hub heights and power from one table to the other.",
+  c6_tags:'<span class="tag">Name + coordinates</span><span class="tag">Excel paste</span><span class="tag">.csv</span>',
   c5_cat:"Probability", c5_h2:"Exceedance probabilities",
   c5_p:"Turn an annual energy sum and a combined uncertainty into P50, P75, P90 \u2014 or any P-value you choose. Paste a column from Excel or enter one value; kWh, MWh or GWh.",
   c5_tags:'<span class="tag">P50 \u00b7 P75 \u00b7 P90</span><span class="tag">Excel paste</span><span class="tag">kWh/MWh/GWh</span>',
@@ -300,6 +322,10 @@ var T={
   grp1:"Abschaltverluste",
   grpY:"Ertrag &amp; Wahrscheinlichkeit",
   grp2:"Berichte &amp; Koordination",
+  grpS:"Standortdaten",
+  c6_cat:"Standortdaten", c6_h2:"Anlagenabgleich",
+  c6_p:"Vergleiche zwei Anlagenlisten nach Name und Position, finde Anlagen, die nur in einer Liste stehen, und \u00fcbertrage Anlagentypen, Nabenh\u00f6hen und Leistung von einer Tabelle in die andere.",
+  c6_tags:'<span class="tag">Name + Koordinaten</span><span class="tag">Excel einf\u00fcgen</span><span class="tag">.csv</span>',
   c5_cat:"Wahrscheinlichkeit", c5_h2:"\u00dcberschreitungswahrscheinlichkeiten",
   c5_p:"Aus j\u00e4hrlicher Ertragssumme und kombinierter Unsicherheit P50, P75, P90 \u2014 oder jeden gew\u00fcnschten P-Wert. Spalte aus Excel einf\u00fcgen oder einen Wert eingeben; kWh, MWh oder GWh.",
   c5_tags:'<span class="tag">P50 \u00b7 P75 \u00b7 P90</span><span class="tag">Excel einf\u00fcgen</span><span class="tag">kWh/MWh/GWh</span>',
