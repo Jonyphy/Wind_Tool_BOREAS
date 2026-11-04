@@ -164,6 +164,9 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (prefers-reduced-motion: no-preference) { .btn { transition: border-color .12s, color .12s, filter .12s; } }
 
+tr.grp td { background: var(--surface2); font: 600 15px var(--font-head); letter-spacing: .03em; border-top: 1px solid var(--line); padding-top: 9px; padding-bottom: 9px; }
+tr.grp:first-child td { border-top: 0; }
+
 </style>
 </head>
 <body>
@@ -191,9 +194,9 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
       </section>
 
       <section class="card" aria-labelledby="h2">
-        <header class="card-h"><span class="step">2</span><h2 id="h2">Turbine types</h2><span class="spacer"></span><button class="btn sm" id="addType" type="button">Add type</button></header>
+        <header class="card-h"><span class="step">2</span><h2 id="h2">Turbine types</h2><span class="spacer"></span><button class="btn sm" id="perTurbine" type="button" title="Creates one type per curtailed turbine, named after it, and assigns each turbine to its own type">One type per curtailed turbine</button><button class="btn sm" id="addType" type="button">Add type</button></header>
         <div class="card-b">
-          <p class="hint">One performance table per turbine type: wind speed, power and ct in three columns. Turbines of the same model share one type. A reduced operating mode needs its own table for each type.</p>
+          <p class="hint">One performance table per turbine type: wind speed, power and ct in three columns. Turbines of the same model share one type. A reduced operating mode needs its own table for each type. A new type copies rotor, hub height and density from the previous one, so you only change what differs.</p>
           <div id="types" class="stack"></div>
         </div>
       </section>
@@ -709,7 +712,7 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
   var $ = function (id) { return document.getElementById(id); };
   var F = WTG.fmt, esc = WTG.esc;
   var el = {};
-  ['curt', 'curtMsg', 'ignBox', 'ignSum', 'ignPre', 'addType', 'types', 'assign', 'tol', 'overall', 'sumLine', 'warnMsg', 'dlAll', 'selName', 'chart', 'rows', 'cvP', 'cvC', 'example']
+  ['perTurbine', 'curt', 'curtMsg', 'ignBox', 'ignSum', 'ignPre', 'addType', 'types', 'assign', 'tol', 'overall', 'sumLine', 'warnMsg', 'dlAll', 'selName', 'chart', 'rows', 'cvP', 'cvC', 'example']
     .forEach(function (id) { el[id] = $(id); });
 
   var state = { rules: [], errors: [], ignored: [], modes: [], types: [], nextType: 1, assign: {}, short: {}, sel: -1, kind: 'P', rows: [], warnings: [] };
@@ -725,7 +728,10 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
   function shortOf(id) { return state.short[id] || autoShort(id); }
 
   /* ---------- types ---------- */
-  function newType() { var n = state.nextType++; return { id: n, name: 'Type ' + n, rotor: '', hub: '', density: '1.225', control: 'Pitch', unit: 'auto', text: '', modeText: {}, parsed: null, modeParsed: {} }; }
+  function newType(from) {
+    var n = state.nextType++, src = from || state.types[state.types.length - 1] || {};
+    return { id: n, name: 'Type ' + n, rotor: src.rotor || '', hub: src.hub || '', density: src.density || '1.225', control: src.control || 'Pitch', unit: src.unit || 'auto', text: '', modeText: {}, parsed: null, modeParsed: {} };
+  }
   function reparse(t) {
     t.parsed = t.text.trim() ? WTG.parsePerf(t.text, { unit: t.unit }) : null;
     t.modeParsed = {};
@@ -774,6 +780,20 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
     state.types = state.types.filter(function (t) { return String(t.id) !== String(id); });
     fixAssign(); renderTypes(); renderAssign(); refresh();
   });
+  el.perTurbine.onclick = function () {
+    var I = ids().cur;
+    if (!I.length) return;
+    var template = state.types[0] || newType();
+    var keep = state.types.filter(function (t) { return t.text.trim() || Object.keys(t.modeText).some(function (m) { return t.modeText[m].trim(); }); });
+    state.types = keep;
+    I.forEach(function (id) {
+      var t = state.types.filter(function (x) { return x.name === id; })[0];
+      if (!t) { t = newType(template); t.name = id; state.types.push(t); }
+      state.assign[id] = t.id;
+    });
+    state.types.forEach(reparse);
+    renderTypes(); renderAssign(); refresh();
+  };
   el.addType.onclick = function () { state.types.push(newType()); renderTypes(); renderAssign(); refresh(); };
 
   /* ---------- curtailment table ---------- */
@@ -793,7 +813,7 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
     if (!I.all.length) { el.assign.innerHTML = '<tr><td colspan="4" class="empty">Turbines appear here once the curtailment table is read.</td></tr>'; return; }
     el.assign.innerHTML = I.all.map(function (id) {
       var isC = I.cur.indexOf(id) >= 0, isP = I.prot.indexOf(id) >= 0;
-      var sel = isC ? '<select data-id="' + esc(id) + '" data-k="type" aria-label="Type of ' + esc(id) + '">' + state.types.map(function (t) { return '<option value="' + t.id + '"' + (String(state.assign[id]) === String(t.id) ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('') + '</select>' : '<span class="hint">not needed</span>';
+      var sel = isC && state.types.length === 1 ? '<span class="hint">' + esc(state.types[0].name) + '</span>' : isC ? '<select data-id="' + esc(id) + '" data-k="type" aria-label="Type of ' + esc(id) + '">' + state.types.map(function (t) { return '<option value="' + t.id + '"' + (String(state.assign[id]) === String(t.id) ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('') + '</select>' : '<span class="hint">not needed</span>';
       return '<tr><td class="fname">' + esc(id) + '</td><td>' + (isC && isP ? 'curtailed and protected' : isC ? 'curtailed' : 'protected') + '</td><td><input type="text" data-id="' + esc(id) + '" data-k="short" value="' + esc(shortOf(id)) + '" aria-label="Short name of ' + esc(id) + '"></td><td>' + sel + '</td></tr>';
     }).join('');
   }
@@ -879,6 +899,12 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
       });
     });
     state.warnings = warnings;
+    var I = ids(), pOrder = [];
+    state.rules.forEach(function (r) { if (pOrder.indexOf(r.p.id) < 0) pOrder.push(r.p.id); });
+    rows.forEach(function (r, i) { r.ord = i; });
+    rows.sort(function (a, b) {
+      return (I.cur.indexOf(a.c) - I.cur.indexOf(b.c)) || (pOrder.indexOf(a.p) - pOrder.indexOf(b.p)) || ((a.v ? a.v.start : 0) - (b.v ? b.v.start : 0)) || (a.ord - b.ord);
+    });
     return rows;
   }
   function specFor(row) {
@@ -903,9 +929,13 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
   }
   function renderRows() {
     if (!state.rows.length) { el.rows.innerHTML = '<tr><td colspan="7" class="empty">No files yet.</td></tr>'; return; }
+    var counts = {}; state.rows.forEach(function (r) { counts[r.c] = (counts[r.c] || 0) + (r.status === 'ready' ? 1 : 0); });
+    var lastC = null;
     el.rows.innerHTML = state.rows.map(function (r, i) {
+      var head = '';
+      if (r.c !== lastC) { lastC = r.c; head = '<tr class="grp"><td colspan="7">' + esc(r.c) + ' <span class="hint">' + (counts[r.c] ? counts[r.c] + (counts[r.c] === 1 ? ' file' : ' files') : 'needs data') + '</span></td></tr>'; }
       var pill = r.status === 'ready' ? (r.notes.length ? '<span class="pill warn" title="' + esc(r.notes.join(' ')) + '">Ready, check note</span>' : '<span class="pill ok">Ready</span>') : r.status === 'none' ? '<span class="pill">No file</span>' : '<span class="pill warn" title="' + esc(r.msg) + '">Needs data</span>';
-      return '<tr class="clk' + (i === state.sel ? ' sel' : '') + '" data-i="' + i + '"><td class="fname">' + esc(r.c) + '</td><td class="fname">' + esc(r.p) + '</td><td class="n">' + esc(r.sector) + '</td><td>' + esc(r.cut) + '</td><td class="fname">' + esc(r.file) + '</td><td>' + pill + (r.status !== 'ready' && r.msg ? ' <small class="hint">' + esc(r.msg) + '</small>' : '') + '</td><td>' + (r.status === 'ready' ? '<button class="btn sm" type="button" data-dl="' + i + '">Download</button>' : '') + '</td></tr>';
+      return head + '<tr class="clk' + (i === state.sel ? ' sel' : '') + '" data-i="' + i + '"><td class="fname">' + esc(r.c) + '</td><td class="fname">' + esc(r.p) + '</td><td class="n">' + esc(r.sector) + '</td><td>' + esc(r.cut) + '</td><td class="fname">' + esc(r.file) + '</td><td>' + pill + (r.status !== 'ready' && r.msg ? ' <small class="hint">' + esc(r.msg) + '</small>' : '') + '</td><td>' + (r.status === 'ready' ? '<button class="btn sm" type="button" data-dl="' + i + '">Download</button>' : '') + '</td></tr>';
     }).join('');
   }
   function renderSelected() {
