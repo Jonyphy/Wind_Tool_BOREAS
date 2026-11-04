@@ -214,7 +214,7 @@ footer{border-top:1px solid var(--border);background:var(--panel)}
   </div>
 
   <div class="grouphead"><span data-i18n="grpS">Site data</span><div class="rule"></div></div>
-  <div class="grid one">
+  <div class="grid">
 
     <a class="card a-rose" href="turbines.html">
       <div class="card-top">
@@ -224,6 +224,18 @@ footer{border-top:1px solid var(--border);background:var(--panel)}
       <h2 data-i18n="c6_h2">Turbine table matcher</h2>
       <p data-i18n="c6_p">Compare two turbine lists by name and position, find turbines that exist in only one list and copy turbine types, hub heights and power from one table to the other.</p>
       <div class="tags" data-i18n="c6_tags"><span class="tag">Name + coordinates</span><span class="tag">Excel paste</span><span class="tag">.csv</span></div>
+      <span class="open"><span data-i18n="open">Open</span><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    </a>
+
+
+    <a class="card a-cyan" href="wind.html">
+      <div class="card-top">
+        <span class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></span>
+        <span class="cat" data-i18n="c7_cat">Site data</span>
+      </div>
+      <h2 data-i18n="c7_h2">Wind rose &amp; main wind direction</h2>
+      <p data-i18n="c7_p">Enter a coordinate (lat/lon, UTM, Gauss-Krüger) or load a shapefile and get wind roses from ERA5, CERRA and more, with the main wind direction at 10–200 m.</p>
+      <div class="tags" data-i18n="c7_tags"><span class="tag">ERA5</span><span class="tag">CERRA</span><span class="tag">Shapefile</span><span class="tag">UTM · GK</span></div>
       <span class="open"><span data-i18n="open">Open</span><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
     </a>
 
@@ -292,6 +304,9 @@ var T={
   grpY:"Yield &amp; probability",
   grp2:"Reporting &amp; coordination",
   grpS:"Site data",
+  c7_cat:"Site data", c7_h2:"Wind rose & main wind direction",
+  c7_p:"Enter a coordinate (lat/lon, UTM, Gauss-Kr\u00fcger) or load a shapefile and get wind roses from ERA5, CERRA and more, with the main wind direction at 10\u2013200 m.",
+  c7_tags:'<span class="tag">ERA5</span><span class="tag">CERRA</span><span class="tag">Shapefile</span><span class="tag">UTM \u00b7 GK</span>',
   c6_cat:"Site data", c6_h2:"Turbine table matcher",
   c6_p:"Compare two turbine lists by name and position, find turbines that exist in only one list and copy turbine types, hub heights and power from one table to the other.",
   c6_tags:'<span class="tag">Name + coordinates</span><span class="tag">Excel paste</span><span class="tag">.csv</span>',
@@ -323,6 +338,9 @@ var T={
   grpY:"Ertrag &amp; Wahrscheinlichkeit",
   grp2:"Berichte &amp; Koordination",
   grpS:"Standortdaten",
+  c7_cat:"Standortdaten", c7_h2:"Windrose & Hauptwindrichtung",
+  c7_p:"Koordinate eingeben (Lat/Lon, UTM, Gau\u00df-Kr\u00fcger) oder Shapefile laden und Windrosen aus ERA5, CERRA u. a. mit der Hauptwindrichtung in 10\u2013200 m erhalten.",
+  c7_tags:'<span class="tag">ERA5</span><span class="tag">CERRA</span><span class="tag">Shapefile</span><span class="tag">UTM \u00b7 GK</span>',
   c6_cat:"Standortdaten", c6_h2:"Anlagenabgleich",
   c6_p:"Vergleiche zwei Anlagenlisten nach Name und Position, finde Anlagen, die nur in einer Liste stehen, und \u00fcbertrage Anlagentypen, Nabenh\u00f6hen und Leistung von einer Tabelle in die andere.",
   c6_tags:'<span class="tag">Name + Koordinaten</span><span class="tag">Excel einf\u00fcgen</span><span class="tag">.csv</span>',

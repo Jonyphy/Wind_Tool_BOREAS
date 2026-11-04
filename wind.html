@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<meta name="robots" content="noindex, nofollow"/>
 <title data-i18n="title">BOREAS · Wind rose</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -192,6 +191,7 @@ td.dir{font-family:var(--mono);font-weight:600;color:var(--ink)}
     <label class="chk"><input type="checkbox" class="mdl" value="ecmwf_ifs"/><span><b>ECMWF IFS</b><small data-i18n="m_ifs">9 km, 2017–today</small></span></label>
     <label class="chk"><input type="checkbox" class="mdl" value="gwa" id="gwaChk"/><span><b>Global Wind Atlas</b><small data-i18n="m_gwa">Wind climate (3 km), tries a direct download; otherwise load the .lib file below</small></span></label>
     <label class="file" style="padding:10px;margin-top:8px;font-size:12px"><span id="libLabel" data-i18n="lib_pick">GWA .lib file (optional)</span><input type="file" id="libFile" accept=".lib,.txt"/></label>
+    <div class="hint" style="margin:6px 0 0" data-i18n="lib_help">How: open globalwindatlas.info, click your point, download the generalized wind climate (.lib), then choose it here.</div>
 
     <label class="l" for="hsel" data-i18n="height">Height</label>
     <select id="hsel">
@@ -270,7 +270,8 @@ var T={
   lib_pick:"GWA .lib file (optional)",lib_ok:"Loaded: {f}",lib_bad:"Not a valid .lib file",lib_far:"This .lib is for {lat}, {lon}, which is far from the chosen point.",
   h_hint:"The models give 10 m and 100 m. Other heights are estimated per hour from those two (power law; direction turned between them).",
   est_h:"height estimated from 10 m and 100 m",clim:"climatology",
-  gwa_blocked:"The browser could not download the Global Wind Atlas directly (the server blocks it). Download the .lib for this point at globalwindatlas.info and load it in the box on the left.",
+  gwa_blocked:"Direct download is blocked by the server. Load the .lib file instead (box on the left).",
+  lib_help:"How: open globalwindatlas.info, click your point, download the generalized wind climate (.lib), then choose it here.",
   gwa_note:"generalized climate, z0 {z} m, {h} m",
   loading:"loading…",done:"{n} hours",fail:"failed: {e}",
   no100:"not available at this height — try 10 m",
@@ -309,7 +310,8 @@ var T={
   lib_pick:"GWA .lib-Datei (optional)",lib_ok:"Geladen: {f}",lib_bad:"Keine gültige .lib-Datei",lib_far:"Diese .lib gehört zu {lat}, {lon}, weit weg vom gewählten Punkt.",
   h_hint:"Die Modelle liefern 10 m und 100 m. Andere Höhen werden stündlich daraus geschätzt (Potenzgesetz; Richtung zwischen beiden gedreht).",
   est_h:"Höhe aus 10 m und 100 m geschätzt",clim:"Klimatologie",
-  gwa_blocked:"Der Browser konnte den Global Wind Atlas nicht direkt laden (der Server blockiert das). Lade die .lib für diesen Punkt auf globalwindatlas.info herunter und wähle sie links aus.",
+  gwa_blocked:"Direkter Download wird vom Server blockiert. Stattdessen die .lib-Datei laden (Feld links).",
+  lib_help:"So geht es: globalwindatlas.info öffnen, Punkt anklicken, das generalisierte Windklima (.lib) herunterladen und hier auswählen.",
   gwa_note:"generalisiertes Klima, z0 {z} m, {h} m",
   loading:"lädt…",done:"{n} Stunden",fail:"fehlgeschlagen: {e}",
   no100:"in dieser Höhe nicht verfügbar — 10 m versuchen",
