@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Curtailment WTGs | BOREAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a slim instrument-panel header, input steps on the left, live result column on the right. */
+:root {
+  --bg: #EDF1F4; --surface: #FFFFFF; --surface2: #F5F8FA; --ink: #12212B; --muted: #566976; --line: #D1DBE2; --line2: #E3E9EE;
+  --accent: #17607C; --accent-ink: #FFFFFF; --accent-soft: #DDEBF1; --accent-line: #9CC3D3;
+  --ok: #1F7249; --ok-bg: #E1F0E8; --warn: #8F5C0C; --warn-bg: #F8EDD4; --err: #AC3425; --err-bg: #F8E2DE;
+  --s1: #C7782B; --s2: #17607C;
+  --font-body: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-head: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D151B; --surface: #14202A; --surface2: #1A2833; --ink: #E2EBF0; --muted: #8DA1AE; --line: #2A3A46; --line2: #213039;
+    --accent: #5DB6D6; --accent-ink: #052330; --accent-soft: #19333F; --accent-line: #2F6479;
+    --ok: #62C493; --ok-bg: #163426; --warn: #E3AC52; --warn-bg: #3A2D12; --err: #F28E7C; --err-bg: #3C1E19;
+    --s1: #E3A24F; --s2: #6CC0DE; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D151B; --surface: #14202A; --surface2: #1A2833; --ink: #E2EBF0; --muted: #8DA1AE; --line: #2A3A46; --line2: #213039;
+  --accent: #5DB6D6; --accent-ink: #052330; --accent-soft: #19333F; --accent-line: #2F6479;
+  --ok: #62C493; --ok-bg: #163426; --warn: #E3AC52; --warn-bg: #3A2D12; --err: #F28E7C; --err-bg: #3C1E19;
+  --s1: #E3A24F; --s2: #6CC0DE; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+a { color: var(--accent); }
+h1, h2, h3 { font-family: var(--font-head); font-weight: 600; margin: 0; text-wrap: balance; }
+
+/* header */
+.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+.topin { display: flex; align-items: center; gap: 28px; min-height: 52px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 9px; font: 600 19px/1 var(--font-head); letter-spacing: .16em; color: var(--ink); text-decoration: none; padding: 14px 0; }
+.brand svg { width: 24px; height: 24px; color: var(--accent); }
+.top nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.top nav a { color: var(--muted); text-decoration: none; padding: 16px 12px 14px; border-bottom: 2px solid transparent; font-weight: 500; font-size: 14px; }
+.top nav a:hover { color: var(--ink); }
+.top nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+/* intro */
+.intro { padding-block: 26px 18px; max-width: 78ch; }
+.intro h1 { font-size: 34px; line-height: 1.1; letter-spacing: .01em; }
+.lede { color: var(--muted); margin: 8px 0 0; font-size: 16px; }
+
+/* columns */
+.cols { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 18px; align-items: start; padding-bottom: 48px; }
+.stack { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sticky { position: sticky; top: 14px; }
+@media (max-width: 1020px) { .cols { grid-template-columns: minmax(0, 1fr); } .sticky { position: static; } }
+
+/* cards */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
+.card-h { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line2); flex-wrap: wrap; }
+.card-h h2 { font-size: 20px; letter-spacing: .02em; }
+.step { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font: 600 13px/1 var(--font-body); flex: none; }
+.spacer { flex: 1; }
+.card-b { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.hint { color: var(--muted); font-size: 13.5px; margin: 0; }
+
+/* form */
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 640px) { .grid2, .grid3 { grid-template-columns: minmax(0, 1fr); } }
+.fld { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.fld > span, .lbl { font: 600 12px/1.2 var(--font-body); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.fld > span em { font-style: normal; text-transform: none; letter-spacing: 0; font-weight: 400; }
+input[type=text], input[type=number], input[type=date], select, textarea {
+  font: 14px/1.4 var(--font-body); color: var(--ink); background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; padding: 7px 9px; width: 100%; min-width: 0;
+}
+input.mono, textarea, td input { font-family: var(--font-mono); font-size: 13px; }
+textarea { resize: vertical; white-space: pre; overflow: auto; line-height: 1.45; min-height: 120px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible, .chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+.inline { display: flex; gap: 14px; flex-wrap: wrap; align-items: end; }
+.inline .fld { width: auto; flex: 0 1 150px; }
+.chk { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; cursor: pointer; }
+.chk input { width: 16px; height: 16px; accent-color: var(--accent); }
+.auto-note { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted); }
+
+/* buttons */
+.btn { font: 600 14px/1 var(--font-body); padding: 10px 16px; border-radius: 4px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.primary:hover:not(:disabled) { filter: brightness(1.08); color: var(--accent-ink); }
+.btn.sm { padding: 7px 11px; font-size: 13px; }
+.btn.ghost { background: transparent; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* chips */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { cursor: pointer; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip span { display: inline-block; padding: 5px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface2); font: 13px/1.2 var(--font-mono); color: var(--muted); user-select: none; }
+.chip input:checked + span { background: var(--accent-soft); border-color: var(--accent-line); color: var(--ink); font-weight: 500; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+.toolbar .fld { width: 96px; }
+
+/* messages and checks */
+.msgs { display: flex; flex-direction: column; gap: 6px; }
+.msg { display: flex; gap: 9px; align-items: flex-start; font-size: 14px; padding: 7px 10px; border-radius: 4px; background: var(--surface2); }
+.msg .dot { flex: none; width: 9px; height: 9px; border-radius: 50%; margin-top: 6px; background: var(--muted); }
+.msg.ok .dot { background: var(--ok); } .msg.warn { background: var(--warn-bg); } .msg.warn .dot { background: var(--warn); }
+.msg.err { background: var(--err-bg); } .msg.err .dot { background: var(--err); }
+.msg code { font: 12.5px var(--font-mono); }
+.msg small { display: block; color: var(--muted); }
+
+/* tables */
+.tw { overflow-x: auto; border: 1px solid var(--line2); border-radius: 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--line2); white-space: nowrap; }
+th { font: 600 11.5px/1.2 var(--font-body); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); background: var(--surface2); position: sticky; top: 0; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td input { padding: 4px 7px; width: 100%; min-width: 90px; }
+td select { padding: 4px 7px; min-width: 120px; }
+tr:last-child td { border-bottom: 0; }
+tbody tr.sel td { background: var(--accent-soft); }
+tbody tr.clk { cursor: pointer; }
+tbody tr.clk:hover td { background: var(--surface2); }
+tbody tr.sel:hover td { background: var(--accent-soft); }
+.scroll { max-height: 340px; overflow: auto; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; background: var(--surface2); color: var(--muted); }
+.pill.ok { background: var(--ok-bg); color: var(--ok); } .pill.warn { background: var(--warn-bg); color: var(--warn); } .pill.err { background: var(--err-bg); color: var(--err); }
+.fname { font-family: var(--font-mono); font-size: 13px; }
+
+/* chart */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg button { font: 500 13px/1 var(--font-body); padding: 7px 12px; background: var(--surface); color: var(--muted); border: 0; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); }
+svg.chart { width: 100%; height: auto; display: block; }
+svg.chart .gl { stroke: var(--line2); stroke-width: 1; }
+svg.chart .axl { stroke: var(--muted); stroke-width: 1; }
+svg.chart .tk { fill: var(--muted); font: 11px var(--font-mono); }
+svg.chart .axt { fill: var(--muted); font: 12px var(--font-body); }
+svg.chart .lg { fill: var(--ink); font: 12px var(--font-body); }
+.legend { display: flex; align-items: center; gap: 10px; font: 12px var(--font-mono); color: var(--muted); }
+.legend i { display: block; flex: 0 1 180px; height: 8px; border-radius: 2px; background: linear-gradient(in oklab 90deg, var(--s1), var(--s2)); }
+
+details.box { border: 1px solid var(--line2); border-radius: 4px; background: var(--surface2); }
+details.box > summary { cursor: pointer; padding: 9px 12px; font-weight: 600; font-size: 14px; }
+details.box > .inner { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line2); border-radius: 4px; font: 12px/1.5 var(--font-mono); overflow: auto; max-height: 260px; color: var(--ink); }
+.dl { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.dl .fld { flex: 1 1 260px; }
+.foot { color: var(--muted); font-size: 13px; padding-bottom: 36px; max-width: 80ch; }
+.empty { color: var(--muted); padding: 22px 8px; text-align: center; font-size: 14px; }
+.typecard { border: 1px solid var(--line); border-radius: 5px; background: var(--surface2); }
+.typecard > header { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--line2); }
+.typecard > header strong { font: 600 16px var(--font-head); letter-spacing: .03em; }
+.typecard .card-b { padding: 12px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: no-preference) { .btn { transition: border-color .12s, color .12s, filter .12s; } }
+
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin">
+  <a class="brand" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 14h16a3 3 0 1 1-3 3"/><path d="M3 19h7"/></svg><span>BOREAS</span></a>
+  <nav aria-label="Tools"><a href="wtg-generator.html">WTG generator</a><a href="wtg-curtailment.html" aria-current="page">Curtailment WTGs</a></nav>
+</div></header>
+<main class="wrap">
+  <section class="intro">
+    <h1>Curtailment WTGs</h1>
+    <p class="lede">Paste the curtailment table from a turbulence report. For every curtailed turbine and protected turbine pair the tool writes one .wtg file per wind direction sector, with power and ct set to zero (cut-off) or to a reduced operating mode inside the curtailed wind speed range.</p>
+  </section>
+
+  <div class="cols">
+    <div class="stack">
+
+      <section class="card" aria-labelledby="h1">
+        <header class="card-h"><span class="step">1</span><h2 id="h1">Curtailment table</h2><span class="spacer"></span><button class="btn sm ghost" id="example" type="button">Load synthetic example</button></header>
+        <div class="card-b">
+          <p class="hint">Copy the table from the report with its column breaks. Header lines are skipped. Rows without a curtailed turbine at the start belong to the protected turbine above them.</p>
+          <label class="fld"><span class="sr">Curtailment table</span><textarea id="curt" rows="9" spellcheck="false" placeholder="No.	No.	Identifier	No.	Identifier	Cut-off	Operating mode	β [°]	γstart [°]	γstop [°]	vstart [m/s]	vstop [m/s]&#10;1	2	WT 2	1	WT 1	X	-	-	316.1	348.7	4.8	8&#10;..."></textarea></label>
+          <div class="msgs" id="curtMsg" aria-live="polite"></div>
+          <details class="box" id="ignBox" hidden><summary id="ignSum">Skipped lines</summary><div class="inner"><pre class="xml" id="ignPre"></pre></div></details>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="h2">
+        <header class="card-h"><span class="step">2</span><h2 id="h2">Turbine types</h2><span class="spacer"></span><button class="btn sm" id="addType" type="button">Add type</button></header>
+        <div class="card-b">
+          <p class="hint">One performance table per turbine type: wind speed, power and ct in three columns. Turbines of the same model share one type. A reduced operating mode needs its own table for each type.</p>
+          <div id="types" class="stack"></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="h3">
+        <header class="card-h"><span class="step">3</span><h2 id="h3">Names and types</h2></header>
+        <div class="card-b">
+          <p class="hint">Short names are used in the file names and are remembered in this browser. Assign each curtailed turbine to one of your types.</p>
+          <div class="tw"><table><thead><tr><th>Identifier</th><th>Role</th><th>Short name</th><th>Type</th></tr></thead><tbody id="assign"><tr><td colspan="4" class="empty">Turbines appear here once the curtailment table is read.</td></tr></tbody></table></div>
+          <div class="inline">
+            <label class="fld"><span>Snap tolerance [m/s]</span><input type="number" class="mono" id="tol" min="0" max="0.5" step="0.01" value="0"></label>
+            <p class="hint" style="flex:1 1 280px;align-self:center">Start speeds go down and stop speeds go up to the nearest table speed. A tolerance above 0 treats a table speed that close to the reported value as equal, for example 7.99 for 8.0.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="stack sticky" aria-label="Selected file">
+      <section class="card">
+        <header class="card-h"><h2>Result</h2><span class="spacer"></span><span class="pill" id="overall">Waiting for data</span></header>
+        <div class="card-b">
+          <p class="hint" id="sumLine">Paste the curtailment table and add a performance table to see the files.</p>
+          <div class="msgs" id="warnMsg"></div>
+          <div class="dl"><button class="btn primary" id="dlAll" type="button" disabled>Download all as ZIP</button></div>
+        </div>
+      </section>
+      <section class="card">
+        <header class="card-h"><h2>Selected file</h2><span class="spacer"></span>
+          <div class="seg" role="group" aria-label="Quantity"><button type="button" id="cvP" aria-pressed="true">Power</button><button type="button" id="cvC" aria-pressed="false">ct</button></div></header>
+        <div class="card-b">
+          <div class="fname" id="selName">No file selected</div>
+          <svg class="chart" id="chart" role="img" aria-label="Normal operation and curtailed curve of the selected file"></svg>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <section class="card" style="margin-bottom:24px" aria-labelledby="h4">
+    <header class="card-h"><span class="step">4</span><h2 id="h4">Files</h2></header>
+    <div class="card-b">
+      <div class="tw scroll" style="max-height:520px"><table><thead><tr><th>Curtailed</th><th>Protected</th><th class="n">Sector [°]</th><th>Curtailment</th><th>File name</th><th>Status</th><th></th></tr></thead><tbody id="rows"><tr><td colspan="7" class="empty">No files yet.</td></tr></tbody></table></div>
+    </div>
+  </section>
+  <p class="foot">Power and ct are zero inside a cut-off range and are taken from the mode table inside a reduced range. Where rules of one pair overlap, the compass is split at every sector boundary and the speed ranges are combined, so the stronger curtailment always applies. Open a new file once in WAsP or WindPRO to confirm that it loads. Everything runs in your browser; nothing is uploaded.</p>
+</main>
+
+<script>
+/* BOREAS WTG core: parsing, WTG writer, curtailment logic, zip, chart. No dependencies. */
+(function (root, factory) {
+  var api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api; else root.WTG = api;
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+  var EPS = 1e-6;
+
+  /* ---------- number helpers ---------- */
+  function num(x) {
+    if (typeof x === 'number') return x;
+    var s = String(x == null ? '' : x).replace(/[*†‡]+/g, '').replace(/−/g, '-').trim();
+    if (!s) return NaN;
+    if (/^-?\d{1,3}(\.\d{3})+,\d+$/.test(s)) s = s.replace(/\./g, '').replace(',', '.');
+    else s = s.replace(',', '.');
+    return /^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(s) ? parseFloat(s) : NaN;
+  }
+  function fmt(n, d) {
+    d = d == null ? 6 : d;
+    if (typeof n !== 'number' || !isFinite(n)) return String(n);
+    var s = (+n.toFixed(d)).toString();
+    return /e/i.test(s) ? n.toFixed(d).replace(/\.?0+$/, '') : s;
+  }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function escText(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function unesc(s) { return s.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'); }
+  function detectUnit(maxP) { return maxP >= 1e5 ? 'W' : maxP >= 100 ? 'kW' : 'MW'; }
+  function unitFactor(u) { return u === 'W' ? 1 : u === 'kW' ? 1e3 : 1e6; }
+  function safeName(s) { return String(s).replace(/[^A-Za-z0-9._+-]+/g, '_').replace(/^_+|_+$/g, ''); }
+
+  /* ---------- grid tables (wind speed rows, one column per air density) ---------- */
+  function tokens(line) { return line.trim().split(/[\s;]+/).filter(function (t) { return t !== '' && t !== '*'; }); }
+  function isHeaderLine(line) {
+    var tok = tokens(line);
+    if (!tok.length || !isNaN(num(tok[0]))) return false;
+    return tok.some(function (t) { return /^\d+([.,]\d+)?$/.test(t); });
+  }
+  function splitBlocks(text) {
+    var blocks = [], cur = [], hasData = false;
+    text.replace(/\r/g, '').split('\n').forEach(function (ln) {
+      if (!ln.trim()) return;
+      if (isHeaderLine(ln)) {
+        if (hasData) { blocks.push(cur.join('\n')); cur = []; hasData = false; }
+        cur.push(ln);
+      } else {
+        var t = tokens(ln);
+        if (t.length && !isNaN(num(t[0]))) hasData = true;
+        cur.push(ln);
+      }
+    });
+    if (cur.length) blocks.push(cur.join('\n'));
+    return blocks;
+  }
+  function parseGrid(text) {
+    var out = { densities: [], rows: [], errors: [] };
+    var started = false;
+    text.replace(/\r/g, '').split('\n').forEach(function (ln, i) {
+      if (!ln.trim()) return;
+      var tok = tokens(ln);
+      if (isNaN(num(tok[0]))) {
+        if (!started && isHeaderLine(ln)) {
+          out.densities = tok.filter(function (t) { return /^\d+([.,]\d+)?$/.test(t); }).map(num);
+          started = true;
+        }
+        return;
+      }
+      if (!started) return;
+      var starred = /\*/.test(ln.trim().split(/[\s;]+/)[0]);
+      var vals = tok.slice(1).map(num);
+      if (vals.length !== out.densities.length) {
+        out.errors.push('Line ' + (i + 1) + ': expected ' + out.densities.length + ' values after the wind speed, found ' + vals.length + '.');
+        return;
+      }
+      if (vals.some(isNaN)) { out.errors.push('Line ' + (i + 1) + ': a value is not a number.'); return; }
+      out.rows.push({ v: num(tok[0]), vals: vals, starred: starred });
+    });
+    if (!started && text.trim()) out.errors.push('No header row found. Include the row with the wind speed label and the air densities.');
+    return out;
+  }
+  function sameNum(a, b) { return Math.abs(a - b) < EPS; }
+  function buildModel(pg, cg, opts) {
+    opts = opts || {};
+    var res = { ok: false, errors: [], warnings: [], starred: [], tables: [], densities: [], speeds: [], unit: null, maxP: 0 };
+    pg.errors.forEach(function (e) { res.errors.push('Power: ' + e); });
+    cg.errors.forEach(function (e) { res.errors.push('ct: ' + e); });
+    if (!pg.rows.length && !pg.errors.length) res.errors.push('Power: no data rows found.');
+    if (!cg.rows.length && !cg.errors.length) res.errors.push('ct: no data rows found.');
+    if (res.errors.length) return res;
+    var prow = pg.rows, crow = cg.rows;
+    prow.concat(crow).forEach(function (r) { if (r.starred && res.starred.indexOf(r.v) < 0) res.starred.push(r.v); });
+    if (opts.dropStarred) { prow = prow.filter(function (r) { return !r.starred; }); crow = crow.filter(function (r) { return !r.starred; }); }
+    prow = prow.slice().sort(function (a, b) { return a.v - b.v; });
+    crow = crow.slice().sort(function (a, b) { return a.v - b.v; });
+    for (var i = 1; i < prow.length; i++) if (sameNum(prow[i].v, prow[i - 1].v)) res.errors.push('Power: wind speed ' + fmt(prow[i].v) + ' appears twice.');
+    if (prow.length !== crow.length || prow.some(function (r, k) { return !sameNum(r.v, crow[k].v); })) {
+      var ps = prow.map(function (r) { return r.v; }), cs = crow.map(function (r) { return r.v; });
+      var onlyP = ps.filter(function (v) { return !cs.some(function (c) { return sameNum(c, v); }); });
+      var onlyC = cs.filter(function (v) { return !ps.some(function (p) { return sameNum(p, v); }); });
+      res.errors.push('Power and ct tables have different wind speeds' + (onlyP.length ? ' (only in power: ' + onlyP.join(', ') + ')' : '') + (onlyC.length ? ' (only in ct: ' + onlyC.join(', ') + ')' : '') + '.');
+    }
+    var map = [];
+    pg.densities.forEach(function (d, k) {
+      var j = -1;
+      cg.densities.forEach(function (e, m) { if (sameNum(d, e)) j = m; });
+      if (j < 0) res.errors.push('Density ' + fmt(d) + ' is in the power table but not in the ct table.');
+      map.push(j);
+    });
+    cg.densities.forEach(function (e) {
+      if (!pg.densities.some(function (d) { return sameNum(d, e); })) res.errors.push('Density ' + fmt(e) + ' is in the ct table but not in the power table.');
+    });
+    pg.densities.forEach(function (d, k) {
+      if (pg.densities.some(function (o, m) { return m !== k && sameNum(o, d); })) res.errors.push('Density ' + fmt(d) + ' appears twice.');
+    });
+    if (res.errors.length) return res;
+    var maxP = 0;
+    prow.forEach(function (r) { r.vals.forEach(function (x) { if (x > maxP) maxP = x; }); });
+    var unit = (!opts.unit || opts.unit === 'auto') ? detectUnit(maxP) : opts.unit;
+    var f = unitFactor(unit);
+    res.unit = unit; res.maxP = Math.round(maxP * f);
+    res.speeds = prow.map(function (r) { return r.v; });
+    var order = pg.densities.map(function (d, k) { return k; }).sort(function (a, b) { return pg.densities[a] - pg.densities[b]; });
+    order.forEach(function (k) {
+      res.densities.push(pg.densities[k]);
+      res.tables.push({
+        density: pg.densities[k],
+        points: prow.map(function (r, ri) { return { v: r.v, p: Math.round(r.vals[k] * f), ct: crow[ri].vals[map[k]] }; })
+      });
+    });
+    res.ok = true;
+    return res;
+  }
+
+  /* ---------- single-density performance table: speed, power, ct ---------- */
+  function parsePerf(text, opts) {
+    opts = opts || {};
+    var out = { points: [], errors: [], warnings: [], starred: [], unit: null };
+    var raw = [];
+    text.replace(/\r/g, '').split('\n').forEach(function (ln, i) {
+      if (!ln.trim()) return;
+      var tok = tokens(ln);
+      if (isNaN(num(tok[0]))) return;
+      var n = tok.map(num);
+      if (n.length < 3 || isNaN(n[0]) || isNaN(n[1]) || isNaN(n[2])) { out.errors.push('Line ' + (i + 1) + ': expected wind speed, power and ct.'); return; }
+      var starred = /\*/.test(ln.trim().split(/[\s;]+/)[0]);
+      if (starred) out.starred.push(n[0]);
+      if (starred && opts.dropStarred) return;
+      raw.push({ v: n[0], praw: n[1], ct: n[2] });
+    });
+    raw.sort(function (a, b) { return a.v - b.v; });
+    for (var i = 1; i < raw.length; i++) if (sameNum(raw[i].v, raw[i - 1].v)) out.errors.push('Wind speed ' + fmt(raw[i].v) + ' appears twice.');
+    var maxP = 0; raw.forEach(function (r) { if (r.praw > maxP) maxP = r.praw; });
+    var unit = (!opts.unit || opts.unit === 'auto') ? detectUnit(maxP) : opts.unit;
+    var f = unitFactor(unit);
+    out.unit = unit;
+    out.points = raw.map(function (r) { return { v: r.v, p: Math.round(r.praw * f), ct: r.ct }; });
+    if (out.points.length && out.points.length < 3) out.errors.push('Fewer than 3 data rows found.');
+    return out;
+  }
+
+  /* ---------- WTG read / write (structure of the WAsP/WindPRO files) ---------- */
+  function writeWTG(spec) {
+    var f = function (x) { return typeof x === 'number' ? fmt(x) : String(x); };
+    var L = [];
+    L.push('<WindTurbineGenerator FormatVersion="1.02" LowestCompatibleFormatVersion="1.01" Description="' + esc(spec.description) + '" ManufacturerName="' + esc(spec.manufacturer || '') + '" ReferenceURI="' + esc(spec.referenceURI || '') + '" RotorDiameter="' + esc(f(spec.rotorDiameter)) + '" ControlSystem="' + esc(spec.controlSystem) + '" RatedPower="' + esc(f(spec.ratedPower)) + '">');
+    L.push('  <Comments>' + escText(spec.comments || '') + '</Comments>');
+    L.push('  <SuggestedHeights>');
+    spec.heights.forEach(function (h) { L.push('    <Height>' + escText(f(h)) + '</Height>'); });
+    L.push('  </SuggestedHeights>');
+    spec.tables.forEach(function (t) {
+      L.push('  <PerformanceTable AirDensity="' + esc(f(t.airDensity)) + '" MaximumNoiseLevel="' + esc(f(t.maxNoise == null ? '0' : t.maxNoise)) + '" BladePitchAngle="' + esc(f(t.bladePitch == null ? '-99999' : t.bladePitch)) + '" DataStatus="' + esc(t.dataStatus || 'Unknown') + '" DataSource="' + esc(t.dataSource || '') + '" ReleaseDate="' + esc(t.releaseDate || '') + '" ReferenceURI="' + esc(t.refURI == null ? 'None' : t.refURI) + '" StationaryThrustCoEfficient="' + esc(f(t.stationaryCt)) + '">');
+      L.push('    <StartStopStrategy LowSpeedCutOut="' + esc(f(t.lowCutOut)) + '" LowSpeedCutIn="' + esc(f(t.lowCutIn)) + '" HighSpeedCutOut="' + esc(f(t.highCutOut)) + '" HighSpeedCutIn="' + esc(f(t.highCutIn)) + '" />');
+      if (t.comments) L.push('    <Comments>' + escText(t.comments) + '</Comments>');
+      else { L.push('    <Comments>'); L.push('    </Comments>'); }
+      L.push('    <DataTable>');
+      t.points.forEach(function (p) {
+        L.push('      <DataPoint WindSpeed="' + fmt(p.v) + '" PowerOutput="' + fmt(p.p) + '" ThrustCoEfficient="' + fmt(p.ct) + '" />');
+      });
+      L.push('    </DataTable>');
+      L.push('  </PerformanceTable>');
+    });
+    L.push('  <ContextInformation>');
+    L.push('    <CertificateChecksum />');
+    L.push('  </ContextInformation>');
+    L.push('</WindTurbineGenerator>');
+    return L.join('\r\n');
+  }
+  function parseWTG(xml) {
+    function attrs(s) { var o = {}; s.replace(/([\w:]+)="([^"]*)"/g, function (m, k, v) { o[k] = unesc(v); return m; }); return o; }
+    var rm = /<WindTurbineGenerator\b([^>]*)>/.exec(xml);
+    if (!rm) return null;
+    var root = attrs(rm[1]);
+    var cm = /<Comments>([\s\S]*?)<\/Comments>/.exec(xml);
+    var heights = []; xml.replace(/<Height>([^<]*)<\/Height>/g, function (m, h) { heights.push(h); return m; });
+    var tables = [];
+    xml.replace(/<PerformanceTable\b([^>]*)>([\s\S]*?)<\/PerformanceTable>/g, function (m, a, body) {
+      var t = attrs(a);
+      var ss = /<StartStopStrategy\b([^>]*)\/>/.exec(body);
+      var tc = /<Comments>([\s\S]*?)<\/Comments>/.exec(body);
+      var pts = [];
+      body.replace(/<DataPoint\b([^>]*)\/>/g, function (mm, pa) { var d = attrs(pa); pts.push({ v: d.WindSpeed, p: d.PowerOutput, ct: d.ThrustCoEfficient }); return mm; });
+      tables.push({ attrs: t, startStop: ss ? attrs(ss[1]) : {}, comments: tc ? unesc(tc[1]).trim() : '', points: pts });
+      return m;
+    });
+    return { root: root, comments: cm ? unesc(cm[1]) : '', heights: heights, tables: tables };
+  }
+
+  /* ---------- curtailment table ---------- */
+  function splitCells(line) {
+    var c = line.indexOf('\t') >= 0 ? line.split('\t') : line.trim().split(/\s{2,}/);
+    return c.map(function (s) { return s.trim(); });
+  }
+  function vTok(s) {
+    var t = String(s).trim().toLowerCase().replace(/\s+/g, '');
+    if (/^v-?in$/.test(t)) return 'in';
+    if (/^v-?out$/.test(t)) return 'out';
+    var n = num(s);
+    return isNaN(n) ? null : n;
+  }
+  function parseCurtailments(text) {
+    var out = { rules: [], errors: [], ignored: [], modes: [] };
+    var lastP = null, lastGroup = '';
+    text.replace(/\r/g, '').split('\n').forEach(function (raw, idx) {
+      if (!raw.trim()) return;
+      var cells = splitCells(raw);
+      while (cells.length && cells[0] === '') cells.shift();
+      while (cells.length && cells[cells.length - 1] === '') cells.pop();
+      var N = cells.length;
+      var tail = cells.slice(-4);
+      var gs = num(tail[0]), ge = num(tail[1]), vs = vTok(tail[2] || ''), ve = vTok(tail[3] || '');
+      var isData = N >= 4 && !isNaN(gs) && !isNaN(ge) && vs !== null && ve !== null;
+      if (!isData) { out.ignored.push(raw.trim()); return; }
+      var line = idx + 1;
+      if (N < 9) { out.errors.push({ line: line, text: raw.trim(), msg: 'Too few columns. Copy the table with its column breaks (from Excel or a PDF table).' }); return; }
+      var cut = cells[N - 7], mode = cells[N - 6];
+      var left = cells.slice(0, N - 7), group, c, p;
+      if (left.length === 5) { group = left[0]; c = { no: left[1], id: left[2] }; p = { no: left[3], id: left[4] }; lastP = p; lastGroup = group; }
+      else if (left.length === 4) { group = ''; c = { no: left[0], id: left[1] }; p = { no: left[2], id: left[3] }; lastP = p; lastGroup = group; }
+      else if (left.length === 2) {
+        if (!lastP) { out.errors.push({ line: line, text: raw.trim(), msg: 'Continuation row without a protected turbine above it.' }); return; }
+        group = lastGroup; c = { no: left[0], id: left[1] }; p = lastP;
+      } else { out.errors.push({ line: line, text: raw.trim(), msg: 'Unexpected number of columns before the cut-off column.' }); return; }
+      var dash = /^[-–—]?$/;
+      var kind, modeName = '';
+      if (cut.toUpperCase() === 'X') kind = 'off';
+      else if (!dash.test(mode)) { kind = 'reduced'; modeName = mode; if (out.modes.indexOf(mode) < 0) out.modes.push(mode); }
+      else { out.errors.push({ line: line, text: raw.trim(), msg: 'Neither a cut-off (X) nor an operating mode is given.' }); return; }
+      out.rules.push({ line: line, group: group, c: c, p: p, kind: kind, mode: modeName, gs: gs, ge: ge, vs: vs, ve: ve });
+    });
+    return out;
+  }
+
+  function norm360(x) { return ((x % 360) + 360) % 360; }
+  /* start speed -> nearest table speed at or below, stop speed -> nearest at or above.
+     tol (m/s) lets a table speed within tol of the reported value count as equal (default 0). */
+  function idxRange(grid, vs, ve, tol) {
+    tol = (tol || 0) + EPS;
+    var n = grid.length, lo = 0, hi = n - 1, i;
+    if (vs !== 'in' && vs > grid[n - 1] + tol) return null;
+    if (ve !== 'out' && ve < grid[0] - tol) return null;
+    if (vs !== 'in') { lo = -1; for (i = 0; i < n; i++) if (grid[i] <= vs + tol) lo = i; if (lo < 0) lo = 0; }
+    if (ve !== 'out') { hi = -1; for (i = 0; i < n; i++) if (grid[i] >= ve - tol) { hi = i; break; } if (hi < 0) hi = n - 1; }
+    return [lo, hi];
+  }
+  function showV(v) { return v === 'in' ? 'v-in' : v === 'out' ? 'v-out' : fmt(v, 2); }
+
+  /* Splits the compass at every sector boundary and merges equal neighbours.
+     rules: parsed rules of ONE curtailed/protected pair. grid: wind speeds of the curtailed turbine's table. */
+  function buildVariants(rules, grid, tol) {
+    var n = grid.length, items = [], warnings = [];
+    rules.forEach(function (r) {
+      if (r.vs !== 'in' && r.ve !== 'out' && r.vs > r.ve) { warnings.push('Line ' + r.line + ': start speed is above stop speed, rule ignored.'); return; }
+      var rg = idxRange(grid, r.vs, r.ve, tol);
+      if (!rg) { warnings.push('Line ' + r.line + ': speed range ' + showV(r.vs) + ' to ' + showV(r.ve) + ' m/s is outside the performance table, rule ignored.'); return; }
+      var full = Math.abs(r.ge - r.gs) >= 360 - EPS || norm360(r.gs) === norm360(r.ge);
+      items.push({ kind: r.kind, mode: r.mode, lo: rg[0], hi: rg[1], gs: norm360(r.gs), ge: norm360(r.ge), full: full });
+    });
+    var bset = [0, 360];
+    items.forEach(function (it) { if (!it.full) { bset.push(it.gs); bset.push(it.ge); } });
+    bset = bset.filter(function (b, i) { return bset.indexOf(b) === i; }).sort(function (a, b) { return a - b; });
+    var segs = [];
+    for (var k = 0; k + 1 < bset.length; k++) {
+      var a = bset[k], b = bset[k + 1], m = (a + b) / 2;
+      var st = []; for (var i = 0; i < n; i++) st.push('');
+      var flags = { multi: false, offOver: false };
+      items.forEach(function (it) {
+        var cov = it.full || (it.gs <= it.ge ? (m >= it.gs && m <= it.ge) : (m >= it.gs || m <= it.ge));
+        if (!cov) return;
+        for (var j = it.lo; j <= it.hi; j++) {
+          if (it.kind === 'off') { if (st[j] && st[j] !== 'OFF') flags.offOver = true; st[j] = 'OFF'; }
+          else if (st[j] === 'OFF') { flags.offOver = true; }
+          else {
+            var ms = st[j] ? st[j].slice(2).split('|') : [];
+            if (ms.indexOf(it.mode) < 0) ms.push(it.mode);
+            if (ms.length > 1) flags.multi = true;
+            ms.sort(); st[j] = 'R:' + ms.join('|');
+          }
+        }
+      });
+      if (st.some(function (s) { return s !== ''; })) segs.push({ start: a, end: b, st: st, sig: st.join('~'), flags: flags });
+    }
+    var merged = [];
+    segs.forEach(function (s) {
+      var p = merged[merged.length - 1];
+      if (p && p.end === s.start && p.sig === s.sig) { p.end = s.end; p.flags = { multi: p.flags.multi || s.flags.multi, offOver: p.flags.offOver || s.flags.offOver }; }
+      else merged.push(s);
+    });
+    if (merged.length >= 2 && merged[0].start === 0 && merged[merged.length - 1].end === 360 && merged[0].sig === merged[merged.length - 1].sig) {
+      var f = merged.shift(), l = merged.pop();
+      merged.push({ start: l.start, end: f.end, st: l.st, sig: l.sig, flags: { multi: l.flags.multi || f.flags.multi, offOver: l.flags.offOver || f.flags.offOver }, wrap: true });
+    }
+    var modes = [];
+    merged.forEach(function (v) {
+      v.full = v.start === 0 && v.end === 360;
+      v.st.forEach(function (s) { if (s.indexOf('R:') === 0) s.slice(2).split('|').forEach(function (m) { if (modes.indexOf(m) < 0) modes.push(m); }); });
+    });
+    return { variants: merged, modes: modes, warnings: warnings };
+  }
+  function runs(st) {
+    var out = [], i = 0;
+    while (i < st.length) {
+      if (!st[i]) { i++; continue; }
+      var j = i; while (j + 1 < st.length && st[j + 1] === st[i]) j++;
+      out.push({ s: st[i], lo: i, hi: j }); i = j + 1;
+    }
+    return out;
+  }
+  function sectorLabel(v) {
+    if (v.full) return 'all';
+    return (Math.round(v.start) % 360) + '-' + (Math.round(v.end) % 360);
+  }
+  function variantLabel(v, grid, multiMode) {
+    var parts = [], text = [];
+    var byKind = {};
+    runs(v.st).forEach(function (r) {
+      var key = r.s === 'OFF' ? 'off' : (multiMode ? 'red-' + safeName(r.s.slice(2).replace(/\|/g, '+')) : 'red');
+      var rng = fmt(grid[r.lo], 2) + '-' + fmt(grid[r.hi], 2);
+      (byKind[key] = byKind[key] || []).push(rng);
+      text.push((r.s === 'OFF' ? 'cut-off ' : 'reduced ' + r.s.slice(2).replace(/\|/g, '/') + ' ') + fmt(grid[r.lo], 2) + '–' + fmt(grid[r.hi], 2) + ' m/s');
+    });
+    Object.keys(byKind).forEach(function (k) { parts.push(k + '_' + byKind[k].join('+')); });
+    return { file: parts.join('_'), text: text.join(', ') };
+  }
+  function interpAt(pts, v) {
+    var n = pts.length, i;
+    if (v <= pts[0].v + EPS) return { p: pts[0].p, ct: pts[0].ct, clamped: v < pts[0].v - EPS };
+    if (v >= pts[n - 1].v - EPS) return { p: pts[n - 1].p, ct: pts[n - 1].ct, clamped: v > pts[n - 1].v + EPS };
+    for (i = 0; i < n - 1; i++) {
+      if (v >= pts[i].v - EPS && v <= pts[i + 1].v + EPS) {
+        if (sameNum(v, pts[i].v)) return { p: pts[i].p, ct: pts[i].ct };
+        if (sameNum(v, pts[i + 1].v)) return { p: pts[i + 1].p, ct: pts[i + 1].ct };
+        var t = (v - pts[i].v) / (pts[i + 1].v - pts[i].v);
+        return { p: Math.round(pts[i].p + t * (pts[i + 1].p - pts[i].p)), ct: +(pts[i].ct + t * (pts[i + 1].ct - pts[i].ct)).toFixed(4), interpolated: true };
+      }
+    }
+    return { p: pts[n - 1].p, ct: pts[n - 1].ct };
+  }
+  function applyVariant(variant, basePts, modeTables) {
+    var notes = [];
+    var pts = basePts.map(function (b, i) {
+      var s = variant.st[i];
+      if (s === 'OFF') return { v: b.v, p: 0, ct: 0 };
+      if (s && s.indexOf('R:') === 0) {
+        var best = null;
+        s.slice(2).split('|').forEach(function (m) {
+          var t = modeTables[m];
+          if (!t || !t.length) throw new Error('Missing table for operating mode ' + m);
+          var q = interpAt(t, b.v);
+          if (q.interpolated && notes.indexOf('interpolated') < 0) notes.push('interpolated');
+          if (q.clamped && notes.indexOf('clamped') < 0) notes.push('clamped');
+          if (!best || q.p < best.p) best = q;
+        });
+        return { v: b.v, p: best.p, ct: best.ct };
+      }
+      return { v: b.v, p: b.p, ct: b.ct };
+    });
+    return { points: pts, notes: notes };
+  }
+
+  /* ---------- store-only ZIP ---------- */
+  var crcTable = null;
+  function crc32(bytes) {
+    if (!crcTable) { crcTable = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; crcTable[n] = c >>> 0; } }
+    var crc = 0xFFFFFFFF;
+    for (var i = 0; i < bytes.length; i++) crc = crcTable[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+  function utf8(s) {
+    if (typeof TextEncoder !== 'undefined') return new TextEncoder().encode(s);
+    return Uint8Array.from(Buffer.from(s, 'utf8'));
+  }
+  function makeZip(files) {
+    var now = new Date();
+    var dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+    var dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    var chunks = [], central = [], offset = 0;
+    function u16(v) { return [v & 255, (v >>> 8) & 255]; }
+    function u32(v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; }
+    files.forEach(function (f) {
+      var name = utf8(f.name), data = typeof f.data === 'string' ? utf8(f.data) : f.data, crc = crc32(data);
+      var lh = [].concat(u32(0x04034b50), u16(20), u16(0x0800), u16(0), u16(dosTime), u16(dosDate), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0));
+      chunks.push(Uint8Array.from(lh), name, data);
+      var ch = [].concat(u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), u16(dosTime), u16(dosDate), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset));
+      central.push(Uint8Array.from(ch), name);
+      offset += lh.length + name.length + data.length;
+    });
+    var csize = 0; central.forEach(function (c) { csize += c.length; });
+    var end = [].concat(u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length), u32(csize), u32(offset), u16(0));
+    var all = chunks.concat(central, [Uint8Array.from(end)]);
+    var total = 0; all.forEach(function (c) { total += c.length; });
+    var out = new Uint8Array(total), pos = 0;
+    all.forEach(function (c) { out.set(c, pos); pos += c.length; });
+    return out;
+  }
+
+  /* ---------- line chart (browser only) ---------- */
+  function niceTicks(min, max, n) {
+    var span = (max - min) || 1, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), norm = raw / mag;
+    var step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
+    var t = [];
+    for (var v = Math.ceil(min / step - 1e-9) * step; v <= max + step * 1e-6; v += step) t.push(+v.toFixed(10));
+    return t;
+  }
+  function chart(svg, series, o) {
+    o = o || {};
+    var W = 640, H = 300, m = { l: 54, r: 14, t: 12, b: 42 };
+    var xs = [], ys = [];
+    series.forEach(function (s) { s.points.forEach(function (p) { xs.push(p[0]); ys.push(p[1]); }); });
+    if (!xs.length) { svg.innerHTML = ''; return; }
+    var xmin = Math.min.apply(null, xs), xmax = Math.max.apply(null, xs), ymax = Math.max.apply(null, ys) * 1.06 || 1;
+    var yt = niceTicks(0, ymax, 5); ymax = Math.max(ymax, yt[yt.length - 1]);
+    var xt = niceTicks(xmin, xmax, 8);
+    var X = function (v) { return m.l + (v - xmin) / (xmax - xmin || 1) * (W - m.l - m.r); };
+    var Y = function (v) { return H - m.b - v / ymax * (H - m.t - m.b); };
+    var s = '';
+    yt.forEach(function (v) { s += '<line class="gl" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text class="tk" x="' + (m.l - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + fmt(v, 3) + '</text>'; });
+    xt.forEach(function (v) { s += '<text class="tk" x="' + X(v) + '" y="' + (H - m.b + 16) + '" text-anchor="middle">' + fmt(v, 2) + '</text>'; });
+    s += '<line class="axl" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + Y(0) + '" y2="' + Y(0) + '"/>';
+    s += '<text class="axt" x="' + ((m.l + W - m.r) / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + escText(o.xlabel || '') + '</text>';
+    s += '<text class="axt" transform="translate(13 ' + ((m.t + H - m.b) / 2) + ') rotate(-90)" text-anchor="middle">' + escText(o.ylabel || '') + '</text>';
+    series.forEach(function (se) {
+      var d = se.points.map(function (p, i) { return (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1); }).join('');
+      s += '<path d="' + d + '" fill="none" style="stroke:' + se.stroke + '" stroke-width="' + (se.width || 1.6) + '"' + (se.dash ? ' stroke-dasharray="' + se.dash + '"' : '') + ' stroke-linejoin="round"/>';
+    });
+    var ly = m.t + 8;
+    series.filter(function (se) { return se.label; }).forEach(function (se, i) {
+      var x = m.l + 12 + i * 150;
+      s += '<line x1="' + x + '" x2="' + (x + 22) + '" y1="' + ly + '" y2="' + ly + '" style="stroke:' + se.stroke + '" stroke-width="2.2"' + (se.dash ? ' stroke-dasharray="' + se.dash + '"' : '') + '/><text class="lg" x="' + (x + 28) + '" y="' + (ly + 4) + '">' + escText(se.label) + '</text>';
+    });
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.innerHTML = s;
+  }
+
+  return {
+    EPS: EPS, num: num, fmt: fmt, esc: esc, detectUnit: detectUnit, unitFactor: unitFactor, safeName: safeName,
+    splitBlocks: splitBlocks, parseGrid: parseGrid, buildModel: buildModel, parsePerf: parsePerf,
+    writeWTG: writeWTG, parseWTG: parseWTG, parseCurtailments: parseCurtailments,
+    idxRange: idxRange, buildVariants: buildVariants, variantLabel: variantLabel, sectorLabel: sectorLabel,
+    applyVariant: applyVariant, interpAt: interpAt, makeZip: makeZip, crc32: crc32, chart: chart, niceTicks: niceTicks
+  };
+});
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var F = WTG.fmt, esc = WTG.esc;
+  var el = {};
+  ['curt', 'curtMsg', 'ignBox', 'ignSum', 'ignPre', 'addType', 'types', 'assign', 'tol', 'overall', 'sumLine', 'warnMsg', 'dlAll', 'selName', 'chart', 'rows', 'cvP', 'cvC', 'example']
+    .forEach(function (id) { el[id] = $(id); });
+
+  var state = { rules: [], errors: [], ignored: [], modes: [], types: [], nextType: 1, assign: {}, short: {}, sel: -1, kind: 'P', rows: [], warnings: [] };
+  try { state.short = JSON.parse(localStorage.getItem('boreas.wtg.short') || '{}') || {}; } catch (e) { state.short = {}; }
+  function saveShort() { try { localStorage.setItem('boreas.wtg.short', JSON.stringify(state.short)); } catch (e) { /* storage not available */ } }
+
+  function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function msg(level, html) { return '<div class="msg ' + level + '"><span class="dot"></span><div>' + html + '</div></div>'; }
+  function autoShort(id) {
+    var s = id.replace(/\b([A-Za-zÄÖÜäöüß]{9,})\b/g, function (m) { return m.charAt(0).toUpperCase() + m.charAt(1).toLowerCase(); });
+    return WTG.safeName(s.replace(/\s+/g, '')) || 'WT';
+  }
+  function shortOf(id) { return state.short[id] || autoShort(id); }
+
+  /* ---------- types ---------- */
+  function newType() { var n = state.nextType++; return { id: n, name: 'Type ' + n, rotor: '', hub: '', density: '1.225', control: 'Pitch', unit: 'auto', text: '', modeText: {}, parsed: null, modeParsed: {} }; }
+  function reparse(t) {
+    t.parsed = t.text.trim() ? WTG.parsePerf(t.text, { unit: t.unit }) : null;
+    t.modeParsed = {};
+    state.modes.forEach(function (m) { t.modeParsed[m] = (t.modeText[m] || '').trim() ? WTG.parsePerf(t.modeText[m], { unit: t.unit }) : null; });
+  }
+  function perfMsg(p) {
+    if (!p) return msg('', 'Paste the table.');
+    if (p.errors.length) return p.errors.slice(0, 3).map(function (e) { return msg('err', esc(e)); }).join('');
+    if (!p.points.length) return msg('warn', 'No numeric rows found.');
+    var mx = Math.max.apply(null, p.points.map(function (q) { return q.p; }));
+    return msg('ok', p.points.length + ' points, ' + F(p.points[0].v, 2) + ' to ' + F(p.points[p.points.length - 1].v, 2) + ' m/s, power read as ' + p.unit + ', highest ' + F(mx / 1e6, 3) + ' MW.');
+  }
+  function renderTypes() {
+    el.types.innerHTML = state.types.map(function (t) {
+      var modes = state.modes.map(function (m) {
+        return '<label class="fld"><span>Reduced mode ' + esc(m) + ' <em>(wind speed, power, ct)</em></span><textarea rows="5" spellcheck="false" data-t="' + t.id + '" data-f="mode" data-m="' + esc(m) + '">' + esc(t.modeText[m] || '') + '</textarea></label><div class="msgs" id="tm-' + t.id + '-' + esc(m).replace(/\W/g, '_') + '">' + perfMsg(t.modeParsed[m]) + '</div>';
+      }).join('');
+      return '<div class="typecard"><header><strong>' + esc(t.name) + '</strong><span class="spacer"></span>' + (state.types.length > 1 ? '<button class="btn sm ghost" type="button" data-t="' + t.id + '" data-act="del">Remove</button>' : '') + '</header><div class="card-b">' +
+        '<div class="grid3"><label class="fld"><span>Type name</span><input type="text" data-t="' + t.id + '" data-f="name" value="' + esc(t.name) + '"></label>' +
+        '<label class="fld"><span>Rotor diameter [m]</span><input type="number" class="mono" min="0" step="any" data-t="' + t.id + '" data-f="rotor" value="' + esc(t.rotor) + '"></label>' +
+        '<label class="fld"><span>Hub height [m]</span><input type="text" class="mono" data-t="' + t.id + '" data-f="hub" value="' + esc(t.hub) + '"></label></div>' +
+        '<div class="grid3"><label class="fld"><span>Air density [kg/m³]</span><input type="number" class="mono" min="0" step="any" data-t="' + t.id + '" data-f="density" value="' + esc(t.density) + '"></label>' +
+        '<label class="fld"><span>Power regulation</span><input type="text" data-t="' + t.id + '" data-f="control" value="' + esc(t.control) + '"></label>' +
+        '<label class="fld"><span>Power unit</span><select data-t="' + t.id + '" data-f="unit">' + ['auto', 'W', 'kW', 'MW'].map(function (u) { return '<option value="' + u + '"' + (t.unit === u ? ' selected' : '') + '>' + (u === 'auto' ? 'Detect automatically' : u) + '</option>'; }).join('') + '</select></label></div>' +
+        '<label class="fld"><span>Normal operation <em>(wind speed, power, ct)</em></span><textarea rows="6" spellcheck="false" data-t="' + t.id + '" data-f="text" placeholder="Speed [m/s]&#9;Power [W]&#9;Thrust coefficient&#10;3.0&#9;91000&#9;0.869&#10;...">' + esc(t.text) + '</textarea></label>' +
+        '<div class="msgs" id="tm-' + t.id + '-normal">' + perfMsg(t.parsed) + '</div>' + modes + '</div></div>';
+    }).join('');
+  }
+  function typeById(id) { return state.types.filter(function (t) { return String(t.id) === String(id); })[0]; }
+  el.types.addEventListener('input', function (e) {
+    var tg = e.target, t = typeById(tg.getAttribute('data-t')), f = tg.getAttribute('data-f');
+    if (!t || !f) return;
+    if (f === 'mode') t.modeText[tg.getAttribute('data-m')] = tg.value; else t[f] = tg.value;
+    if (f === 'text' || f === 'mode' || f === 'unit') {
+      reparse(t);
+      var set = function (idSuffix, p) { var n = $('tm-' + t.id + '-' + idSuffix); if (n) n.innerHTML = perfMsg(p); };
+      set('normal', t.parsed);
+      state.modes.forEach(function (m) { set(m.replace(/\W/g, '_'), t.modeParsed[m]); });
+    }
+    if (f === 'name') { var h = tg.closest('.typecard').querySelector('header strong'); if (h) h.textContent = t.name; renderAssign(); }
+    refresh();
+  });
+  el.types.addEventListener('click', function (e) {
+    if (e.target.getAttribute('data-act') !== 'del') return;
+    var id = e.target.getAttribute('data-t');
+    state.types = state.types.filter(function (t) { return String(t.id) !== String(id); });
+    fixAssign(); renderTypes(); renderAssign(); refresh();
+  });
+  el.addType.onclick = function () { state.types.push(newType()); renderTypes(); renderAssign(); refresh(); };
+
+  /* ---------- curtailment table ---------- */
+  function ids() {
+    var cur = [], prot = [];
+    state.rules.forEach(function (r) { if (cur.indexOf(r.c.id) < 0) cur.push(r.c.id); if (prot.indexOf(r.p.id) < 0) prot.push(r.p.id); });
+    var all = cur.slice(); prot.forEach(function (p) { if (all.indexOf(p) < 0) all.push(p); });
+    return { cur: cur, prot: prot, all: all };
+  }
+  function fixAssign() {
+    var first = state.types[0] ? state.types[0].id : null, valid = {};
+    state.types.forEach(function (t) { valid[t.id] = true; });
+    ids().cur.forEach(function (id) { if (!valid[state.assign[id]]) state.assign[id] = first; });
+  }
+  function renderAssign() {
+    var I = ids();
+    if (!I.all.length) { el.assign.innerHTML = '<tr><td colspan="4" class="empty">Turbines appear here once the curtailment table is read.</td></tr>'; return; }
+    el.assign.innerHTML = I.all.map(function (id) {
+      var isC = I.cur.indexOf(id) >= 0, isP = I.prot.indexOf(id) >= 0;
+      var sel = isC ? '<select data-id="' + esc(id) + '" data-k="type" aria-label="Type of ' + esc(id) + '">' + state.types.map(function (t) { return '<option value="' + t.id + '"' + (String(state.assign[id]) === String(t.id) ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('') + '</select>' : '<span class="hint">not needed</span>';
+      return '<tr><td class="fname">' + esc(id) + '</td><td>' + (isC && isP ? 'curtailed and protected' : isC ? 'curtailed' : 'protected') + '</td><td><input type="text" data-id="' + esc(id) + '" data-k="short" value="' + esc(shortOf(id)) + '" aria-label="Short name of ' + esc(id) + '"></td><td>' + sel + '</td></tr>';
+    }).join('');
+  }
+  el.assign.addEventListener('input', function (e) {
+    var id = e.target.getAttribute('data-id'), k = e.target.getAttribute('data-k');
+    if (k !== 'short') return;
+    var v = WTG.safeName(e.target.value);
+    if (v && v !== autoShort(id)) state.short[id] = v; else delete state.short[id];
+    saveShort(); refresh();
+  });
+  el.assign.addEventListener('change', function (e) {
+    if (e.target.getAttribute('data-k') === 'type') { state.assign[e.target.getAttribute('data-id')] = e.target.value; refresh(); }
+  });
+  el.tol.addEventListener('input', refresh);
+
+  function readCurt() {
+    var txt = el.curt.value, h = '';
+    var r = WTG.parseCurtailments(txt), oldModes = state.modes.join('|');
+    state.rules = r.rules; state.errors = r.errors; state.ignored = r.ignored; state.modes = r.modes;
+    if (!txt.trim()) h = msg('', 'Paste the curtailment table to begin.');
+    else {
+      if (r.rules.length) {
+        var I = ids(), pairs = {};
+        r.rules.forEach(function (x) { pairs[x.c.id + '\u0001' + x.p.id] = 1; });
+        h += msg('ok', r.rules.length + ' rules read: ' + Object.keys(pairs).length + ' curtailed/protected pairs, ' + I.cur.length + ' curtailed turbines.');
+        h += r.modes.length ? msg('warn', 'Reduced operating modes found: <strong>' + esc(r.modes.join(', ')) + '</strong>. Add a table for each mode in step 2.') : msg('', 'All rules are cut-offs.');
+      } else h += msg('err', 'No curtailment rows found. Each row ends with the four columns γstart, γstop, vstart and vstop.');
+      r.errors.slice(0, 8).forEach(function (er) { h += msg('err', 'Line ' + er.line + ': ' + esc(er.msg) + '<small><code>' + esc(er.text.slice(0, 120)) + '</code></small>'); });
+      if (r.errors.length > 8) h += msg('err', (r.errors.length - 8) + ' more rows could not be read.');
+    }
+    el.curtMsg.innerHTML = h;
+    el.ignBox.hidden = !r.ignored.length;
+    el.ignSum.textContent = r.ignored.length + (r.ignored.length === 1 ? ' skipped line' : ' skipped lines') + ' (headers and text)';
+    el.ignPre.textContent = r.ignored.join('\n');
+    state.types.forEach(reparse);
+    fixAssign();
+    if (oldModes !== state.modes.join('|')) renderTypes();
+    renderAssign(); refresh();
+  }
+  el.curt.addEventListener('input', readCurt);
+
+  /* ---------- building the files ---------- */
+  function typeProblem(t) {
+    if (!t) return 'Add a turbine type in step 2.';
+    if (!t.parsed || !t.parsed.points.length) return 'Needs the performance table of ' + t.name + '.';
+    if (t.parsed.errors.length) return 'Check the performance table of ' + t.name + '.';
+    if (!(WTG.num(t.rotor) > 0)) return 'Enter the rotor diameter of ' + t.name + '.';
+    if (!t.hub.split(/[\s,;]+/).filter(Boolean).map(WTG.num).filter(function (x) { return !isNaN(x); }).length) return 'Enter the hub height of ' + t.name + '.';
+    if (!(WTG.num(t.density) > 0)) return 'Enter the air density of ' + t.name + '.';
+    return null;
+  }
+  function sectorText(v) { return v.full ? 'all' : Math.round(v.start) % 360 + '–' + Math.round(v.end) % 360; }
+  function computeRows() {
+    var rows = [], groups = {}, order = [], warnings = [], tol = Math.max(0, WTG.num(el.tol.value) || 0);
+    state.rules.forEach(function (r) { var k = r.c.id + '\u0001' + r.p.id; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(r); });
+    var multi = state.modes.length > 1, used = {};
+    order.forEach(function (k) {
+      var rs = groups[k], c = rs[0].c.id, p = rs[0].p.id, t = typeById(state.assign[c]), prob = typeProblem(t);
+      if (prob) { rows.push({ c: c, p: p, status: 'wait', msg: prob, sector: '–', cut: rs.length + (rs.length === 1 ? ' rule' : ' rules'), file: '–' }); return; }
+      var base = t.parsed.points, grid = base.map(function (q) { return q.v; });
+      var bv = WTG.buildVariants(rs, grid, tol);
+      bv.warnings.forEach(function (w) { warnings.push(c + ' for ' + p + ': ' + w); });
+      if (!bv.variants.length) { rows.push({ c: c, p: p, status: 'none', msg: 'No curtailment inside the table range.', sector: '–', cut: '–', file: '–' }); return; }
+      bv.variants.forEach(function (v) {
+        var lab = WTG.variantLabel(v, grid, multi), row = { c: c, p: p, typ: t, base: base, v: v, sector: sectorText(v), cut: lab.text, status: 'ready', notes: [] };
+        var miss = bv.modes.filter(function (m) { var mp = t.modeParsed[m]; return !mp || !mp.points.length || mp.errors.length; })[0];
+        var needs = v.st.join('~');
+        if (miss && needs.indexOf('R:') >= 0) { var mm = bv.modes.filter(function (m) { var mp = t.modeParsed[m]; return (!mp || !mp.points.length || mp.errors.length) && needs.indexOf(m) >= 0; })[0]; if (mm) { row.status = 'wait'; row.msg = 'Needs the table for mode ' + mm + ' of ' + t.name + '.'; } }
+        if (row.status === 'ready') {
+          var mt = {}; state.modes.forEach(function (m) { if (t.modeParsed[m] && t.modeParsed[m].points.length) mt[m] = t.modeParsed[m].points; });
+          var ap = WTG.applyVariant(v, base, mt);
+          row.points = ap.points;
+          if (v.flags.offOver) row.notes.push('A cut-off overrides an operating mode in overlapping rules.');
+          if (v.flags.multi) row.notes.push('Overlapping operating modes: lowest power used.');
+          if (ap.notes.indexOf('interpolated') >= 0) row.notes.push('Mode table interpolated to the normal table speeds.');
+          if (ap.notes.indexOf('clamped') >= 0) row.notes.push('Mode table does not cover every speed; end values used.');
+          row.notes.forEach(function (n) { warnings.push(c + ' for ' + p + ' ' + row.sector + ': ' + n); });
+        }
+        var name = shortOf(c) + '_for_' + shortOf(p) + '_' + WTG.sectorLabel(v) + '_' + lab.file, nm = name, i = 2;
+        while (used[nm.toLowerCase()]) nm = name + '_' + (i++);
+        used[nm.toLowerCase()] = 1; row.file = nm + '.wtg'; row.desc = c + ' for ' + p + ', ' + (v.full ? 'all directions' : sectorText(v).replace('–', '-') + ' deg') + ', ' + lab.text.replace(/–/g, '-');
+        rows.push(row);
+      });
+    });
+    state.warnings = warnings;
+    return rows;
+  }
+  function specFor(row) {
+    var t = row.typ, base = row.base, maxP = Math.max.apply(null, base.map(function (q) { return q.p; }));
+    var heights = t.hub.split(/[\s,;]+/).filter(Boolean).map(WTG.num).filter(function (x) { return !isNaN(x); });
+    var last = row.points[row.points.length - 1];
+    return {
+      description: row.desc, manufacturer: '', referenceURI: '', rotorDiameter: WTG.num(t.rotor), controlSystem: t.control.trim() || 'Pitch', ratedPower: maxP,
+      comments: 'Curtailed ' + row.c + ', protects ' + row.p + ', sector ' + row.sector.replace('–', '-') + ' deg. ' + row.cut.replace(/–/g, '-') + '. Based on the performance table of ' + t.name + '.',
+      heights: heights,
+      tables: [{ airDensity: WTG.num(t.density), maxNoise: '0', bladePitch: '-99999', dataStatus: 'Unknown', dataSource: 'Curtailment of ' + t.name, releaseDate: today(), refURI: 'None', stationaryCt: last.ct,
+        lowCutOut: base[0].v, lowCutIn: base[0].v, highCutOut: base[base.length - 1].v, highCutIn: base[base.length - 1].v, comments: '', points: row.points }]
+    };
+  }
+
+  /* ---------- rendering ---------- */
+  function save(name, blob) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+  function renderRows() {
+    if (!state.rows.length) { el.rows.innerHTML = '<tr><td colspan="7" class="empty">No files yet.</td></tr>'; return; }
+    el.rows.innerHTML = state.rows.map(function (r, i) {
+      var pill = r.status === 'ready' ? (r.notes.length ? '<span class="pill warn" title="' + esc(r.notes.join(' ')) + '">Ready, check note</span>' : '<span class="pill ok">Ready</span>') : r.status === 'none' ? '<span class="pill">No file</span>' : '<span class="pill warn" title="' + esc(r.msg) + '">Needs data</span>';
+      return '<tr class="clk' + (i === state.sel ? ' sel' : '') + '" data-i="' + i + '"><td class="fname">' + esc(r.c) + '</td><td class="fname">' + esc(r.p) + '</td><td class="n">' + esc(r.sector) + '</td><td>' + esc(r.cut) + '</td><td class="fname">' + esc(r.file) + '</td><td>' + pill + (r.status !== 'ready' && r.msg ? ' <small class="hint">' + esc(r.msg) + '</small>' : '') + '</td><td>' + (r.status === 'ready' ? '<button class="btn sm" type="button" data-dl="' + i + '">Download</button>' : '') + '</td></tr>';
+    }).join('');
+  }
+  function renderSelected() {
+    var r = state.rows[state.sel];
+    if (!r || r.status !== 'ready') { el.selName.textContent = 'No file selected'; el.chart.innerHTML = ''; return; }
+    el.selName.textContent = r.file;
+    var P = state.kind === 'P';
+    WTG.chart(el.chart, [
+      { stroke: 'var(--muted)', dash: '5 4', width: 1.6, label: 'Normal operation', points: r.base.map(function (q) { return [q.v, P ? q.p / 1e6 : q.ct]; }) },
+      { stroke: 'var(--accent)', width: 2.2, label: 'This file', points: r.points.map(function (q) { return [q.v, P ? q.p / 1e6 : q.ct]; }) }
+    ], { xlabel: 'Wind speed [m/s]', ylabel: P ? 'Power [MW]' : 'Thrust coefficient ct' });
+  }
+  function refresh() {
+    state.rows = computeRows();
+    var ready = state.rows.filter(function (r) { return r.status === 'ready'; }), wait = state.rows.filter(function (r) { return r.status === 'wait'; });
+    if (!state.rows[state.sel] || state.rows[state.sel].status !== 'ready') state.sel = state.rows.indexOf(ready[0]);
+    renderRows(); renderSelected();
+    var pairs = {}; state.rules.forEach(function (r) { pairs[r.c.id + '\u0001' + r.p.id] = 1; });
+    var np = Object.keys(pairs).length;
+    if (!state.rules.length) { el.overall.className = 'pill'; el.overall.textContent = 'Waiting for data'; el.sumLine.textContent = 'Paste the curtailment table and add a performance table to see the files.'; }
+    else {
+      el.overall.className = 'pill ' + (!ready.length ? 'warn' : wait.length || state.errors.length ? 'warn' : 'ok');
+      el.overall.textContent = !ready.length ? 'Needs data' : wait.length || state.errors.length ? 'Partly ready' : 'Ready';
+      el.sumLine.textContent = np + ' curtailed/protected pairs give ' + ready.length + ' files' + (wait.length ? '; ' + wait.length + ' pairs or sectors still need data.' : '.') + (state.errors.length ? ' ' + state.errors.length + ' table rows could not be read.' : '');
+    }
+    var w = state.warnings.slice(0, 6).map(function (x) { return msg('warn', esc(x)); }).join('') + (state.warnings.length > 6 ? msg('warn', (state.warnings.length - 6) + ' more notes in the table.') : '');
+    el.warnMsg.innerHTML = w;
+    el.dlAll.disabled = !ready.length;
+    el.dlAll.textContent = ready.length ? 'Download ' + ready.length + (ready.length === 1 ? ' file' : ' files') + ' as ZIP' : 'Download all as ZIP';
+  }
+  el.rows.addEventListener('click', function (e) {
+    var dl = e.target.getAttribute && e.target.getAttribute('data-dl');
+    if (dl != null) { var r = state.rows[+dl]; save(r.file, new Blob([WTG.writeWTG(specFor(r))], { type: 'application/xml' })); return; }
+    var tr = e.target.closest && e.target.closest('tr[data-i]');
+    if (tr && state.rows[+tr.getAttribute('data-i')].status === 'ready') { state.sel = +tr.getAttribute('data-i'); renderRows(); renderSelected(); }
+  });
+  el.dlAll.onclick = function () {
+    var files = state.rows.filter(function (r) { return r.status === 'ready'; }).map(function (r) { return { name: r.file, data: WTG.writeWTG(specFor(r)) }; });
+    if (files.length) save('wtg_curtailment_' + today() + '.zip', new Blob([WTG.makeZip(files)], { type: 'application/zip' }));
+  };
+  el.cvP.onclick = function () { state.kind = 'P'; el.cvP.setAttribute('aria-pressed', 'true'); el.cvC.setAttribute('aria-pressed', 'false'); renderSelected(); };
+  el.cvC.onclick = function () { state.kind = 'C'; el.cvC.setAttribute('aria-pressed', 'true'); el.cvP.setAttribute('aria-pressed', 'false'); renderSelected(); };
+
+  /* ---------- synthetic example (generic turbine and invented names) ---------- */
+  function loadExample() {
+    var vr = 11.5, Pr = 4200000;
+    var pc = function (v) { if (v < 3) return 0; if (v < vr) { var x = (v - 3) / (vr - 3); return Pr * (0.55 * x * x * (3 - 2 * x) + 0.45 * x * x * x); } if (v <= 17) return Pr; return Pr * (1 - 0.55 * Math.pow(Math.min(1, (v - 17) / 9), 1.3)); };
+    var ct = function (v) { return v <= vr ? 0.88 - 0.017 * (v - 3) : Math.max(0.03, 0.74 * Math.pow(vr / v, 2.3)); };
+    var norm = ['Speed [m/s]\tPower [W]\tThrust coefficient'], mode = norm.slice();
+    for (var k = 0; k <= 46; k++) {
+      var v = 3 + 0.5 * k + 0;
+      norm.push(v.toFixed(2) + '\t' + Math.round(pc(v)) + '\t' + ct(v).toFixed(3));
+      mode.push(v.toFixed(2) + '\t' + Math.round(pc(v) * 0.6) + '\t' + (ct(v) * 0.85).toFixed(3));
+    }
+    el.curt.value = ['\tCurtailed WT\tProtected WT\tCurtailments',
+      'No.\tNo.\tIdentifier\tNo.\tIdentifier\tCut-off\tOperating mode\tβ\tγstart\tγstop\tvstart\tvstop',
+      '1\t2\tWT 2\t1\tWT 1\tX\t-\t-\t316.1\t348.7\t4.8\t8',
+      '2\t3\tWT 3\t1\tWT 1\tX\t-\t-\t120\t250\t5\t14',
+      '3\tWT 3\tX\t-\t-\t130\t210\t6\t18',
+      '3\tWT 3\t-\tBM 2\t-\t255\t300\tv-in\tv-out',
+      '3\t1\tWT 1\t4\tWT 4\tX\t-\t-\t337.7\t36.9\tv-in\t12.5',
+      '4\t5\tWT 5\t4\tWT 4\tX\t-\t-\t40\t90\t4.5\t11',
+      '2\tWT 2\tX\t-\t-\t200\t240\t5\t9'].join('\n');
+    state.types = []; state.nextType = 1;
+    var t = newType(); t.name = 'Example 4.2 MW'; t.rotor = '140'; t.hub = '110'; t.text = norm.join('\n');
+    state.types.push(t);
+    readCurt();
+    t.modeText['BM 2'] = mode.join('\n'); reparse(t); renderTypes(); refresh();
+  }
+  el.example.onclick = loadExample;
+
+  state.types.push(newType());
+  renderTypes(); renderAssign(); readCurt();
+})();
+
+</script>
+</body>
+</html>
