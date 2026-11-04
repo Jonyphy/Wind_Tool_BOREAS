@@ -106,6 +106,9 @@ td.dir{font-family:var(--mono);font-weight:600;color:var(--ink)}
 .rose svg{width:100%;height:auto;display:block}
 .rose .tools{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .rose .err{color:var(--bad);font-size:13px;padding:30px 6px;text-align:center}
+.conv{font-family:var(--mono);font-size:12px;color:var(--text-2);margin-top:8px;min-height:18px}
+.conv.bad{color:var(--bad)}
+.conv b{color:var(--ok)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--text-2)}
 .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .note{font-size:12px;color:var(--text-3);margin-top:16px;line-height:1.5}
@@ -147,16 +150,28 @@ td.dir{font-family:var(--mono);font-weight:600;color:var(--ink)}
     <h2 data-i18n="in_title">Location</h2>
     <div class="hint" data-i18n="in_hint">Type a coordinate, click the map, or load a shapefile.</div>
 
-    <div class="tabs">
+    <label class="l" for="crs" data-i18n="crs">Coordinate system</label>
+    <div class="row">
+      <select id="crs">
+        <option value="wgs84" data-i18n="crs_wgs">Lat / Lon (WGS84)</option>
+        <option value="etrs">ETRS89 / UTM (EPSG:258xx)</option>
+        <option value="utmw">WGS84 / UTM north (EPSG:326xx)</option>
+        <option value="gk">Gauss-Krüger DHDN (EPSG:3146x)</option>
+      </select>
+      <select id="zone" hidden></select>
+    </div>
+
+    <div class="tabs" style="margin-top:14px">
       <button class="tab on" id="tabC" type="button" data-i18n="tab_c">Coordinates</button>
       <button class="tab" id="tabS" type="button" data-i18n="tab_s">Shapefile</button>
     </div>
 
     <div id="paneC">
       <div class="row">
-        <div><label class="l" for="lat" data-i18n="lat">Latitude</label><input type="number" id="lat" step="any" value="50.98"/></div>
-        <div><label class="l" for="lon" data-i18n="lon">Longitude</label><input type="number" id="lon" step="any" value="11.03"/></div>
+        <div><label class="l" for="x1" id="x1l" style="margin-top:0">Latitude</label><input type="number" id="x1" step="any" value="50.98"/></div>
+        <div><label class="l" for="x2" id="x2l" style="margin-top:0">Longitude</label><input type="number" id="x2" step="any" value="11.03"/></div>
       </div>
+      <div class="conv" id="conv"></div>
     </div>
 
     <div id="paneS" hidden>
@@ -165,7 +180,7 @@ td.dir{font-family:var(--mono);font-weight:600;color:var(--ink)}
         <input type="file" id="shpFile" accept=".zip,.shp,.prj,.dbf" multiple/>
       </label>
       <div class="msg" id="shpMsg"></div>
-      <div class="hint" style="margin-top:8px" data-i18n="file_hint">Read in your browser, nothing is uploaded. The centre of the bounding box is used. Include the .prj if the file is not in lat/lon.</div>
+      <div class="hint" style="margin-top:8px" data-i18n="file_hint">Read in your browser, nothing is uploaded. The centre of the bounding box is used. With a .prj the system is read from the file; without one, the coordinate system selected above is used.</div>
     </div>
 
     <div id="map"></div>
@@ -175,12 +190,22 @@ td.dir{font-family:var(--mono);font-weight:600;color:var(--ink)}
     <label class="chk"><input type="checkbox" class="mdl" value="cerra" checked/><span><b>CERRA</b><small data-i18n="m_cerra">5 km, Europe only, 1985–June 2021</small></span></label>
     <label class="chk"><input type="checkbox" class="mdl" value="era5_land"/><span><b>ERA5-Land</b><small data-i18n="m_land">0.1° (~11 km), 10 m only</small></span></label>
     <label class="chk"><input type="checkbox" class="mdl" value="ecmwf_ifs"/><span><b>ECMWF IFS</b><small data-i18n="m_ifs">9 km, 2017–today</small></span></label>
+    <label class="chk"><input type="checkbox" class="mdl" value="gwa" id="gwaChk"/><span><b>Global Wind Atlas</b><small data-i18n="m_gwa">Wind climate (3 km), tries a direct download; otherwise load the .lib file below</small></span></label>
+    <label class="file" style="padding:10px;margin-top:8px;font-size:12px"><span id="libLabel" data-i18n="lib_pick">GWA .lib file (optional)</span><input type="file" id="libFile" accept=".lib,.txt"/></label>
 
-    <label class="l" data-i18n="height">Height</label>
-    <div class="chips" id="heightChips">
-      <button class="chip on" type="button" data-h="100">100 m</button>
-      <button class="chip" type="button" data-h="10">10 m</button>
-    </div>
+    <label class="l" for="hsel" data-i18n="height">Height</label>
+    <select id="hsel">
+      <option value="10">10 m</option>
+      <option value="50">50 m (est.)</option>
+      <option value="80">80 m (est.)</option>
+      <option value="100" selected>100 m</option>
+      <option value="120">120 m (est.)</option>
+      <option value="140">140 m (est.)</option>
+      <option value="160">160 m (est.)</option>
+      <option value="180">180 m (est.)</option>
+      <option value="200">200 m (est.)</option>
+    </select>
+    <div class="hint" style="margin:6px 0 0" data-i18n="h_hint">The models give 10 m and 100 m. Other heights are estimated per hour from those two (power law, direction turned between them).</div>
 
     <div class="row">
       <div><label class="l" for="y0" data-i18n="y0">From year</label><input type="number" id="y0" value="2011" min="1940" max="2030"/></div>
@@ -208,6 +233,7 @@ td.dir{font-family:var(--mono);font-weight:600;color:var(--ink)}
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/proj4@2.9.2/dist/proj4.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/shpjs@4.0.4/dist/shp.min.js"></script>
 <script>
 /* ---------- safe storage ---------- */
@@ -237,6 +263,15 @@ var T={
   shp_need:"Please select the .shp together with its .prj, or a .zip.",
   bad_coord:"Enter a valid latitude (-90…90) and longitude (-180…180).",bad_years:"Check the years (from ≤ to).",
   no_model:"Select at least one model.",
+  crs:"Coordinate system",crs_wgs:"Lat / Lon (WGS84)",east:"Easting (E)",north:"Northing (N)",zone_l:"Zone {z}",
+  conv_ok:"= <b>{lat}° N, {lon}° E</b> (WGS84)",conv_bad:"Cannot convert — check system, zone and values.",
+  conv_hint:"These look like projected coordinates — choose the coordinate system above.",
+  m_gwa:"Wind climate (3 km). Tries a direct download; otherwise load the .lib file below.",
+  lib_pick:"GWA .lib file (optional)",lib_ok:"Loaded: {f}",lib_bad:"Not a valid .lib file",lib_far:"This .lib is for {lat}, {lon}, which is far from the chosen point.",
+  h_hint:"The models give 10 m and 100 m. Other heights are estimated per hour from those two (power law; direction turned between them).",
+  est_h:"height estimated from 10 m and 100 m",clim:"climatology",
+  gwa_blocked:"The browser could not download the Global Wind Atlas directly (the server blocks it). Download the .lib for this point at globalwindatlas.info and load it in the box on the left.",
+  gwa_note:"generalized climate, z0 {z} m, {h} m",
   loading:"loading…",done:"{n} hours",fail:"failed: {e}",
   no100:"not available at this height — try 10 m",
   t_model:"Model",t_period:"Period",t_hours:"Hours",t_mean:"Mean m/s",t_main:"Most frequent from",t_energy:"Most energy from",
@@ -267,6 +302,15 @@ var T={
   shp_need:"Bitte die .shp zusammen mit der .prj oder eine .zip wählen.",
   bad_coord:"Gültigen Breitengrad (-90…90) und Längengrad (-180…180) eingeben.",bad_years:"Jahre prüfen (von ≤ bis).",
   no_model:"Mindestens ein Modell wählen.",
+  crs:"Koordinatensystem",crs_wgs:"Lat / Lon (WGS84)",east:"Rechtswert (E)",north:"Hochwert (N)",zone_l:"Zone {z}",
+  conv_ok:"= <b>{lat}° N, {lon}° O</b> (WGS84)",conv_bad:"Umrechnung nicht möglich — System, Zone und Werte prüfen.",
+  conv_hint:"Das sieht nach projizierten Koordinaten aus — oben das Koordinatensystem wählen.",
+  m_gwa:"Windklima (3 km). Versucht direkten Download; sonst die .lib-Datei unten laden.",
+  lib_pick:"GWA .lib-Datei (optional)",lib_ok:"Geladen: {f}",lib_bad:"Keine gültige .lib-Datei",lib_far:"Diese .lib gehört zu {lat}, {lon}, weit weg vom gewählten Punkt.",
+  h_hint:"Die Modelle liefern 10 m und 100 m. Andere Höhen werden stündlich daraus geschätzt (Potenzgesetz; Richtung zwischen beiden gedreht).",
+  est_h:"Höhe aus 10 m und 100 m geschätzt",clim:"Klimatologie",
+  gwa_blocked:"Der Browser konnte den Global Wind Atlas nicht direkt laden (der Server blockiert das). Lade die .lib für diesen Punkt auf globalwindatlas.info herunter und wähle sie links aus.",
+  gwa_note:"generalisiertes Klima, z0 {z} m, {h} m",
   loading:"lädt…",done:"{n} Stunden",fail:"fehlgeschlagen: {e}",
   no100:"in dieser Höhe nicht verfügbar — 10 m versuchen",
   t_model:"Modell",t_period:"Zeitraum",t_hours:"Stunden",t_mean:"Mittel m/s",t_main:"Häufigste aus",t_energy:"Meiste Energie aus",
@@ -287,6 +331,7 @@ function applyLang(l){
   document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');if(T[lang][k]!=null)el.innerHTML=T[lang][k]});
   document.title=T[lang].title;document.documentElement.lang=lang;
   document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.dataset.lang===lang)});
+  if(typeof fillZones==='function'){var z0=$('zone').value;fillZones();if(z0)$('zone').value=z0;updateLabels();if($('x1').value!=='')readFields()}
   if(window._last)renderResults();
 }
 function setLang(l){lsSet('wt_lang',l);applyLang(l)}
@@ -302,26 +347,86 @@ function compass(b,l){var c=(T[l||lang]||T.en).compass;return c[Math.floor(((b%3
 function fmt(n,d){return Number(n).toFixed(d==null?0:d)}
 function angDiff(a,b){var d=Math.abs(a-b)%360;return d>180?360-d:d}
 
+/* ---------- coordinate systems ---------- */
+var cur={lat:50.98,lon:11.03};
+var ZONES={etrs:[28,38,32],utmw:[1,60,32],gk:[2,5,3]};
+function crsDef(kind,zone){
+  zone=+zone;
+  if(kind==='etrs')return '+proj=utm +zone='+zone+' +ellps=GRS80 +units=m +no_defs';
+  if(kind==='utmw')return '+proj=utm +zone='+zone+' +datum=WGS84 +units=m +no_defs';
+  if(kind==='gk')return '+proj=tmerc +lat_0=0 +lon_0='+(zone*3)+' +k=1 +x_0=500000 +y_0=0 +ellps=bessel +towgs84=598.1,73.7,418.2,0.202,0.045,-2.455,6.7 +units=m +no_defs';
+  return null;
+}
+function toLatLon(kind,zone,a,b){
+  if(kind==='wgs84')return {lat:a,lon:b,zone:zone};
+  // easting with zone prefix, e.g. 32 640000 -> zone 32, 640000  (GK: 4 400000 -> zone 4)
+  if((kind==='etrs'||kind==='utmw')&&a>=1e7){zone=Math.floor(a/1e6);a-=zone*1e6}
+  else if(kind==='gk'&&a>=1e6){zone=Math.floor(a/1e6);a=a%1e6}
+  var z=ZONES[kind];
+  if(zone<z[0]||zone>z[1])throw new Error('zone');
+  var p=proj4(crsDef(kind,zone),'EPSG:4326',[a,b]);
+  return {lat:p[1],lon:p[0],zone:zone};
+}
+function fromLatLon(kind,zone,lat,lon){
+  if(kind==='wgs84')return [lat,lon];
+  var p=proj4('EPSG:4326',crsDef(kind,zone),[lon,lat]);
+  return [p[0],p[1]];
+}
+function fillZones(){
+  var kind=$('crs').value,zs=$('zone');
+  if(kind==='wgs84'){zs.hidden=true;zs.innerHTML='';return}
+  var z=ZONES[kind],o='';
+  for(var i=z[0];i<=z[1];i++)o+='<option value="'+i+'"'+(i===z[2]?' selected':'')+'>'+t('zone_l',{z:i})+'</option>';
+  zs.innerHTML=o;zs.hidden=false;
+}
+function updateLabels(){
+  var w=$('crs').value==='wgs84';
+  $('x1l').textContent=w?t('lat'):t('east');$('x2l').textContent=w?t('lon'):t('north');
+}
+function writeFields(){
+  var kind=$('crs').value,zone=+$('zone').value||0,c=$('conv');
+  var v=fromLatLon(kind,zone,cur.lat,cur.lon);
+  var d=kind==='wgs84'?5:1;
+  $('x1').value=v[0].toFixed(d);$('x2').value=v[1].toFixed(d);
+  c.className='conv';
+  c.innerHTML=kind==='wgs84'?'':t('conv_ok',{lat:cur.lat.toFixed(5),lon:cur.lon.toFixed(5)});
+}
+function readFields(){
+  var kind=$('crs').value,zone=+$('zone').value||0,c=$('conv');
+  var a=parseFloat($('x1').value),b=parseFloat($('x2').value);
+  c.className='conv';c.textContent='';
+  if(!isFinite(a)||!isFinite(b)){c.className='conv bad';c.textContent=t('conv_bad');return false}
+  try{
+    if(kind==='wgs84'&&(Math.abs(a)>90||Math.abs(b)>180)){c.className='conv bad';c.textContent=t('conv_hint');return false}
+    var r=toLatLon(kind,zone,a,b);
+    if(!isFinite(r.lat)||!isFinite(r.lon)||Math.abs(r.lat)>90||Math.abs(r.lon)>180)throw new Error('range');
+    if(r.zone!==zone&&kind!=='wgs84')$('zone').value=r.zone;
+    cur={lat:r.lat,lon:r.lon};
+    if(kind!=='wgs84')c.innerHTML=t('conv_ok',{lat:r.lat.toFixed(5),lon:r.lon.toFixed(5)});
+    return true;
+  }catch(e){c.className='conv bad';c.textContent=t('conv_bad');return false}
+}
+
 /* ---------- map ---------- */
 var map=null,marker=null,shapeLayer=null;
-function setPoint(lat,lon,pan){
-  $('lat').value=(+lat).toFixed(5);$('lon').value=(+lon).toFixed(5);
-  if(map){
-    if(!marker){marker=L.marker([lat,lon],{draggable:true}).addTo(map);
-      marker.on('dragend',function(){var p=marker.getLatLng();setPoint(p.lat,p.lng,false)})}
-    marker.setLatLng([lat,lon]);if(pan)map.setView([lat,lon],Math.max(map.getZoom(),8));
-  }
+function moveMarker(pan){
+  if(!map)return;
+  if(!marker){marker=L.marker([cur.lat,cur.lon],{draggable:true}).addTo(map);
+    marker.on('dragend',function(){var p=marker.getLatLng();setPoint(p.lat,p.lng,false)})}
+  marker.setLatLng([cur.lat,cur.lon]);
+  if(pan)map.setView([cur.lat,cur.lon],Math.max(map.getZoom(),8));
 }
+function setPoint(lat,lon,pan){cur={lat:+lat,lon:+lon};writeFields();moveMarker(pan)}
 function initMap(){
   if(typeof L==='undefined'){$('map').style.display='none';return}
-  map=L.map('map').setView([50.98,11.03],6);
+  map=L.map('map').setView([cur.lat,cur.lon],6);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
   map.on('click',function(e){setPoint(e.latlng.lat,e.latlng.lng,false)});
-  setPoint(50.98,11.03,false);
+  moveMarker(false);
 }
-['lat','lon'].forEach(function(id){$(id).addEventListener('change',function(){
-  var la=parseFloat($('lat').value),lo=parseFloat($('lon').value);
-  if(isFinite(la)&&isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180)setPoint(la,lo,true)})});
+function onFieldEdit(){if(readFields())moveMarker(true)}
+['x1','x2','zone'].forEach(function(id){$(id).addEventListener('change',onFieldEdit)});
+$('crs').addEventListener('change',function(){fillZones();updateLabels();writeFields()});
 
 /* ---------- tabs ---------- */
 function showTab(c){
@@ -359,7 +464,15 @@ $('shpFile').addEventListener('change',async function(ev){
     if(!geoms.length)throw new Error('no geometries');
     var bb=[Infinity,Infinity,-Infinity,-Infinity];
     geoms.forEach(function(g){coordsBBox(g,bb)});
-    if(Math.abs(bb[0])>180||Math.abs(bb[2])>180||Math.abs(bb[1])>90||Math.abs(bb[3])>90)throw new Error(t('shp_proj'));
+    if(Math.abs(bb[0])>180||Math.abs(bb[2])>180||Math.abs(bb[1])>90||Math.abs(bb[3])>90){
+      var kind=$('crs').value,zone=+$('zone').value||0;
+      if(kind==='wgs84')throw new Error(t('shp_proj'));
+      var tf=function(c){var r=toLatLon(kind,zone,c[0],c[1]);return [r.lon,r.lat]};
+      var mapC=function(c){return typeof c[0]==='number'?tf(c):c.map(mapC)};
+      geoms=geoms.map(function(g){return {type:g.type,coordinates:mapC(g.coordinates)}});
+      bb=[Infinity,Infinity,-Infinity,-Infinity];
+      geoms.forEach(function(g){coordsBBox(g,bb)});
+    }
     var lat=(bb[1]+bb[3])/2,lon=(bb[0]+bb[2])/2;
     setPoint(lat,lon,false);
     if(map){
@@ -371,18 +484,17 @@ $('shpFile').addEventListener('change',async function(ev){
   }catch(e){msg.className='msg bad';msg.textContent=t('shp_bad',{e:e.message||e})}
 });
 
-/* ---------- height chips ---------- */
+/* ---------- height ---------- */
 var H=100;
-document.querySelectorAll('#heightChips .chip').forEach(function(c){c.onclick=function(){
-  document.querySelectorAll('#heightChips .chip').forEach(function(x){x.classList.remove('on')});
-  c.classList.add('on');H=+c.dataset.h}});
+$('hsel').addEventListener('change',function(){H=+$('hsel').value});
 
 /* ---------- Open-Meteo ---------- */
 var MODELS={
   era5:     {name:'ERA5',      res:'0.25°',  start:'1940-01-01',end:'today'},
   cerra:    {name:'CERRA',     res:'5 km',   start:'1985-01-01',end:'2021-06-30'},
   era5_land:{name:'ERA5-Land', res:'0.1°',   start:'1950-01-01',end:'today',only10:true},
-  ecmwf_ifs:{name:'ECMWF IFS', res:'9 km',   start:'2017-01-01',end:'today'}
+  ecmwf_ifs:{name:'ECMWF IFS', res:'9 km',   start:'2017-01-01',end:'today'},
+  gwa:      {name:'Global Wind Atlas',res:'3 km',gwa:true}
 };
 function iso(d){return d.toISOString().slice(0,10)}
 function todayMinus(n){var d=new Date();d.setUTCDate(d.getUTCDate()-n);return iso(d)}
@@ -402,6 +514,21 @@ function pick(h,prefix){
   var k=Object.keys(h).find(function(x){return x===prefix||x.indexOf(prefix+'_')===0});
   return k?h[k]:null;
 }
+function deriveHeight(s10,d10,s100,d100,h){
+  var n=s10.length,spd=new Array(n),dir=new Array(n),L10=Math.log(10);
+  for(var i=0;i<n;i++){
+    var a=s10[i],b=s100[i],da=d10[i],db=d100[i];
+    if(a==null||b==null||da==null||db==null){spd[i]=null;dir[i]=null;continue}
+    var alpha=(a>0.05&&b>0.05)?Math.log(b/a)/L10:0.14;
+    if(h<100){
+      alpha=Math.min(Math.max(alpha,0),0.8);spd[i]=a*Math.pow(h/10,alpha);
+      var dl=((db-da+540)%360)-180;dir[i]=(da+dl*Math.log(h/10)/L10+360)%360;
+    }else{
+      alpha=Math.min(Math.max(alpha,0),0.6);spd[i]=b*Math.pow(h/100,alpha);dir[i]=db;
+    }
+  }
+  return [spd,dir];
+}
 async function loadModel(id,lat,lon,y0,y1,hgt){
   var m=MODELS[id],notes=[];
   var start=Math.max(+y0,0)+'-01-01',end=y1+'-12-31';
@@ -410,19 +537,91 @@ async function loadModel(id,lat,lon,y0,y1,hgt){
   if(end>maxEnd){end=maxEnd;notes.push(t('clamp_end',{d:maxEnd}))}
   if(start>end)throw new Error('no data in this period');
   if(m.only10&&hgt!==10)throw new Error(t('no100'));
-  var sy=+start.slice(0,4),ey=+end.slice(0,4),spd=[],dir=[];
+  var vars=m.only10?['10']:['10','100'];
+  var hv=vars.map(function(v){return 'wind_speed_'+v+'m,wind_direction_'+v+'m'}).join(',');
+  var S={10:[],100:[]},D={10:[],100:[]};
+  var sy=+start.slice(0,4),ey=+end.slice(0,4);
   for(var y=sy;y<=ey;y+=5){
     var a=(y===sy)?start:y+'-01-01',b=Math.min(y+4,ey),bEnd=(b===ey)?end:b+'-12-31';
     var url='https://archive-api.open-meteo.com/v1/archive?latitude='+lat+'&longitude='+lon+
-      '&start_date='+a+'&end_date='+bEnd+'&hourly=wind_speed_'+hgt+'m,wind_direction_'+hgt+'m'+
+      '&start_date='+a+'&end_date='+bEnd+'&hourly='+hv+
       '&wind_speed_unit=ms&timezone=GMT&models='+id;
     var j=await getJSON(url);
-    var s=pick(j.hourly||{},'wind_speed_'+hgt+'m'),d=pick(j.hourly||{},'wind_direction_'+hgt+'m');
-    if(!s||!d)throw new Error(t('no100'));
-    for(var i=0;i<s.length;i++){spd.push(s[i]);dir.push(d[i])}
+    for(var q=0;q<vars.length;q++){
+      var v=vars[q],s=pick(j.hourly||{},'wind_speed_'+v+'m'),d=pick(j.hourly||{},'wind_direction_'+v+'m');
+      if(!s||!d)throw new Error(t('no100'));
+      for(var i=0;i<s.length;i++){S[v].push(s[i]);D[v].push(d[i])}
+    }
   }
+  var spd,dir;
+  if(hgt===10||hgt===100){spd=S[hgt];dir=D[hgt]}
+  else{var r=deriveHeight(S[10],D[10],S[100],D[100],hgt);spd=r[0];dir=r[1];notes.push(t('est_h'))}
   return {speed:spd,dir:dir,start:start,end:end,notes:notes};
 }
+
+/* ---------- Global Wind Atlas (.lib) ---------- */
+var libText=null,libName='';
+function gammaFn(z){
+  if(z<0.5)return Math.PI/(Math.sin(Math.PI*z)*gammaFn(1-z));
+  z-=1;var g=7,c=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+  var x=c[0];for(var i=1;i<g+2;i++)x+=c[i]/(z+i);
+  var tt=z+g+0.5;return Math.sqrt(2*Math.PI)*Math.pow(tt,z+0.5)*Math.exp(-tt)*x;
+}
+function parseLib(text){
+  var lines=text.split(/\r?\n/).filter(function(l){return l.trim()!==''});
+  if(lines.length<5)throw new Error(t('lib_bad'));
+  var hd=lines[1].trim().split(/\s+/).map(Number),nr=hd[0],nh=hd[1],ns=hd[2];
+  if(!(nr>0&&nh>0&&ns>0))throw new Error(t('lib_bad'));
+  var nums=function(l){return l.trim().split(/\s+/).map(Number)};
+  var rough=nums(lines[2]).slice(0,nr),heights=nums(lines[3]).slice(0,nh);
+  var rows=lines.slice(4).map(nums),block=nh*2+1;
+  if(rows.length<nr*block)throw new Error(t('lib_bad'));
+  var g={rough:rough,heights:heights,ns:ns,A:[],k:[],freq:[]};
+  for(var ir=0;ir<nr;ir++){
+    var base=ir*block;g.freq.push(rows[base].slice(0,ns));g.A.push([]);g.k.push([]);
+    for(var ih=0;ih<nh;ih++){g.A[ir].push(rows[base+1+ih*2].slice(0,ns));g.k[ir].push(rows[base+2+ih*2].slice(0,ns))}
+  }
+  var m=text.match(/<coordinates>(.*?)<\/coordinates>/);
+  if(m){var p=m[1].split(',').map(Number);if(p.length>=2){g.lon=p[0];g.lat=p[1]}}
+  return g;
+}
+function roseFromLib(g,hgt){
+  var ir=0,best=1e9,i;
+  g.rough.forEach(function(z,j){var d=Math.abs(Math.log(Math.max(z,1e-4))-Math.log(0.03));if(d<best){best=d;ir=j}});
+  var ih=0;best=1e9;g.heights.forEach(function(h,j){var d=Math.abs(h-hgt);if(d<best){best=d;ih=j}});
+  var ns=g.ns,f=g.freq[ir],fs=f.reduce(function(a,c){return a+c},0);
+  var freq=f.map(function(x){return 100*x/fs}),A=g.A[ir][ih],k=g.k[ir][ih];
+  var cdf=function(v,a,kk){return isFinite(v)?1-Math.exp(-Math.pow(v/a,kk)):1};
+  var bySpeed=BINS.slice(0,-1).map(function(lo,b){return freq.map(function(fr,i){return fr*(cdf(BINS[b+1],A[i],k[i])-cdf(lo,A[i],k[i]))})});
+  var mean=0,cube=[];
+  for(i=0;i<ns;i++){mean+=freq[i]/100*A[i]*gammaFn(1+1/k[i]);cube.push(freq[i]*Math.pow(A[i],3)*gammaFn(1+3/k[i]))}
+  var cs=cube.reduce(function(a,c){return a+c},0),power=cube.map(function(c){return 100*c/cs});
+  var w=360/ns,im=freq.indexOf(Math.max.apply(null,freq)),ie=power.indexOf(Math.max.apply(null,power));
+  return {rose:{ns:ns,w:w,freq:freq,bySpeed:bySpeed,power:power,n:null,mean:mean,main:im*w,mainFreq:freq[im],energy:ie*w,energyShare:power[ie]},
+          note:t('gwa_note',{z:g.rough[ir],h:g.heights[ih]})};
+}
+async function loadGWA(lat,lon,hgt){
+  var text=libText;
+  if(!text){
+    try{
+      var r=await fetch('https://globalwindatlas.info/api/gwa/custom/Lib/?lat='+lat.toFixed(6)+'&long='+lon.toFixed(6));
+      if(!r.ok)throw 0;text=await r.text();
+      if(text.split(/\r?\n/).length<5||isNaN(parseInt(text.split(/\r?\n/)[1],10)))throw 0;
+    }catch(e){throw new Error(t('gwa_blocked'))}
+  }
+  var g=parseLib(text),r2=roseFromLib(g,hgt);
+  return {rose:r2.rose,notes:[r2.note],start:null,end:null};
+}
+$('libFile').addEventListener('change',async function(ev){
+  var f=ev.target.files&&ev.target.files[0],lab=$('libLabel');if(!f)return;
+  try{
+    var text=await readFile(f,true),g=parseLib(text);libText=text;libName=f.name;
+    $('gwaChk').checked=true;
+    var msg=t('lib_ok',{f:f.name});
+    if(g.lat!=null&&(Math.abs(g.lat-cur.lat)>0.3||Math.abs(g.lon-cur.lon)>0.3))msg+=' — '+t('lib_far',{lat:g.lat.toFixed(3),lon:g.lon.toFixed(3)});
+    lab.textContent=msg;
+  }catch(e){libText=null;lab.textContent=e.message||t('lib_bad')}
+});
 
 /* ---------- rose statistics ---------- */
 var BINS=[0,3,6,9,12,15,Infinity];
@@ -494,10 +693,10 @@ function roseSVG(r,model,label,pal){
 /* ---------- run + render ---------- */
 window._last=null;
 async function run(){
-  var lat=parseFloat($('lat').value),lon=parseFloat($('lon').value);
+  var ok0=readFields(),lat=cur.lat,lon=cur.lon;
   var y0=parseInt($('y0').value,10),y1=parseInt($('y1').value,10),ns=parseInt($('ns').value,10);
   var res=$('results');
-  if(!isFinite(lat)||!isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){res.innerHTML='<div class="empty">'+t('bad_coord')+'</div>';return}
+  if(!ok0){res.innerHTML='<div class="empty">'+t('bad_coord')+'</div>';return}
   if(!(y0<=y1)){res.innerHTML='<div class="empty">'+t('bad_years')+'</div>';return}
   var ids=Array.from(document.querySelectorAll('.mdl:checked')).map(function(c){return c.value});
   if(!ids.length){res.innerHTML='<div class="empty">'+t('no_model')+'</div>';return}
@@ -510,10 +709,10 @@ async function run(){
   for(var q=0;q<ids.length;q++){
     var id=ids[q];
     try{
-      var d=await loadModel(id,lat,lon,y0,y1,H);
-      var rose=computeRose(d.speed,d.dir,ns);
+      var d=MODELS[id].gwa?await loadGWA(lat,lon,H):await loadModel(id,lat,lon,y0,y1,H);
+      var rose=d.rose||computeRose(d.speed,d.dir,ns);
       out.push({id:id,rose:rose,start:d.start,end:d.end,notes:d.notes});
-      status[id]=['s-ok',t('done',{n:rose.n.toLocaleString()})];
+      status[id]=['s-ok',rose.n?t('done',{n:rose.n.toLocaleString()}):'OK'];
     }catch(e){
       out.push({id:id,error:e.message||String(e)});
       status[id]=['s-bad',t('fail',{e:e.message||e})];
@@ -525,6 +724,7 @@ async function run(){
   renderResults();
 }
 
+function per(x){return x.start?x.start.slice(0,4)+'–'+x.end.slice(0,4):t('clim')}
 function renderResults(){
   var L0=window._last,res=$('results');if(!L0)return;
   var pal=palette(),ok=L0.out.filter(function(x){return x.rose});
@@ -533,12 +733,12 @@ function renderResults(){
   if(ok.length){
     h+='<div class="tbl-wrap"><table><thead><tr><th>'+t('t_model')+'</th><th>'+t('t_period')+'</th><th>'+t('t_hours')+'</th><th>'+t('t_mean')+'</th><th>'+t('t_main')+'</th><th>'+t('t_energy')+'</th></tr></thead><tbody>';
     ok.forEach(function(x){var r=x.rose;
-      h+='<tr><td>'+MODELS[x.id].name+' <span style="color:var(--text-3)">('+MODELS[x.id].res+')</span></td><td>'+x.start.slice(0,4)+'–'+x.end.slice(0,4)+
-        '</td><td>'+r.n.toLocaleString()+'</td><td>'+fmt(r.mean,1)+'</td><td class="dir">'+fmt(r.main)+'° '+compass(r.main)+' · '+fmt(r.mainFreq,1)+'%</td><td class="dir">'+fmt(r.energy)+'° '+compass(r.energy)+'</td></tr>'});
+      h+='<tr><td>'+MODELS[x.id].name+' <span style="color:var(--text-3)">('+MODELS[x.id].res+')</span></td><td>'+per(x)+
+        '</td><td>'+(r.n?r.n.toLocaleString():'—')+'</td><td>'+fmt(r.mean,1)+'</td><td class="dir">'+fmt(r.main)+'° '+compass(r.main)+' · '+fmt(r.mainFreq,1)+'%</td><td class="dir">'+fmt(r.energy)+'° '+compass(r.energy)+'</td></tr>'});
     h+='</tbody></table></div>';
     if(ok.length>1){
       var mx=0;for(var i=0;i<ok.length;i++)for(var j=i+1;j<ok.length;j++)mx=Math.max(mx,angDiff(ok[i].rose.main,ok[j].rose.main));
-      h+='<div class="agree">'+(mx<=L0.out[0].rose.w*1.01+0.01||mx<=30?t('agree_ok',{d:fmt(mx),n:ok.length}):t('agree_diff',{d:fmt(mx)}))+'</div>';
+      h+='<div class="agree">'+(mx<=30?t('agree_ok',{d:fmt(mx),n:ok.length}):t('agree_diff',{d:fmt(mx)}))+'</div>';
     }
   }
   h+='<div class="roses">';
@@ -547,7 +747,7 @@ function renderResults(){
     h+='<div class="rose"><h3>'+m.name+'</h3>';
     if(x.error){h+='<div class="err">'+x.error+'</div></div>';return}
     var r=x.rose;
-    h+='<div class="sub">'+m.res+' · '+L0.h+' m · '+x.start.slice(0,4)+'–'+x.end.slice(0,4)+(x.notes.length?' · '+x.notes.join(', '):'')+'</div>';
+    h+='<div class="sub">'+m.res+' · '+(m.gwa?'':L0.h+' m · ')+per(x)+(x.notes.length?' · '+x.notes.join(', '):'')+'</div>';
     h+=roseSVG(r,m,m.name,pal);
     h+='<div class="sub" style="margin-top:6px">'+t('rose_main')+': '+fmt(r.main)+'° '+compass(r.main)+' · '+t('rose_energy')+': '+fmt(r.energy)+'° '+compass(r.energy)+'</div>';
     h+='<div class="tools"><button class="btn btn-ghost" onclick="dlPNG('+idx+')">'+t('dl_png')+'</button><button class="btn btn-ghost" onclick="copyCSV('+idx+',this)">'+t('dl_csv')+'</button></div></div>';
@@ -568,7 +768,7 @@ function dlPNG(idx){
   c.fillStyle=pal.text;c.font='600 26px Inter,Arial,sans-serif';
   c.fillText('BOREAS · '+m.name+' · '+L0.h+' m',30,40);
   c.fillStyle=pal.dim;c.font='18px Inter,Arial,sans-serif';
-  c.fillText(fmt(L0.lat,4)+' N, '+fmt(L0.lon,4)+' E · '+x.start.slice(0,4)+'–'+x.end.slice(0,4)+' · '+t('rose_main')+' '+fmt(x.rose.main)+'° '+compass(x.rose.main),30,68);
+  c.fillText(fmt(L0.lat,4)+' N, '+fmt(L0.lon,4)+' E · '+per(x)+' · '+t('rose_main')+' '+fmt(x.rose.main)+'° '+compass(x.rose.main),30,68);
   var img=new Image();
   img.onload=function(){
     c.drawImage(img,0,90,W,Hh);
@@ -590,9 +790,9 @@ $('go').addEventListener('click',run);
 /* ---------- init ---------- */
 (function(){
   var q=new URLSearchParams(location.search),la=parseFloat(q.get('lat')),lo=parseFloat(q.get('lon'));
+  applyLang(lsGet('wt_lang')||((navigator.language||'en').toLowerCase().indexOf('de')===0?'de':'en'));
   initMap();
   if(isFinite(la)&&isFinite(lo))setPoint(la,lo,true);
-  applyLang(lsGet('wt_lang')||((navigator.language||'en').toLowerCase().indexOf('de')===0?'de':'en'));
 })();
 </script>
 </body>
