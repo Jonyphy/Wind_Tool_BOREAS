@@ -169,6 +169,8 @@ tr.grp:first-child td { border-top: 0; }
 
 .top .lang { margin-left: auto; margin-block: 10px; }
 .top .lang button { padding: 6px 11px; font-weight: 600; letter-spacing: .04em; }
+h3.sub { font-size: 16px; margin: 6px 0 -4px; }
+tr.sec td { background: var(--accent-soft); font-weight: 600; font-size: 13px; letter-spacing: .02em; padding: 8px 10px; }
 
 </style>
 </head>
@@ -198,6 +200,13 @@ tr.grp:first-child td { border-top: 0; }
           </div>
           <p class="hint" data-i="x.dec.hint">Like the option "Dec. comma accepted" in the WAsP Turbine Editor, here for the pasted data. "Automatic" recognises comma and point by itself. The saved .wtg file always contains decimal points; WAsP shows them as commas or points according to the region setting of the computer.</p>
           <div class="msgs" id="curtMsg" aria-live="polite"></div>
+          <div id="planBox" hidden>
+            <h3 class="sub" data-i="k.planH">Planned turbines</h3>
+            <p class="hint" data-i="k.planHint">Tick the turbines that are planned (new) in this project. All others count as existing and are not shut down in the worst case. Nothing ticked: all rules are used as one set of files.</p>
+            <div class="chips" id="planChips" role="group" aria-label="Planned turbines"></div>
+            <div class="msgs" id="planMsg" aria-live="polite"></div>
+            <details class="box" id="advBox" hidden><summary data-i="k.advSum">Advanced: also curtail an existing turbine to protect a planned one (best case)</summary><div class="inner"><p class="hint" data-i="k.advHint">Creates an extra best case file for the ticked pair. The sector and the speed range are the same as in the table rule.</p><div id="advList" class="stack"></div></div></details>
+          </div>
           <details class="box" id="ignBox" hidden><summary id="ignSum">Skipped lines</summary><div class="inner"><pre class="xml" id="ignPre"></pre></div></details>
         </div>
       </section>
@@ -356,6 +365,13 @@ tr.grp:first-child td { border-top: 0; }
     'k.src': 'Curtailment of {t}',
     'k.stReady': 'Ready', 'k.stReadyNote': 'Ready, check note', 'k.stNone': 'No file', 'k.stNeed': 'Needs data',
     'k.files.one': '{n} file', 'k.files.other': '{n} files', 'k.needsData': 'needs data',
+    'k.planNone': 'No planned turbine ticked: all rules are used as one set of files.',
+    'k.planSel': 'Worst case: {w} rules, curtailed: {names}. Best case adds {b} rules where existing turbines are curtailed to protect a planned one.',
+    'k.planNoW': 'None of the ticked turbines is curtailed in this table, so there are no worst case files.',
+    'k.planSkip': '{n} rules between existing turbines are ignored.',
+    'k.secWorst': 'Worst case: planned turbine curtailed', 'k.secBest': 'Best case: additional files, existing turbine curtailed',
+    'k.advItem': 'Also curtail {p} to protect {c}', 'k.mirrored': 'reversed pair',
+    'k.bestOnly': 'best case only', 'k.planned': 'planned', 'k.revNote': 'Reversed pair: same sector and speeds as the table rule.',
     'k.ovWait': 'Waiting for data', 'k.ovNeeds': 'Needs data', 'k.ovPartly': 'Partly ready', 'k.ovReady': 'Ready',
     'k.sum0': 'Paste the curtailment table and add a performance table to see the files.',
     'k.sumA': '{np} curtailed/protected pairs give {n} files', 'k.sumB': '; {w} pairs or sectors still need data.',
@@ -516,6 +532,17 @@ tr.grp:first-child td { border-top: 0; }
     'k.src': 'Abschaltung von {t}',
     'k.stReady': 'Bereit', 'k.stReadyNote': 'Bereit, Hinweis prüfen', 'k.stNone': 'Keine Datei', 'k.stNeed': 'Daten fehlen',
     'k.files.one': '{n} Datei', 'k.files.other': '{n} Dateien', 'k.needsData': 'Daten fehlen',
+    'k.planNone': 'Keine geplante WEA gewählt: Alle Regeln werden als ein Dateisatz verwendet.',
+    'k.planSel': 'Worst Case: {w} Regeln, abgeschaltet: {names}. Der Best Case ergänzt {b} Regeln, bei denen bestehende WEA zum Schutz einer geplanten WEA abgeschaltet werden.',
+    'k.planNoW': 'Keine der gewählten WEA wird in dieser Tabelle abgeschaltet, daher gibt es keine Worst-Case-Dateien.',
+    'k.planSkip': '{n} Regeln zwischen bestehenden WEA werden ignoriert.',
+    'k.secWorst': 'Worst Case: geplante WEA abgeschaltet', 'k.secBest': 'Best Case: zusätzliche Dateien, bestehende WEA abgeschaltet',
+    'k.advItem': '{p} zusätzlich abschalten, um {c} zu schützen', 'k.mirrored': 'umgekehrtes Paar',
+    'k.bestOnly': 'nur Best Case', 'k.planned': 'geplant', 'k.revNote': 'Umgekehrtes Paar: gleicher Sektor und gleiche Windgeschwindigkeiten wie in der Tabellenregel.',
+    'k.planH': 'Geplante WEA',
+    'k.planHint': 'Alle WEA ankreuzen, die in diesem Projekt geplant (neu) sind. Alle übrigen gelten als bestehend und werden im Worst Case nicht abgeschaltet. Ohne Auswahl werden alle Regeln als ein Dateisatz verwendet.',
+    'k.advSum': 'Erweitert: bestehende WEA zusätzlich abschalten, um eine geplante WEA zu schützen (Best Case)',
+    'k.advHint': 'Erzeugt für das angekreuzte Paar eine zusätzliche Best-Case-Datei. Sektor und Windgeschwindigkeitsbereich sind dieselben wie in der Tabellenregel.',
     'k.ovWait': 'Warte auf Daten', 'k.ovNeeds': 'Daten fehlen', 'k.ovPartly': 'Teilweise bereit', 'k.ovReady': 'Bereit',
     'k.sum0': 'Abschaltungstabelle einfügen und eine Leistungstabelle hinzufügen, um die Dateien zu sehen.',
     'k.sumA': '{np} Paare aus abgeschalteter und geschützter WEA ergeben {n} Dateien', 'k.sumB': '; für {w} Paare oder Sektoren fehlen noch Daten.',
@@ -1104,10 +1131,10 @@ tr.grp:first-child td { border-top: 0; }
   var F = WTG.nf, esc = WTG.esc;
   var N = function (s) { return WTG.num(s, 'auto'); };
   var el = {};
-  ['perTurbine', 'curt', 'dec', 'curtMsg', 'ignBox', 'ignSum', 'ignPre', 'addType', 'types', 'assign', 'tol', 'overall', 'sumLine', 'warnMsg', 'dlAll', 'selName', 'chart', 'rows', 'cvP', 'cvC', 'example']
+  ['planBox', 'planChips', 'planMsg', 'advBox', 'advList', 'perTurbine', 'curt', 'dec', 'curtMsg', 'ignBox', 'ignSum', 'ignPre', 'addType', 'types', 'assign', 'tol', 'overall', 'sumLine', 'warnMsg', 'dlAll', 'selName', 'chart', 'rows', 'cvP', 'cvC', 'example']
     .forEach(function (id) { el[id] = $(id); });
 
-  var state = { rules: [], errors: [], ignored: [], modes: [], types: [], nextType: 1, assign: {}, short: {}, sel: -1, kind: 'P', rows: [], warnings: [] };
+  var state = { rules: [], errors: [], ignored: [], modes: [], types: [], nextType: 1, assign: {}, short: {}, plan: {}, rev: {}, skipped: 0, sel: -1, kind: 'P', rows: [], warnings: [] };
   try { state.short = JSON.parse(localStorage.getItem('boreas.wtg.short') || '{}') || {}; } catch (e) { state.short = {}; }
   function saveShort() { try { localStorage.setItem('boreas.wtg.short', JSON.stringify(state.short)); } catch (e) { /* storage not available */ } }
 
@@ -1200,11 +1227,38 @@ tr.grp:first-child td { border-top: 0; }
   el.addType.onclick = function () { state.types.push(newType()); renderTypes(); renderAssign(); refresh(); };
 
   /* ---------- curtailment table ---------- */
-  function ids() {
-    var cur = [], prot = [];
-    state.rules.forEach(function (r) { if (cur.indexOf(r.c.id) < 0) cur.push(r.c.id); if (prot.indexOf(r.p.id) < 0) prot.push(r.p.id); });
-    var all = cur.slice(); prot.forEach(function (p) { if (all.indexOf(p) < 0) all.push(p); });
-    return { cur: cur, prot: prot, all: all };
+  function cp(r, over) { var o = {}, k; for (k in r) o[k] = r[k]; for (k in over) o[k] = over[k]; return o; }
+  function norm360(x) { return ((x % 360) + 360) % 360; }
+  function pairKey(c, p) { return c + '\u0001' + p; }
+  function hasPlan() { return Object.keys(state.plan).some(function (k) { return state.plan[k]; }); }
+  /* Rules that become files. Without planned turbines every rule counts (one set).
+     With planned turbines: planned curtailed -> worst case; existing curtailed for a planned one -> best case only;
+     existing for existing -> ignored. Ticked pairs add a reversed best case rule (same sector and speeds). */
+  function activeRules() {
+    var any = hasPlan(), out = [], skipped = 0;
+    state.rules.forEach(function (r) {
+      if (!any) { out.push(cp(r, { cs: '' })); return; }
+      var cP = !!state.plan[r.c.id], pP = !!state.plan[r.p.id];
+      if (cP) out.push(cp(r, { cs: 'worst' }));
+      else if (pP) out.push(cp(r, { cs: 'best' }));
+      else skipped++;
+      if (cP && !pP && state.rev[pairKey(r.c.id, r.p.id)]) {
+        out.push(cp(r, { c: { no: '', id: r.p.id }, p: { no: '', id: r.c.id }, cs: 'best', rev: true }));
+      }
+    });
+    state.skipped = skipped;
+    return out;
+  }
+  function ids(all) {
+    var cur = [], prot = [], rules = all ? state.rules.map(function (r) { return { c: r.c, p: r.p }; }) : activeRules();
+    rules.forEach(function (r) { if (cur.indexOf(r.c.id) < 0) cur.push(r.c.id); if (prot.indexOf(r.p.id) < 0) prot.push(r.p.id); });
+    var all2 = cur.slice(); prot.forEach(function (p) { if (all2.indexOf(p) < 0) all2.push(p); });
+    return { cur: cur, prot: prot, all: all2 };
+  }
+  function bestOnlyIds() {
+    var w = {}, b = {};
+    activeRules().forEach(function (r) { (r.cs === 'best' ? b : w)[r.c.id] = 1; });
+    return Object.keys(b).filter(function (id) { return !w[id]; });
   }
   function fixAssign() {
     var first = state.types[0] ? state.types[0].id : null, valid = {};
@@ -1212,14 +1266,16 @@ tr.grp:first-child td { border-top: 0; }
     ids().cur.forEach(function (id) { if (!valid[state.assign[id]]) state.assign[id] = first; });
   }
   function renderAssign() {
-    var I = ids();
+    var I = ids(), bo = bestOnlyIds();
     if (!I.all.length) { el.assign.innerHTML = '<tr><td colspan="4" class="empty">' + esc(L('k.assignEmpty')) + '</td></tr>'; return; }
     el.assign.innerHTML = I.all.map(function (id) {
       var isC = I.cur.indexOf(id) >= 0, isP = I.prot.indexOf(id) >= 0;
       var sel = isC && state.types.length === 1 ? '<span class="hint">' + esc(state.types[0].name) + '</span>'
         : isC ? '<select data-id="' + esc(id) + '" data-k="type" aria-label="' + esc(L('k.ariaType', { id: id })) + '">' + state.types.map(function (t) { return '<option value="' + t.id + '"' + (String(state.assign[id]) === String(t.id) ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('') + '</select>'
         : '<span class="hint">' + esc(L('k.notNeeded')) + '</span>';
-      return '<tr><td class="fname">' + esc(id) + '</td><td>' + esc(isC && isP ? L('k.roleCP') : isC ? L('k.roleC') : L('k.roleP')) + '</td><td><input type="text" data-id="' + esc(id) + '" data-k="short" value="' + esc(shortOf(id)) + '" aria-label="' + esc(L('k.ariaShort', { id: id })) + '"></td><td>' + sel + '</td></tr>';
+      var role = isC && isP ? L('k.roleCP') : isC ? L('k.roleC') : L('k.roleP');
+      if (hasPlan()) role += (state.plan[id] ? ', ' + L('k.planned') : '') + (bo.indexOf(id) >= 0 ? ' (' + L('k.bestOnly') + ')' : '');
+      return '<tr><td class="fname">' + esc(id) + '</td><td>' + esc(role) + '</td><td><input type="text" data-id="' + esc(id) + '" data-k="short" value="' + esc(shortOf(id)) + '" aria-label="' + esc(L('k.ariaShort', { id: id })) + '"></td><td>' + sel + '</td></tr>';
     }).join('');
   }
   el.assign.addEventListener('input', function (e) {
@@ -1234,6 +1290,53 @@ tr.grp:first-child td { border-top: 0; }
   });
   el.tol.addEventListener('input', refresh);
 
+  function renderPlan() {
+    var I = ids(true);
+    Object.keys(state.plan).forEach(function (k) { if (I.all.indexOf(k) < 0) delete state.plan[k]; });
+    el.planBox.hidden = !I.all.length;
+    el.planChips.innerHTML = I.all.map(function (id) {
+      return '<label class="chip"><input type="checkbox" data-id="' + esc(id) + '"' + (state.plan[id] ? ' checked' : '') + '><span>' + esc(id) + '</span></label>';
+    }).join('');
+    updatePlanInfo();
+  }
+  function updatePlanInfo() {
+    var h = '', act = activeRules(), pairs = [], seen = {};
+    if (!state.rules.length) { el.planMsg.innerHTML = ''; el.advBox.hidden = true; return; }
+    if (!hasPlan()) h = msgT('', 'k.planNone');
+    else {
+      var w = act.filter(function (r) { return r.cs === 'worst'; }), b = act.filter(function (r) { return r.cs === 'best'; }), names = [];
+      w.forEach(function (r) { if (names.indexOf(r.c.id) < 0) names.push(r.c.id); });
+      h = w.length ? msgT('ok', 'k.planSel', { w: w.length, names: names.join(', '), b: b.length }) : msgT('warn', 'k.planNoW');
+      if (state.skipped) h += msgT('', 'k.planSkip', { n: state.skipped });
+    }
+    el.planMsg.innerHTML = h;
+    /* advanced: planned curtailed for an existing turbine, and the table has no rule the other way round */
+    var have = {};
+    state.rules.forEach(function (r) { have[pairKey(r.c.id, r.p.id)] = 1; });
+    state.rules.forEach(function (r) {
+      var k = pairKey(r.c.id, r.p.id);
+      if (state.plan[r.c.id] && !state.plan[r.p.id] && !have[pairKey(r.p.id, r.c.id)] && !seen[k]) { seen[k] = 1; pairs.push(r); }
+    });
+    el.advBox.hidden = !pairs.length;
+    el.advList.innerHTML = pairs.map(function (r) {
+      var k = pairKey(r.c.id, r.p.id);
+      return '<label class="chk"><input type="checkbox" data-pair="' + esc(k) + '"' + (state.rev[k] ? ' checked' : '') + '><span>' + esc(L('k.advItem', { p: r.p.id, c: r.c.id })) + '</span></label>';
+    }).join('');
+    Object.keys(state.rev).forEach(function (k) { if (!seen[k]) delete state.rev[k]; });
+  }
+  el.planChips.addEventListener('change', function (e) {
+    var id = e.target.getAttribute('data-id');
+    if (!id) return;
+    state.plan[id] = e.target.checked;
+    updatePlanInfo(); fixAssign(); renderAssign(); refresh();
+  });
+  el.advList.addEventListener('change', function (e) {
+    var k = e.target.getAttribute('data-pair');
+    if (!k) return;
+    state.rev[k] = e.target.checked;
+    fixAssign(); renderAssign(); refresh();
+  });
+
   function readCurt() {
     var txt = el.curt.value, h = '';
     var r = WTG.parseCurtailments(txt), oldModes = state.modes.join('|');
@@ -1241,7 +1344,7 @@ tr.grp:first-child td { border-top: 0; }
     if (!txt.trim()) h = msgT('', 'k.paste');
     else {
       if (r.rules.length) {
-        var I = ids(), pairs = {};
+        var I = ids(true), pairs = {};
         r.rules.forEach(function (x) { pairs[x.c.id + '\u0001' + x.p.id] = 1; });
         h += msgT('ok', 'k.read', { n: r.rules.length, p: Object.keys(pairs).length, c: I.cur.length });
         h += r.modes.length ? msgT('warn', 'k.modes', { m: r.modes.join(', ') }) : msgT('', 'k.allCut');
@@ -1256,7 +1359,7 @@ tr.grp:first-child td { border-top: 0; }
     state.types.forEach(reparse);
     fixAssign();
     if (oldModes !== state.modes.join('|')) renderTypes();
-    renderAssign(); refresh();
+    renderPlan(); renderAssign(); refresh();
   }
   el.curt.addEventListener('input', readCurt);
   el.dec.addEventListener('change', function () { WTG.setDecimal(el.dec.value); readCurt(); renderTypes(); });
@@ -1276,17 +1379,18 @@ tr.grp:first-child td { border-top: 0; }
   function sectorText(v) { return v.full ? L('k.all') : Math.round(v.start) % 360 + '–' + Math.round(v.end) % 360; }
   function computeRows() {
     var rows = [], groups = {}, order = [], warnings = [], tol = Math.max(0, N(el.tol.value) || 0);
-    state.rules.forEach(function (r) { var k = r.c.id + '\u0001' + r.p.id; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(r); });
+    var act = activeRules();
+    act.forEach(function (r) { var k = r.cs + '\u0002' + r.c.id + '\u0001' + r.p.id; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(r); });
     var multi = state.modes.length > 1, used = {};
     order.forEach(function (k) {
-      var rs = groups[k], c = rs[0].c.id, p = rs[0].p.id, t = typeById(state.assign[c]), prob = typeProblem(t);
-      if (prob) { rows.push({ c: c, p: p, status: 'wait', msg: prob, sector: '–', cut: LN('k.rules', rs.length), file: '–' }); return; }
+      var rs = groups[k], cs = rs[0].cs, rev = !!rs[0].rev, c = rs[0].c.id, p = rs[0].p.id, t = typeById(state.assign[c]), prob = typeProblem(t);
+      if (prob) { rows.push({ cs: cs, rev: rev, c: c, p: p, status: 'wait', msg: prob, sector: '–', cut: LN('k.rules', rs.length), file: '–' }); return; }
       var base = t.parsed.points, grid = base.map(function (q) { return q.v; });
       var bv = WTG.buildVariants(rs, grid, tol);
       bv.warnings.forEach(function (w) { warnings.push(L('k.wFor', { c: c, p: p, w: w })); });
-      if (!bv.variants.length) { rows.push({ c: c, p: p, status: 'none', msg: L('k.noCurt'), sector: '–', cut: '–', file: '–' }); return; }
+      if (!bv.variants.length) { rows.push({ cs: cs, rev: rev, c: c, p: p, status: 'none', msg: L('k.noCurt'), sector: '–', cut: '–', file: '–' }); return; }
       bv.variants.forEach(function (v) {
-        var lab = WTG.variantLabel(v, grid, multi), row = { c: c, p: p, typ: t, base: base, v: v, sector: sectorText(v), cut: lab.text, status: 'ready', notes: [] };
+        var lab = WTG.variantLabel(v, grid, multi), row = { cs: cs, rev: rev, c: c, p: p, typ: t, base: base, v: v, sector: sectorText(v), cut: lab.text, status: 'ready', notes: [] };
         var needs = v.st.join('~');
         var mm = bv.modes.filter(function (m) { var mp = t.modeParsed[m]; return (!mp || !mp.points.length || mp.errors.length) && needs.indexOf(m) >= 0 && needs.indexOf('R:') >= 0; })[0];
         if (mm) { row.status = 'wait'; row.msg = L('k.needMode', { m: mm, t: t.name }); }
@@ -1303,16 +1407,16 @@ tr.grp:first-child td { border-top: 0; }
         var name = shortOf(c) + '_for_' + shortOf(p) + '_' + WTG.sectorLabel(v) + '_' + lab.file, nm = name, i = 2;
         while (used[nm.toLowerCase()]) nm = name + '_' + (i++);
         used[nm.toLowerCase()] = 1; row.file = nm + '.wtg';
-        row.desc = v.full ? L('k.descAll', { c: c, p: p, cut: lab.text }) : L('k.desc', { c: c, p: p, s: sectorText(v).replace('–', '-'), cut: lab.text });
+        row.desc = (v.full ? L('k.descAll', { c: c, p: p, cut: lab.text }) : L('k.desc', { c: c, p: p, s: sectorText(v).replace('–', '-'), cut: lab.text })) + (rev ? ' ' + L('k.revNote') : '');
         rows.push(row);
       });
     });
     state.warnings = warnings;
-    var I = ids(), pOrder = [];
-    state.rules.forEach(function (r) { if (pOrder.indexOf(r.p.id) < 0) pOrder.push(r.p.id); });
+    var I = ids(), pOrder = [], rank = function (r) { return r.cs === 'best' ? 1 : 0; };
+    act.forEach(function (r) { if (pOrder.indexOf(r.p.id) < 0) pOrder.push(r.p.id); });
     rows.forEach(function (r, i) { r.ord = i; });
     rows.sort(function (a, b) {
-      return (I.cur.indexOf(a.c) - I.cur.indexOf(b.c)) || (pOrder.indexOf(a.p) - pOrder.indexOf(b.p)) || ((a.v ? a.v.start : 0) - (b.v ? b.v.start : 0)) || (a.ord - b.ord);
+      return (rank(a) - rank(b)) || (I.cur.indexOf(a.c) - I.cur.indexOf(b.c)) || (pOrder.indexOf(a.p) - pOrder.indexOf(b.p)) || ((a.v ? a.v.start : 0) - (b.v ? b.v.start : 0)) || (a.ord - b.ord);
     });
     return rows;
   }
@@ -1321,7 +1425,7 @@ tr.grp:first-child td { border-top: 0; }
     var last = row.points[row.points.length - 1];
     return {
       description: row.desc, manufacturer: '', referenceURI: '', rotorDiameter: N(t.rotor), controlSystem: t.control.trim() || 'Pitch', ratedPower: maxP,
-      comments: L('k.cmt', { c: row.c, p: row.p, s: row.sector.replace('–', '-'), cut: row.cut.replace(/–/g, '-'), t: t.name }),
+      comments: L('k.cmt', { c: row.c, p: row.p, s: row.sector.replace('–', '-'), cut: row.cut.replace(/–/g, '-'), t: t.name }) + (row.rev ? ' ' + L('k.revNote') : ''),
       heights: listNums(t.hub),
       tables: [{ airDensity: N(t.density), maxNoise: '0', bladePitch: '-99999', dataStatus: 'Unknown', dataSource: L('k.src', { t: t.name }), releaseDate: today(), refURI: 'None', stationaryCt: last.ct,
         lowCutOut: base[0].v, lowCutIn: base[0].v, highCutOut: base[base.length - 1].v, highCutIn: base[base.length - 1].v, comments: '', points: row.points }]
@@ -1337,13 +1441,14 @@ tr.grp:first-child td { border-top: 0; }
   }
   function renderRows() {
     if (!state.rows.length) { el.rows.innerHTML = '<tr><td colspan="7" class="empty">' + esc(L('k.noFiles')) + '</td></tr>'; return; }
-    var counts = {}; state.rows.forEach(function (r) { counts[r.c] = (counts[r.c] || 0) + (r.status === 'ready' ? 1 : 0); });
-    var lastC = null;
+    var counts = {}, key = function (r) { return r.cs + '\u0002' + r.c; }; state.rows.forEach(function (r) { counts[key(r)] = (counts[key(r)] || 0) + (r.status === 'ready' ? 1 : 0); });
+    var lastC = null, lastCs = null;
     el.rows.innerHTML = state.rows.map(function (r, i) {
       var head = '';
-      if (r.c !== lastC) { lastC = r.c; head = '<tr class="grp"><td colspan="7">' + esc(r.c) + ' <span class="hint">' + esc(counts[r.c] ? LN('k.files', counts[r.c]) : L('k.needsData')) + '</span></td></tr>'; }
+      if (r.cs && r.cs !== lastCs) { lastCs = r.cs; head += '<tr class="sec"><td colspan="7">' + esc(L(r.cs === 'best' ? 'k.secBest' : 'k.secWorst')) + '</td></tr>'; }
+      if (key(r) !== lastC) { lastC = key(r); head += '<tr class="grp"><td colspan="7">' + esc(r.c) + ' <span class="hint">' + esc(counts[key(r)] ? LN('k.files', counts[key(r)]) : L('k.needsData')) + '</span></td></tr>'; }
       var pill = r.status === 'ready' ? (r.notes.length ? '<span class="pill warn" title="' + esc(r.notes.join(' ')) + '">' + esc(L('k.stReadyNote')) + '</span>' : '<span class="pill ok">' + esc(L('k.stReady')) + '</span>') : r.status === 'none' ? '<span class="pill">' + esc(L('k.stNone')) + '</span>' : '<span class="pill warn" title="' + esc(r.msg) + '">' + esc(L('k.stNeed')) + '</span>';
-      return head + '<tr class="clk' + (i === state.sel ? ' sel' : '') + '" data-i="' + i + '"><td class="fname">' + esc(r.c) + '</td><td class="fname">' + esc(r.p) + '</td><td class="n">' + esc(r.sector) + '</td><td>' + esc(r.cut) + '</td><td class="fname">' + esc(r.file) + '</td><td>' + pill + (r.status !== 'ready' && r.msg ? ' <small class="hint">' + esc(r.msg) + '</small>' : '') + '</td><td>' + (r.status === 'ready' ? '<button class="btn sm" type="button" data-dl="' + i + '">' + esc(L('x.download')) + '</button>' : '') + '</td></tr>';
+      return head + '<tr class="clk' + (i === state.sel ? ' sel' : '') + '" data-i="' + i + '"><td class="fname">' + esc(r.c) + '</td><td class="fname">' + esc(r.p) + '</td><td class="n">' + esc(r.sector) + '</td><td>' + esc(r.cut) + (r.rev ? ' <small class="hint">' + esc(L('k.mirrored')) + '</small>' : '') + '</td><td class="fname">' + esc(r.file) + '</td><td>' + pill + (r.status !== 'ready' && r.msg ? ' <small class="hint">' + esc(r.msg) + '</small>' : '') + '</td><td>' + (r.status === 'ready' ? '<button class="btn sm" type="button" data-dl="' + i + '">' + esc(L('x.download')) + '</button>' : '') + '</td></tr>';
     }).join('');
   }
   function renderSelected() {
@@ -1361,7 +1466,7 @@ tr.grp:first-child td { border-top: 0; }
     var ready = state.rows.filter(function (r) { return r.status === 'ready'; }), wait = state.rows.filter(function (r) { return r.status === 'wait'; });
     if (!state.rows[state.sel] || state.rows[state.sel].status !== 'ready') state.sel = state.rows.indexOf(ready[0]);
     renderRows(); renderSelected();
-    var pairs = {}; state.rules.forEach(function (r) { pairs[r.c.id + '\u0001' + r.p.id] = 1; });
+    var pairs = {}; activeRules().forEach(function (r) { pairs[r.c.id + '\u0001' + r.p.id] = 1; });
     var np = Object.keys(pairs).length;
     if (!state.rules.length) { el.overall.className = 'pill'; el.overall.textContent = L('k.ovWait'); el.sumLine.textContent = L('k.sum0'); }
     else {
@@ -1381,7 +1486,7 @@ tr.grp:first-child td { border-top: 0; }
     if (tr && state.rows[+tr.getAttribute('data-i')].status === 'ready') { state.sel = +tr.getAttribute('data-i'); renderRows(); renderSelected(); }
   });
   el.dlAll.onclick = function () {
-    var files = state.rows.filter(function (r) { return r.status === 'ready'; }).map(function (r) { return { name: r.file, data: WTG.writeWTG(specFor(r)) }; });
+    var files = state.rows.filter(function (r) { return r.status === 'ready'; }).map(function (r) { return { name: (r.cs ? (r.cs === 'best' ? 'best_case/' : 'worst_case/') : '') + r.file, data: WTG.writeWTG(specFor(r)) }; });
     if (files.length) save('wtg_curtailment_' + today() + '.zip', new Blob([WTG.makeZip(files)], { type: 'application/zip' }));
   };
   el.cvP.onclick = function () { state.kind = 'P'; el.cvP.setAttribute('aria-pressed', 'true'); el.cvC.setAttribute('aria-pressed', 'false'); renderSelected(); };
