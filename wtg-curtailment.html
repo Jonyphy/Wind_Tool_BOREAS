@@ -202,7 +202,7 @@ tr.sec td { background: var(--accent-soft); font-weight: 600; font-size: 13px; l
           <div class="msgs" id="curtMsg" aria-live="polite"></div>
           <div id="planBox" hidden>
             <h3 class="sub" data-i="k.planH">Planned turbines</h3>
-            <p class="hint" data-i="k.planHint">Tick the turbines that are planned (new) in this project. All others count as existing and are not shut down in the worst case. Nothing ticked: all rules are used as one set of files.</p>
+            <p class="hint" data-i="k.planHint">Tick the turbines that are planned (new) in this project. All others count as existing and are not shut down in the worst case. Where an existing turbine is curtailed for a planned one, the planned turbine is curtailed instead in the worst case, with the same sector and speeds. Nothing ticked: all rules are used as one set of files.</p>
             <div class="chips" id="planChips" role="group" aria-label="Planned turbines"></div>
             <div class="msgs" id="planMsg" aria-live="polite"></div>
             <details class="box" id="advBox" hidden><summary data-i="k.advSum">Advanced: also curtail an existing turbine to protect a planned one (best case)</summary><div class="inner"><p class="hint" data-i="k.advHint">Creates an extra best case file for the ticked pair. The sector and the speed range are the same as in the table rule.</p><div id="advList" class="stack"></div></div></details>
@@ -540,7 +540,7 @@ tr.sec td { background: var(--accent-soft); font-weight: 600; font-size: 13px; l
     'k.advItem': '{p} zusätzlich abschalten, um {c} zu schützen', 'k.mirrored': 'umgekehrtes Paar',
     'k.bestOnly': 'nur Best Case', 'k.planned': 'geplant', 'k.revNote': 'Umgekehrtes Paar: gleicher Sektor und gleiche Windgeschwindigkeiten wie in der Tabellenregel.',
     'k.planH': 'Geplante WEA',
-    'k.planHint': 'Alle WEA ankreuzen, die in diesem Projekt geplant (neu) sind. Alle übrigen gelten als bestehend und werden im Worst Case nicht abgeschaltet. Ohne Auswahl werden alle Regeln als ein Dateisatz verwendet.',
+    'k.planHint': 'Alle WEA ankreuzen, die in diesem Projekt geplant (neu) sind. Alle übrigen gelten als bestehend und werden im Worst Case nicht abgeschaltet; wird eine bestehende WEA für eine geplante abgeschaltet, wird im Worst Case stattdessen die geplante WEA mit demselben Sektor und denselben Windgeschwindigkeiten abgeschaltet. Ohne Auswahl werden alle Regeln als ein Dateisatz verwendet.',
     'k.advSum': 'Erweitert: bestehende WEA zusätzlich abschalten, um eine geplante WEA zu schützen (Best Case)',
     'k.advHint': 'Erzeugt für das angekreuzte Paar eine zusätzliche Best-Case-Datei. Sektor und Windgeschwindigkeitsbereich sind dieselben wie in der Tabellenregel.',
     'k.ovWait': 'Warte auf Daten', 'k.ovNeeds': 'Daten fehlen', 'k.ovPartly': 'Teilweise bereit', 'k.ovReady': 'Bereit',
@@ -1240,7 +1240,11 @@ tr.sec td { background: var(--accent-soft); font-weight: 600; font-size: 13px; l
       if (!any) { out.push(cp(r, { cs: '' })); return; }
       var cP = !!state.plan[r.c.id], pP = !!state.plan[r.p.id];
       if (cP) out.push(cp(r, { cs: 'worst' }));
-      else if (pP) out.push(cp(r, { cs: 'best' }));
+      else if (pP) {
+        out.push(cp(r, { cs: 'best' }));
+        /* an existing turbine is never shut down in the worst case: the planned turbine is curtailed instead (same sector and speeds) */
+        out.push(cp(r, { c: { no: '', id: r.p.id }, p: { no: '', id: r.c.id }, cs: 'worst', rev: true }));
+      }
       else skipped++;
       if (cP && !pP && state.rev[pairKey(r.c.id, r.p.id)]) {
         out.push(cp(r, { c: { no: '', id: r.p.id }, p: { no: '', id: r.c.id }, cs: 'best', rev: true }));
@@ -1383,7 +1387,7 @@ tr.sec td { background: var(--accent-soft); font-weight: 600; font-size: 13px; l
     act.forEach(function (r) { var k = r.cs + '\u0002' + r.c.id + '\u0001' + r.p.id; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(r); });
     var multi = state.modes.length > 1, used = {};
     order.forEach(function (k) {
-      var rs = groups[k], cs = rs[0].cs, rev = !!rs[0].rev, c = rs[0].c.id, p = rs[0].p.id, t = typeById(state.assign[c]), prob = typeProblem(t);
+      var rs = groups[k], cs = rs[0].cs, rev = rs.every(function (x) { return x.rev; }), c = rs[0].c.id, p = rs[0].p.id, t = typeById(state.assign[c]), prob = typeProblem(t);
       if (prob) { rows.push({ cs: cs, rev: rev, c: c, p: p, status: 'wait', msg: prob, sector: '–', cut: LN('k.rules', rs.length), file: '–' }); return; }
       var base = t.parsed.points, grid = base.map(function (q) { return q.v; });
       var bv = WTG.buildVariants(rs, grid, tol);
