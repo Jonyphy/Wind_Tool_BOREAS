@@ -164,134 +164,518 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (prefers-reduced-motion: no-preference) { .btn { transition: border-color .12s, color .12s, filter .12s; } }
 
+tr.grp td { background: var(--surface2); font: 600 15px var(--font-head); letter-spacing: .03em; border-top: 1px solid var(--line); padding-top: 9px; padding-bottom: 9px; }
+tr.grp:first-child td { border-top: 0; }
+
+.top .lang { margin-left: auto; margin-block: 10px; }
+.top .lang button { padding: 6px 11px; font-weight: 600; letter-spacing: .04em; }
+
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap topin">
   <a class="brand" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 14h16a3 3 0 1 1-3 3"/><path d="M3 19h7"/></svg><span>BOREAS</span></a>
-  <nav aria-label="Tools"><a href="wtg-generator.html" aria-current="page">WTG generator</a><a href="wtg-curtailment.html">Curtailment WTGs</a></nav>
+  <nav aria-label="Tools" data-i-aria="x.tools"><a href="wtg-generator.html" data-i="x.navGen" aria-current="page">WTG generator</a><a href="wtg-curtailment.html" data-i="x.navCur">Curtailment WTGs</a></nav>
+  <div class="seg lang" role="group" aria-label="Language" data-i-aria="x.lang"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="de" aria-pressed="false">DE</button></div>
 </div></header>
 <main class="wrap">
   <section class="intro">
-    <h1>WTG generator</h1>
-    <p class="lede">Paste the power and thrust tables from a manufacturer document, choose the air densities and fill in the turbine data. The tool writes a WAsP / WindPRO .wtg file and checks it before you download it.</p>
+    <h1 data-i="g.h1">WTG generator</h1>
+    <p class="lede" data-i="g.lede">Paste the power and thrust tables from a manufacturer document, choose the air densities and fill in the turbine data. The tool writes a WAsP / WindPRO .wtg file and checks it before you download it.</p>
   </section>
 
   <div class="cols">
     <div class="stack">
 
       <section class="card" aria-labelledby="h1">
-        <header class="card-h"><span class="step">1</span><h2 id="h1">Performance data</h2><span class="spacer"></span><button class="btn sm ghost" id="example" type="button">Load synthetic example</button></header>
+        <header class="card-h"><span class="step">1</span><h2 id="h1" data-i="g.s1">Performance data</h2><span class="spacer"></span><button class="btn sm ghost" id="example" type="button" data-i="x.example">Load synthetic example</button></header>
         <div class="card-b">
-          <p class="hint">Copy each table from Excel with its header row: wind speed down the side, one column per air density. Both tables in one paste also work, the second one moves to the ct box.</p>
+          <p class="hint" data-i="g.hint1">Copy each table from Excel with its header row: wind speed down the side, one column per air density. Both tables in one paste also work, the second one moves to the ct box.</p>
           <div class="grid2">
-            <label class="fld"><span>Power</span><textarea id="power" rows="8" spellcheck="false" placeholder="Wind speed [m/s]	1.225	1.200	1.175&#10;3.0	91	88	85&#10;3.5	243	237	231&#10;..."></textarea></label>
-            <label class="fld"><span>Thrust coefficient ct</span><textarea id="ct" rows="8" spellcheck="false" placeholder="Wind speed [m/s]	1.225	1.200	1.175&#10;3.0	0.869	0.869	0.869&#10;3.5	0.849	0.849	0.849&#10;..."></textarea></label>
+            <label class="fld"><span data-i="g.power">Power</span><textarea id="power" rows="8" spellcheck="false" data-i-ph="g.phPower" placeholder="Wind speed [m/s]&#9;1.225&#9;1.200&#9;1.175&#10;3.0&#9;91&#9;88&#9;85&#10;3.5&#9;243&#9;237&#9;231&#10;..."></textarea></label>
+            <label class="fld"><span data-i="g.ct">Thrust coefficient ct</span><textarea id="ct" rows="8" spellcheck="false" data-i-ph="g.phCt" placeholder="Wind speed [m/s]&#9;1.225&#9;1.200&#9;1.175&#10;3.0&#9;0.869&#9;0.869&#9;0.869&#10;3.5&#9;0.849&#9;0.849&#9;0.849&#10;..."></textarea></label>
           </div>
           <div class="inline">
-            <label class="fld"><span>Power unit</span>
-              <select id="unit"><option value="auto">Detect automatically</option><option value="W">W</option><option value="kW">kW</option><option value="MW">MW</option></select></label>
-            <label class="chk"><input type="checkbox" id="dropStar"> Drop rows marked with *</label>
+            <label class="fld"><span data-i="x.dec">Decimal separator</span>
+              <select id="dec"><option value="auto" data-i="x.dec.auto">Automatic</option><option value="comma" data-i="x.dec.comma">Comma (1,225)</option><option value="point" data-i="x.dec.point">Point (1.225)</option></select></label>
+            <label class="fld"><span data-i="g.unitL">Power unit</span>
+              <select id="unit"><option value="auto" data-i="g.unitAuto">Detect automatically</option><option value="W">W</option><option value="kW">kW</option><option value="MW">MW</option></select></label>
+            <label class="chk"><input type="checkbox" id="dropStar"> <span data-i="g.drop">Drop rows marked with *</span></label>
           </div>
+          <p class="hint" data-i="x.dec.hint">Like the option "Dec. comma accepted" in the WAsP Turbine Editor, here for the pasted data. "Automatic" recognises comma and point by itself. The saved .wtg file always contains decimal points; WAsP shows them as commas or points according to the region setting of the computer.</p>
           <div class="msgs" id="dataMsg" aria-live="polite"></div>
         </div>
       </section>
 
       <section class="card" aria-labelledby="h2">
-        <header class="card-h"><span class="step">2</span><h2 id="h2">Turbine</h2></header>
+        <header class="card-h"><span class="step">2</span><h2 id="h2" data-i="g.s2">Turbine</h2></header>
         <div class="card-b">
           <div class="grid2">
-            <label class="fld"><span>Name (description)</span><input type="text" id="desc" placeholder="Nordex N163 / 6.X 6.8 MW"></label>
-            <label class="fld"><span>Manufacturer <em>(optional)</em></span><input type="text" id="mfr"></label>
+            <label class="fld"><span data-i="g.name">Name (description)</span><input type="text" id="desc" data-i-ph="g.namePh" placeholder="Nordex N163 / 6.X 6.8 MW"></label>
+            <label class="fld"><span><span data-i="g.mfr">Manufacturer</span> <em data-i="x.optional">(optional)</em></span><input type="text" id="mfr"></label>
           </div>
           <div class="grid3">
-            <label class="fld"><span>Rotor diameter [m]</span><input type="number" class="mono" id="rotor" min="0" step="any"></label>
-            <label class="fld"><span>Hub height(s) [m]</span><input type="text" class="mono" id="heights" placeholder="118, 164"></label>
-            <label class="fld"><span>Power regulation</span><input type="text" id="control" list="controls" value="Pitch"><datalist id="controls"><option value="Pitch"><option value="Stall"></datalist></label>
+            <label class="fld"><span data-i="g.rotor">Rotor diameter [m]</span><input type="text" inputmode="decimal" class="mono" id="rotor"></label>
+            <label class="fld"><span data-i="g.heights">Hub height(s) [m]</span><input type="text" class="mono" id="heights" placeholder="118, 164"></label>
+            <label class="fld"><span data-i="g.control">Power regulation</span><input type="text" id="control" list="controls" value="Pitch"><datalist id="controls"><option value="Pitch"><option value="Stall"></datalist></label>
           </div>
           <div class="grid3">
-            <label class="fld"><span>Rated power [MW] <span class="auto-note" id="ratedNote"></span></span><input type="number" class="mono" id="rated" min="0" step="any"></label>
-            <label class="fld"><span>Cut-in [m/s] <span class="auto-note">auto</span></span><input type="number" class="mono" id="cutin" min="0" step="any"></label>
-            <label class="fld"><span>Cut-out [m/s] <span class="auto-note">auto</span></span><input type="number" class="mono" id="cutout" min="0" step="any"></label>
+            <label class="fld"><span><span data-i="g.rated">Rated power [MW]</span> <span class="auto-note" id="ratedNote"></span></span><input type="text" inputmode="decimal" class="mono" id="rated"></label>
+            <label class="fld"><span><span data-i="g.cutin">Cut-in [m/s]</span> <span class="auto-note" data-i="x.auto">auto</span></span><input type="text" inputmode="decimal" class="mono" id="cutin"></label>
+            <label class="fld"><span><span data-i="g.cutout">Cut-out [m/s]</span> <span class="auto-note" data-i="x.auto">auto</span></span><input type="text" inputmode="decimal" class="mono" id="cutout"></label>
           </div>
           <div class="grid3">
-            <label class="fld"><span>Release date</span><input type="date" id="date"></label>
-            <label class="fld"><span>Data status</span><input type="text" id="status" list="statuses" value="Unknown"><datalist id="statuses"><option value="Unknown"><option value="Measured"><option value="Calculated"></datalist></label>
-            <label class="fld"><span>Stationary ct <em>(blank = last table value)</em></span><input type="number" class="mono" id="stat" min="0" step="any"></label>
+            <label class="fld"><span data-i="g.date">Release date</span><input type="date" id="date"></label>
+            <label class="fld"><span data-i="g.status">Data status</span><input type="text" id="status" list="statuses" value="Unknown"><datalist id="statuses"><option value="Unknown"><option value="Measured"><option value="Calculated"></datalist></label>
+            <label class="fld"><span><span data-i="g.stat">Stationary ct</span> <em data-i="g.statHint">(blank = last table value)</em></span><input type="text" inputmode="decimal" class="mono" id="stat"></label>
           </div>
-          <label class="fld"><span>Data source <em>(written into every table)</em></span><input type="text" id="source" placeholder="Manufacturer document, number and revision"></label>
-          <label class="fld"><span>Comment <em>(optional)</em></span><input type="text" id="comment" placeholder="Operating mode, source of ct, ..."></label>
+          <label class="fld"><span><span data-i="g.source">Data source</span> <em data-i="g.sourceHint">(written into every table)</em></span><input type="text" id="source" data-i-ph="g.sourcePh" placeholder="Manufacturer document, number and revision"></label>
+          <label class="fld"><span><span data-i="g.comment">Comment</span> <em data-i="x.optional">(optional)</em></span><input type="text" id="comment" data-i-ph="g.commentPh" placeholder="Operating mode, source of ct, ..."></label>
         </div>
       </section>
 
       <section class="card" aria-labelledby="h3">
-        <header class="card-h"><span class="step">3</span><h2 id="h3">Air densities</h2><span class="spacer"></span><span class="pill" id="selCount">0 selected</span></header>
+        <header class="card-h"><span class="step">3</span><h2 id="h3" data-i="g.s3">Air densities</h2><span class="spacer"></span><span class="pill" id="selCount">0 selected</span></header>
         <div class="card-b">
-          <div class="chips" id="chips" role="group" aria-label="Air densities in kg/m³"><span class="hint">Densities appear here once the tables are read.</span></div>
+          <div class="chips" id="chips" role="group" data-i-aria="g.chipsAria" aria-label="Air densities in kg/m³"></div>
           <div class="toolbar">
-            <button class="btn sm" type="button" id="selAll">All</button>
-            <button class="btn sm" type="button" id="selNone">None</button>
-            <button class="btn sm" type="button" id="selStd" title="1.050 to 1.250 kg/m³">1.050 to 1.250</button>
-            <label class="fld"><span>From</span><input type="number" class="mono" id="rFrom" step="0.005" placeholder="1.000"></label>
-            <label class="fld"><span>To</span><input type="number" class="mono" id="rTo" step="0.005" placeholder="1.225"></label>
-            <button class="btn sm" type="button" id="selRange">Select range</button>
+            <button class="btn sm" type="button" id="selAll" data-i="g.all">All</button>
+            <button class="btn sm" type="button" id="selNone" data-i="g.none">None</button>
+            <button class="btn sm" type="button" id="selStd" data-i-title="g.stdTitle" title="1.050 to 1.250 kg/m³" data-i="g.std">1.050 to 1.250</button>
+            <label class="fld"><span data-i="g.from">From</span><input type="text" inputmode="decimal" class="mono" id="rFrom" placeholder="1.000"></label>
+            <label class="fld"><span data-i="g.to">To</span><input type="text" inputmode="decimal" class="mono" id="rTo" placeholder="1.225"></label>
+            <button class="btn sm" type="button" id="selRange" data-i="g.range">Select range</button>
           </div>
         </div>
       </section>
     </div>
 
-    <aside class="stack sticky" aria-label="Result">
+    <aside class="stack sticky" data-i-aria="x.result" aria-label="Result">
       <section class="card">
-        <header class="card-h"><h2>Checks and download</h2><span class="spacer"></span><span class="pill" id="overall">Waiting for data</span></header>
+        <header class="card-h"><h2 data-i="g.rCheck">Checks and download</h2><span class="spacer"></span><span class="pill" id="overall">Waiting for data</span></header>
         <div class="card-b">
           <div class="msgs" id="checks" aria-live="polite"></div>
           <div class="dl">
-            <label class="fld"><span>File name</span><input type="text" class="mono" id="fname" placeholder="turbine.wtg"></label>
-            <button class="btn primary" id="download" type="button" disabled>Download .wtg</button>
+            <label class="fld"><span data-i="g.fname">File name</span><input type="text" class="mono" id="fname" placeholder="turbine.wtg"></label>
+            <button class="btn primary" id="download" type="button" disabled data-i="g.dl">Download .wtg</button>
           </div>
         </div>
       </section>
 
       <section class="card">
-        <header class="card-h"><h2>Curves</h2><span class="spacer"></span>
-          <div class="seg" role="group" aria-label="Quantity"><button type="button" id="cvP" aria-pressed="true">Power</button><button type="button" id="cvC" aria-pressed="false">ct</button></div></header>
+        <header class="card-h"><h2 data-i="g.curves">Curves</h2><span class="spacer"></span>
+          <div class="seg" role="group" data-i-aria="x.quantity" aria-label="Quantity"><button type="button" id="cvP" aria-pressed="true" data-i="x.power">Power</button><button type="button" id="cvC" aria-pressed="false" data-i="x.ct">ct</button></div></header>
         <div class="card-b">
-          <svg class="chart" id="chart" role="img" aria-label="Power or thrust coefficient curves for the selected air densities"></svg>
+          <svg class="chart" id="chart" role="img" data-i-aria="g.curvesAria" aria-label="Power or thrust coefficient curves for the selected air densities"></svg>
           <div class="legend" id="legend" hidden><span id="lgLo"></span><i></i><span id="lgHi"></span><span>kg/m³</span></div>
         </div>
       </section>
 
       <section class="card">
-        <header class="card-h"><h2>Inspect</h2></header>
+        <header class="card-h"><h2 data-i="g.inspect">Inspect</h2></header>
         <div class="card-b">
-          <details class="box" id="tblBox"><summary>Data table for one density</summary>
-            <div class="inner"><label class="fld" style="max-width:200px"><span>Air density [kg/m³]</span><select id="tblDens"></select></label>
-              <div class="tw scroll"><table><thead><tr><th class="n">Wind speed [m/s]</th><th class="n">Power [MW]</th><th class="n">Power [W]</th><th class="n">ct</th></tr></thead><tbody id="tblBody"></tbody></table></div></div></details>
-          <details class="box"><summary>XML preview (first table)</summary><div class="inner"><pre class="xml" id="xml"></pre></div></details>
+          <details class="box" id="tblBox"><summary data-i="g.tblSum">Data table for one density</summary>
+            <div class="inner"><label class="fld" style="max-width:200px"><span data-i="g.dens">Air density [kg/m³]</span><select id="tblDens"></select></label>
+              <div class="tw scroll"><table><thead><tr><th class="n" data-i="g.thV">Wind speed [m/s]</th><th class="n" data-i="g.thPMW">Power [MW]</th><th class="n" data-i="g.thPW">Power [W]</th><th class="n" data-i="x.ct">ct</th></tr></thead><tbody id="tblBody"></tbody></table></div></div></details>
+          <details class="box"><summary data-i="g.xmlSum">XML preview (first table)</summary><div class="inner"><pre class="xml" id="xml"></pre></div></details>
         </div>
       </section>
     </aside>
   </div>
-  <p class="foot">The file follows the structure of existing Nordex .wtg files (format version 1.02). Open a new file once in WAsP or WindPRO to confirm that it loads. Everything runs in your browser; nothing is uploaded.</p>
+  <p class="foot" data-i="g.foot">The file follows the structure of existing Nordex .wtg files (format version 1.02). Open a new file once in WAsP or WindPRO to confirm that it loads. Everything runs in your browser; nothing is uploaded.</p>
 </main>
 
 <script>
-/* BOREAS WTG core: parsing, WTG writer, curtailment logic, zip, chart. No dependencies. */
+/* BOREAS i18n: English and German. Static page text carries data-i keys (English stays in the HTML, German lives here).
+   Dynamic text uses t(key, params). th() escapes the parameters for innerHTML. */
 (function (root, factory) {
   var api = factory();
-  if (typeof module === 'object' && module.exports) module.exports = api; else root.WTG = api;
+  if (typeof module === 'object' && module.exports) module.exports = api; else root.I18N = api;
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
+
+  /* ---------- English: dynamic strings only ---------- */
+  var EN = {
+    'g.title': 'WTG Generator', 'k.title': 'Curtailment WTGs', 'x.auto': 'auto',
+    'g.paste': 'Paste the power table and the ct table to begin.',
+    'g.powerEmpty': 'The power table is empty.',
+    'g.ctEmpty': 'Paste the ct table as well.',
+    'g.read': '{n} air densities ({lo} to {hi} kg/m³), {m} wind speeds ({a} to {b} m/s).',
+    'g.unit': 'Power read as <strong>{u}</strong>, highest value {x} MW.',
+    'g.unitHint': ' Change the unit above if this is wrong.',
+    'g.starDrop': 'Rows marked * were dropped: {l} m/s.',
+    'g.starKeep': 'Wind speed {l} carries an asterisk. The asterisk is ignored and the row is kept. Tick "Drop rows marked with *" to leave it out.',
+    'g.chipsEmpty': 'Densities appear here once the tables are read.',
+    'g.sel': '{n} selected',
+    'g.checksWait': 'Checks appear once the performance data is read.',
+    'g.wait': 'Waiting for data',
+    'g.issues.one': '{n} issue to fix', 'g.issues.other': '{n} issues to fix',
+    'g.ready': 'Ready',
+    'g.readyNotes.one': 'Ready, {n} note', 'g.readyNotes.other': 'Ready, {n} notes',
+    'g.exName': 'Example 4.2 MW', 'g.exSource': 'Synthetic example data',
+    'g.axX': 'Wind speed [m/s]', 'g.axP': 'Power [MW]', 'g.axC': 'Thrust coefficient ct',
+    'ck.sel': '{n} of {N} air densities selected.',
+    'ck.none': 'Select at least one air density.',
+    'ck.name': 'Enter a name for the turbine.',
+    'ck.rotor': 'Enter the rotor diameter.',
+    'ck.rated': 'Enter the rated power.',
+    'ck.height': 'No hub height entered. The file will have no suggested height.',
+    'ck.date': 'No release date entered.',
+    'ck.cut': 'Cut-in speed must be lower than cut-out speed.',
+    'ck.over': 'Power is above the rated power at {n} points, first at {where}.',
+    'ck.ct': 'ct is outside 0 to 1.3 at {n} points, first at {where}.',
+    'ck.drop': 'Power falls with rising density at {n} points on the rising part of the curve, first at {where}. Check that the columns are matched to the right densities.',
+    'ck.good': 'Power stays at or below rated, ct is between 0 and 1.3 and power rises with density below rated.',
+    'ck.xmlBad': 'The generated XML is not well-formed or has the wrong number of tables.',
+    'ck.xmlOk': 'XML is well-formed: {n} density tables with {p} data points each.',
+    'ck.xmlNo': 'XML could not be checked in this browser.',
+    'ck.at': '{v} m/s at {d}', 'ck.at2': '{v} m/s, {d1} to {d2}',
+
+    'e.pPre': 'Power: {m}', 'e.cPre': 'ct: {m}',
+    'e.gridCols': 'Line {n}: expected {e} values after the wind speed, found {f}.',
+    'e.gridNum': 'Line {n}: a value is not a number.',
+    'e.noHeader': 'No header row found. Include the row with the wind speed label and the air densities.',
+    'e.noRows': 'no data rows found.',
+    'e.dupV': 'Wind speed {v} appears twice.',
+    'e.diffV': 'Power and ct tables have different wind speeds{x}.',
+    'e.onlyP': ' (only in power: {l})', 'e.onlyC': ' (only in ct: {l})',
+    'e.densMissCt': 'Density {d} is in the power table but not in the ct table.',
+    'e.densMissP': 'Density {d} is in the ct table but not in the power table.',
+    'e.densDup': 'Density {d} appears twice.',
+    'e.densBad': 'Air density {d} kg/m³ is not plausible. Check the decimal separator setting.',
+    'e.perfCols': 'Line {n}: expected wind speed, power and ct.',
+    'e.fewRows': 'Fewer than 3 data rows found.',
+    'e.cuTooFew': 'Too few columns. Copy the table with its column breaks (from Excel or a PDF table).',
+    'e.cuCont': 'Continuation row without a protected turbine above it.',
+    'e.cuCols': 'Unexpected number of columns before the cut-off column.',
+    'e.cuNone': 'Neither a cut-off (X) nor an operating mode is given.',
+    'w.startAbove': 'Line {n}: start speed is above stop speed, rule ignored.',
+    'w.outside': 'Line {n}: speed range {a} to {b} m/s is outside the performance table, rule ignored.',
+    'v.off': 'cut-off {a}–{b} m/s', 'v.red': 'reduced {mode} {a}–{b} m/s',
+
+    'k.paste': 'Paste the curtailment table to begin.',
+    'k.read': '{n} rules read: {p} curtailed/protected pairs, {c} curtailed turbines.',
+    'k.modes': 'Reduced operating modes found: <strong>{m}</strong>. Add a table for each mode in step 2.',
+    'k.allCut': 'All rules are cut-offs.',
+    'k.noRows': 'No curtailment rows found. Each row ends with the four columns γstart, γstop, vstart and vstop.',
+    'k.lineErr': 'Line {n}: {msg}',
+    'k.moreErr': '{n} more rows could not be read.',
+    'k.skipped.one': '{n} skipped line (headers and text)', 'k.skipped.other': '{n} skipped lines (headers and text)',
+    'k.pPaste': 'Paste the table.', 'k.pNone': 'No numeric rows found.',
+    'k.pOk': '{n} points, {a} to {b} m/s, power read as {u}, highest {x} MW.',
+    'k.remove': 'Remove', 'k.typeName': 'Type name', 'k.rotor': 'Rotor diameter [m]', 'k.hub': 'Hub height [m]',
+    'k.dens': 'Air density [kg/m³]', 'k.control': 'Power regulation', 'k.unit': 'Power unit', 'k.detect': 'Detect automatically',
+    'k.normal': 'Normal operation', 'k.normalHint': '(wind speed, power, ct)', 'k.modeL': 'Reduced mode {m}',
+    'k.tPh': 'Speed [m/s]\tPower [W]\tThrust coefficient\n3.0\t91000\t0.869\n...',
+    'k.typeN': 'Type {n}',
+    'k.assignEmpty': 'Turbines appear here once the curtailment table is read.',
+    'k.roleCP': 'curtailed and protected', 'k.roleC': 'curtailed', 'k.roleP': 'protected', 'k.notNeeded': 'not needed',
+    'k.ariaType': 'Type of {id}', 'k.ariaShort': 'Short name of {id}',
+    'k.rules.one': '{n} rule', 'k.rules.other': '{n} rules', 'x.download': 'Download',
+    'k.pr.add': 'Add a turbine type in step 2.', 'k.pr.need': 'Needs the performance table of {t}.',
+    'k.pr.check': 'Check the performance table of {t}.', 'k.pr.rotor': 'Enter the rotor diameter of {t}.',
+    'k.pr.hub': 'Enter the hub height of {t}.', 'k.pr.dens': 'Enter the air density of {t}.',
+    'k.pr.densBad': 'Air density of {t} is outside 0.5 to 1.6 kg/m³. Check the value.',
+    'k.noCurt': 'No curtailment inside the table range.',
+    'k.needMode': 'Needs the table for mode {m} of {t}.',
+    'k.noteOff': 'A cut-off overrides an operating mode in overlapping rules.',
+    'k.noteMulti': 'Overlapping operating modes: lowest power used.',
+    'k.noteInterp': 'Mode table interpolated to the normal table speeds.',
+    'k.noteClamp': 'Mode table does not cover every speed; end values used.',
+    'k.wFor': '{c} for {p}: {w}', 'k.wSector': '{c} for {p} {s}: {w}',
+    'k.all': 'all',
+    'k.desc': '{c} for {p}, {s} deg, {cut}', 'k.descAll': '{c} for {p}, all directions, {cut}',
+    'k.cmt': 'Curtailed {c}, protects {p}, sector {s} deg. {cut}. Based on the performance table of {t}.',
+    'k.src': 'Curtailment of {t}',
+    'k.stReady': 'Ready', 'k.stReadyNote': 'Ready, check note', 'k.stNone': 'No file', 'k.stNeed': 'Needs data',
+    'k.files.one': '{n} file', 'k.files.other': '{n} files', 'k.needsData': 'needs data',
+    'k.ovWait': 'Waiting for data', 'k.ovNeeds': 'Needs data', 'k.ovPartly': 'Partly ready', 'k.ovReady': 'Ready',
+    'k.sum0': 'Paste the curtailment table and add a performance table to see the files.',
+    'k.sumA': '{np} curtailed/protected pairs give {n} files', 'k.sumB': '; {w} pairs or sectors still need data.',
+    'k.sumC': '{n} table rows could not be read.',
+    'k.dlN.one': 'Download {n} file as ZIP', 'k.dlN.other': 'Download {n} files as ZIP', 'k.dlAll': 'Download all as ZIP',
+    'k.moreNotes': '{n} more notes in the table.',
+    'k.noFile': 'No file selected', 'k.noFiles': 'No files yet.',
+    'k.normalOp': 'Normal operation', 'k.thisFile': 'This file',
+    'k.axX': 'Wind speed [m/s]', 'k.axP': 'Power [MW]', 'k.axC': 'Thrust coefficient ct',
+    'k.exName': 'Example 4.2 MW',
+    'k.exH1': '\tCurtailed WT\tProtected WT\tCurtailments',
+    'k.exH2': 'No.\tNo.\tIdentifier\tNo.\tIdentifier\tCut-off\tOperating mode\tβ\tγstart\tγstop\tvstart\tvstop',
+    'k.exWT': 'WT'
+  };
+
+  /* ---------- German: all strings ---------- */
+  var DE = {
+    /* navigation and shared */
+    'x.navGen': 'WTG-Generator', 'x.navCur': 'Abschaltungs-WTGs',
+    'x.example': 'Synthetisches Beispiel laden', 'x.optional': '(optional)', 'x.auto': 'automatisch',
+    'x.result': 'Ergebnis', 'x.quantity': 'Größe', 'x.tools': 'Werkzeuge', 'x.lang': 'Sprache',
+    'x.dec': 'Dezimaltrennzeichen', 'x.dec.auto': 'Automatisch', 'x.dec.comma': 'Komma (1,225)', 'x.dec.point': 'Punkt (1.225)',
+    'x.dec.hint': 'Wie die Option „Dec. comma accepted“ im WAsP Turbine Editor, hier für die eingefügten Daten. „Automatisch“ erkennt Komma und Punkt selbst. Die gespeicherte .wtg-Datei enthält immer Dezimalpunkte; WAsP zeigt sie je nach Regionseinstellung des Rechners mit Komma oder Punkt an.',
+    'x.power': 'Leistung', 'x.ct': 'ct',
+    /* generator, static */
+    'g.h1': 'WTG-Generator',
+    'g.lede': 'Leistungs- und Schubbeiwert-Tabellen aus der Herstellerunterlage einfügen, Luftdichten auswählen und die Anlagendaten ausfüllen. Das Tool erzeugt eine .wtg-Datei für WAsP / WindPRO und prüft sie vor dem Download.',
+    'g.s1': 'Leistungsdaten',
+    'g.hint1': 'Jede Tabelle mit Kopfzeile aus Excel kopieren: Windgeschwindigkeit in der ersten Spalte, je Luftdichte eine Spalte. Beide Tabellen lassen sich auch gemeinsam einfügen; die zweite wandert dann in das ct-Feld.',
+    'g.power': 'Leistung', 'g.ct': 'Schubbeiwert ct',
+    'g.phPower': 'Windgeschwindigkeit [m/s]\t1,225\t1,200\t1,175\n3,0\t91\t88\t85\n3,5\t243\t237\t231\n...',
+    'g.phCt': 'Windgeschwindigkeit [m/s]\t1,225\t1,200\t1,175\n3,0\t0,869\t0,869\t0,869\n3,5\t0,849\t0,849\t0,849\n...',
+    'g.unitL': 'Leistungseinheit', 'g.unitAuto': 'Automatisch erkennen', 'g.drop': 'Zeilen mit * weglassen',
+    'g.s2': 'Anlage', 'g.name': 'Bezeichnung', 'g.namePh': 'Nordex N163 / 6.X 6,8 MW', 'g.mfr': 'Hersteller',
+    'g.rotor': 'Rotordurchmesser [m]', 'g.heights': 'Nabenhöhe(n) [m]', 'g.control': 'Leistungsregelung',
+    'g.rated': 'Nennleistung [MW]', 'g.cutin': 'Einschaltgeschwindigkeit [m/s]', 'g.cutout': 'Abschaltgeschwindigkeit [m/s]',
+    'g.date': 'Veröffentlichungsdatum', 'g.status': 'Datenstatus', 'g.stat': 'Stationärer ct', 'g.statHint': '(leer = letzter Tabellenwert)',
+    'g.source': 'Datenquelle', 'g.sourceHint': '(wird in jede Tabelle geschrieben)', 'g.sourcePh': 'Herstellerdokument mit Nummer und Revision',
+    'g.comment': 'Kommentar', 'g.commentPh': 'Betriebsmodus, Herkunft von ct, ...',
+    'g.s3': 'Luftdichten', 'g.chipsAria': 'Luftdichten in kg/m³', 'g.all': 'Alle', 'g.none': 'Keine', 'g.std': '1,050 bis 1,250', 'g.stdTitle': '1,050 bis 1,250 kg/m³',
+    'g.from': 'Von', 'g.to': 'Bis', 'g.range': 'Bereich wählen',
+    'g.rCheck': 'Prüfungen und Download', 'g.fname': 'Dateiname', 'g.dl': '.wtg herunterladen',
+    'g.curves': 'Kurven', 'g.curvesAria': 'Leistungs- oder Schubbeiwert-Kurven für die gewählten Luftdichten',
+    'g.inspect': 'Ansehen', 'g.tblSum': 'Datentabelle für eine Luftdichte', 'g.dens': 'Luftdichte [kg/m³]',
+    'g.thV': 'Windgeschwindigkeit [m/s]', 'g.thPMW': 'Leistung [MW]', 'g.thPW': 'Leistung [W]',
+    'g.xmlSum': 'XML-Vorschau (erste Tabelle)',
+    'g.foot': 'Die Datei folgt dem Aufbau vorhandener Nordex-.wtg-Dateien (Format 1.02). Neue Dateien einmal in WAsP oder WindPRO öffnen, um zu prüfen, dass sie geladen werden. Alles läuft im Browser; es wird nichts hochgeladen.',
+    /* curtailment, static */
+    'k.h1': 'Abschaltungs-WTGs',
+    'k.lede': 'Abschaltungstabelle aus einem Turbulenzgutachten einfügen. Für jedes Paar aus abgeschalteter und geschützter WEA entsteht je Windrichtungssektor eine .wtg-Datei, in der Leistung und ct im abgeschalteten Windgeschwindigkeitsbereich auf null (Abschaltung) oder auf einen reduzierten Betriebsmodus gesetzt sind.',
+    'k.s1': 'Abschaltungstabelle',
+    'k.hint1': 'Die Tabelle mit ihren Spaltenumbrüchen aus dem Gutachten kopieren. Kopfzeilen werden übersprungen. Zeilen ohne abgeschaltete WEA am Anfang gehören zur geschützten WEA der Zeile darüber.',
+    'k.ph': 'Nr.\tNr.\tBezeichnung\tNr.\tBezeichnung\tAbschaltung\tBetriebsmodus\tβ [°]\tγstart [°]\tγstop [°]\tvstart [m/s]\tvstop [m/s]\n1\t2\tWEA 2\t1\tWEA 1\tX\t-\t-\t316,1\t348,7\t4,8\t8\n...',
+    'k.s2': 'Anlagentypen', 'k.perTurbine': 'Ein Typ je abgeschalteter WEA',
+    'k.perTurbineTitle': 'Legt für jede abgeschaltete WEA einen nach ihr benannten Typ an und ordnet jede WEA ihrem eigenen Typ zu',
+    'k.addType': 'Typ hinzufügen',
+    'k.hint2': 'Eine Leistungstabelle je Anlagentyp: Windgeschwindigkeit, Leistung und ct in drei Spalten. WEA desselben Modells können sich einen Typ teilen. Ein reduzierter Betriebsmodus braucht für jeden Typ eine eigene Tabelle. Ein neuer Typ übernimmt Rotordurchmesser, Nabenhöhe und Luftdichte vom vorherigen, sodass nur Abweichungen geändert werden müssen.',
+    'k.s3': 'Namen und Typen',
+    'k.hint3': 'Die Kurznamen werden in den Dateinamen verwendet und in diesem Browser gespeichert. Jede abgeschaltete WEA einem Typ zuordnen.',
+    'k.thId': 'Bezeichnung', 'k.thRole': 'Rolle', 'k.thShort': 'Kurzname', 'k.thType': 'Typ',
+    'k.tol': 'Rundungstoleranz [m/s]',
+    'k.tolHint': 'Startgeschwindigkeiten werden auf die nächstniedrigere, Stoppgeschwindigkeiten auf die nächsthöhere Geschwindigkeit der Tabelle gerundet. Eine Toleranz über 0 behandelt eine Tabellengeschwindigkeit in dieser Nähe als gleich, zum Beispiel 7,99 für 8,0.',
+    'k.res': 'Ergebnis', 'k.sel': 'Gewählte Datei', 'k.selAria': 'Normalbetrieb und abgeschaltete Kurve der gewählten Datei',
+    'k.s4': 'Dateien', 'k.thC': 'Abgeschaltet', 'k.thP': 'Geschützt', 'k.thSec': 'Sektor [°]', 'k.thCut': 'Abschaltung', 'k.thFile': 'Dateiname', 'k.thStatus': 'Status',
+    'k.foot': 'Leistung und ct sind in einem abgeschalteten Bereich null und in einem reduzierten Bereich aus der Modustabelle übernommen. Überlappen sich Regeln eines Paares, wird der Kompass an jeder Sektorgrenze geteilt und die Geschwindigkeitsbereiche werden zusammengefasst, sodass immer die stärkere Abschaltung gilt. Neue Dateien einmal in WAsP oder WindPRO öffnen, um zu prüfen, dass sie geladen werden. Alles läuft im Browser; es wird nichts hochgeladen.',
+
+    /* dynamic */
+    'g.title': 'WTG-Generator', 'k.title': 'Abschaltungs-WTGs',
+    'g.paste': 'Zum Start die Leistungstabelle und die ct-Tabelle einfügen.',
+    'g.powerEmpty': 'Die Leistungstabelle ist leer.',
+    'g.ctEmpty': 'Auch die ct-Tabelle einfügen.',
+    'g.read': '{n} Luftdichten ({lo} bis {hi} kg/m³), {m} Windgeschwindigkeiten ({a} bis {b} m/s).',
+    'g.unit': 'Leistung als <strong>{u}</strong> gelesen, höchster Wert {x} MW.',
+    'g.unitHint': ' Bei falscher Erkennung oben die Einheit ändern.',
+    'g.starDrop': 'Mit * markierte Zeilen wurden weggelassen: {l} m/s.',
+    'g.starKeep': 'Die Windgeschwindigkeit {l} trägt ein Sternchen. Das Sternchen wird ignoriert und die Zeile bleibt erhalten. Zum Weglassen „Zeilen mit * weglassen“ ankreuzen.',
+    'g.chipsEmpty': 'Die Luftdichten erscheinen hier, sobald die Tabellen gelesen sind.',
+    'g.sel': '{n} gewählt',
+    'g.checksWait': 'Die Prüfungen erscheinen, sobald die Leistungsdaten gelesen sind.',
+    'g.wait': 'Warte auf Daten',
+    'g.issues.one': '{n} Punkt zu beheben', 'g.issues.other': '{n} Punkte zu beheben',
+    'g.ready': 'Bereit',
+    'g.readyNotes.one': 'Bereit, {n} Hinweis', 'g.readyNotes.other': 'Bereit, {n} Hinweise',
+    'g.exName': 'Beispiel 4,2 MW', 'g.exSource': 'Synthetische Beispieldaten',
+    'g.axX': 'Windgeschwindigkeit [m/s]', 'g.axP': 'Leistung [MW]', 'g.axC': 'Schubbeiwert ct',
+    'ck.sel': '{n} von {N} Luftdichten gewählt.',
+    'ck.none': 'Mindestens eine Luftdichte wählen.',
+    'ck.name': 'Eine Bezeichnung für die Anlage eingeben.',
+    'ck.rotor': 'Den Rotordurchmesser eingeben.',
+    'ck.rated': 'Die Nennleistung eingeben.',
+    'ck.height': 'Keine Nabenhöhe eingegeben. Die Datei enthält dann keine empfohlene Höhe.',
+    'ck.date': 'Kein Veröffentlichungsdatum eingegeben.',
+    'ck.cut': 'Die Einschaltgeschwindigkeit muss kleiner als die Abschaltgeschwindigkeit sein.',
+    'ck.over': 'Die Leistung liegt an {n} Punkten über der Nennleistung, erstmals bei {where}.',
+    'ck.ct': 'ct liegt an {n} Punkten außerhalb von 0 bis 1,3, erstmals bei {where}.',
+    'ck.drop': 'Die Leistung sinkt an {n} Punkten im ansteigenden Kurventeil mit steigender Dichte, erstmals bei {where}. Prüfen, ob die Spalten den richtigen Luftdichten zugeordnet sind.',
+    'ck.good': 'Die Leistung bleibt höchstens auf Nennleistung, ct liegt zwischen 0 und 1,3 und die Leistung steigt unterhalb der Nennleistung mit der Dichte.',
+    'ck.xmlBad': 'Das erzeugte XML ist nicht wohlgeformt oder hat die falsche Anzahl an Tabellen.',
+    'ck.xmlOk': 'XML ist wohlgeformt: {n} Dichtetabellen mit je {p} Datenpunkten.',
+    'ck.xmlNo': 'Das XML konnte in diesem Browser nicht geprüft werden.',
+    'ck.at': '{v} m/s bei {d}', 'ck.at2': '{v} m/s, von {d1} auf {d2}',
+
+    'e.pPre': 'Leistung: {m}', 'e.cPre': 'ct: {m}',
+    'e.gridCols': 'Zeile {n}: Nach der Windgeschwindigkeit werden {e} Werte erwartet, gefunden wurden {f}.',
+    'e.gridNum': 'Zeile {n}: Ein Wert ist keine Zahl.',
+    'e.noHeader': 'Keine Kopfzeile gefunden. Die Zeile mit der Beschriftung der Windgeschwindigkeit und den Luftdichten mitkopieren.',
+    'e.noRows': 'keine Datenzeilen gefunden.',
+    'e.dupV': 'Die Windgeschwindigkeit {v} kommt doppelt vor.',
+    'e.diffV': 'Leistungs- und ct-Tabelle haben unterschiedliche Windgeschwindigkeiten{x}.',
+    'e.onlyP': ' (nur in der Leistungstabelle: {l})', 'e.onlyC': ' (nur in der ct-Tabelle: {l})',
+    'e.densMissCt': 'Die Luftdichte {d} steht in der Leistungstabelle, aber nicht in der ct-Tabelle.',
+    'e.densMissP': 'Die Luftdichte {d} steht in der ct-Tabelle, aber nicht in der Leistungstabelle.',
+    'e.densDup': 'Die Luftdichte {d} kommt doppelt vor.',
+    'e.densBad': 'Die Luftdichte {d} kg/m³ ist unplausibel. Die Einstellung für das Dezimaltrennzeichen prüfen.',
+    'e.perfCols': 'Zeile {n}: Windgeschwindigkeit, Leistung und ct erwartet.',
+    'e.fewRows': 'Weniger als 3 Datenzeilen gefunden.',
+    'e.cuTooFew': 'Zu wenige Spalten. Die Tabelle mit ihren Spaltenumbrüchen kopieren (aus Excel oder einer PDF-Tabelle).',
+    'e.cuCont': 'Folgezeile ohne geschützte WEA darüber.',
+    'e.cuCols': 'Unerwartete Spaltenzahl vor der Abschaltspalte.',
+    'e.cuNone': 'Weder Abschaltung (X) noch Betriebsmodus angegeben.',
+    'w.startAbove': 'Zeile {n}: Die Startgeschwindigkeit liegt über der Stoppgeschwindigkeit, die Regel wird ignoriert.',
+    'w.outside': 'Zeile {n}: Der Geschwindigkeitsbereich {a} bis {b} m/s liegt außerhalb der Leistungstabelle, die Regel wird ignoriert.',
+    'v.off': 'Abschaltung {a}–{b} m/s', 'v.red': 'reduziert {mode} {a}–{b} m/s',
+
+    'k.paste': 'Zum Start die Abschaltungstabelle einfügen.',
+    'k.read': '{n} Regeln gelesen: {p} Paare aus abgeschalteter und geschützter WEA, {c} abgeschaltete WEA.',
+    'k.modes': 'Reduzierte Betriebsmodi gefunden: <strong>{m}</strong>. In Schritt 2 für jeden Modus eine Tabelle hinzufügen.',
+    'k.allCut': 'Alle Regeln sind Abschaltungen.',
+    'k.noRows': 'Keine Abschaltungszeilen gefunden. Jede Zeile endet mit den vier Spalten γstart, γstop, vstart und vstop.',
+    'k.lineErr': 'Zeile {n}: {msg}',
+    'k.moreErr': '{n} weitere Zeilen konnten nicht gelesen werden.',
+    'k.skipped.one': '{n} übersprungene Zeile (Überschriften und Text)', 'k.skipped.other': '{n} übersprungene Zeilen (Überschriften und Text)',
+    'k.pPaste': 'Tabelle einfügen.', 'k.pNone': 'Keine numerischen Zeilen gefunden.',
+    'k.pOk': '{n} Punkte, {a} bis {b} m/s, Leistung als {u} gelesen, höchster Wert {x} MW.',
+    'k.remove': 'Entfernen', 'k.typeName': 'Name des Typs', 'k.rotor': 'Rotordurchmesser [m]', 'k.hub': 'Nabenhöhe [m]',
+    'k.dens': 'Luftdichte [kg/m³]', 'k.control': 'Leistungsregelung', 'k.unit': 'Leistungseinheit', 'k.detect': 'Automatisch erkennen',
+    'k.normal': 'Normalbetrieb', 'k.normalHint': '(Windgeschwindigkeit, Leistung, ct)', 'k.modeL': 'Reduzierter Modus {m}',
+    'k.tPh': 'Geschwindigkeit [m/s]\tLeistung [W]\tSchubbeiwert\n3,0\t91000\t0,869\n...',
+    'k.typeN': 'Typ {n}',
+    'k.assignEmpty': 'Die WEA erscheinen hier, sobald die Abschaltungstabelle gelesen ist.',
+    'k.roleCP': 'abgeschaltet und geschützt', 'k.roleC': 'abgeschaltet', 'k.roleP': 'geschützt', 'k.notNeeded': 'nicht nötig',
+    'k.ariaType': 'Typ von {id}', 'k.ariaShort': 'Kurzname von {id}',
+    'k.rules.one': '{n} Regel', 'k.rules.other': '{n} Regeln', 'x.download': 'Herunterladen',
+    'k.pr.add': 'In Schritt 2 einen Anlagentyp hinzufügen.', 'k.pr.need': 'Es fehlt die Leistungstabelle von {t}.',
+    'k.pr.check': 'Die Leistungstabelle von {t} prüfen.', 'k.pr.rotor': 'Den Rotordurchmesser von {t} eingeben.',
+    'k.pr.hub': 'Die Nabenhöhe von {t} eingeben.', 'k.pr.dens': 'Die Luftdichte von {t} eingeben.',
+    'k.pr.densBad': 'Die Luftdichte von {t} liegt außerhalb von 0,5 bis 1,6 kg/m³. Wert prüfen.',
+    'k.noCurt': 'Keine Abschaltung im Bereich der Tabelle.',
+    'k.needMode': 'Es fehlt die Tabelle für den Modus {m} von {t}.',
+    'k.noteOff': 'Bei überlappenden Regeln hat eine Abschaltung Vorrang vor einem Betriebsmodus.',
+    'k.noteMulti': 'Überlappende Betriebsmodi: Es wird die niedrigste Leistung verwendet.',
+    'k.noteInterp': 'Die Modustabelle wurde auf die Geschwindigkeiten der Normaltabelle interpoliert.',
+    'k.noteClamp': 'Die Modustabelle deckt nicht alle Geschwindigkeiten ab; es werden die Endwerte verwendet.',
+    'k.wFor': '{c} für {p}: {w}', 'k.wSector': '{c} für {p} {s}: {w}',
+    'k.all': 'alle',
+    'k.desc': '{c} für {p}, {s} Grad, {cut}', 'k.descAll': '{c} für {p}, alle Richtungen, {cut}',
+    'k.cmt': 'Abgeschaltet: {c}, schützt {p}, Sektor {s} Grad. {cut}. Basiert auf der Leistungstabelle von {t}.',
+    'k.src': 'Abschaltung von {t}',
+    'k.stReady': 'Bereit', 'k.stReadyNote': 'Bereit, Hinweis prüfen', 'k.stNone': 'Keine Datei', 'k.stNeed': 'Daten fehlen',
+    'k.files.one': '{n} Datei', 'k.files.other': '{n} Dateien', 'k.needsData': 'Daten fehlen',
+    'k.ovWait': 'Warte auf Daten', 'k.ovNeeds': 'Daten fehlen', 'k.ovPartly': 'Teilweise bereit', 'k.ovReady': 'Bereit',
+    'k.sum0': 'Abschaltungstabelle einfügen und eine Leistungstabelle hinzufügen, um die Dateien zu sehen.',
+    'k.sumA': '{np} Paare aus abgeschalteter und geschützter WEA ergeben {n} Dateien', 'k.sumB': '; für {w} Paare oder Sektoren fehlen noch Daten.',
+    'k.sumC': '{n} Tabellenzeilen konnten nicht gelesen werden.',
+    'k.dlN.one': '{n} Datei als ZIP herunterladen', 'k.dlN.other': '{n} Dateien als ZIP herunterladen', 'k.dlAll': 'Alle als ZIP herunterladen',
+    'k.moreNotes': '{n} weitere Hinweise in der Tabelle.',
+    'k.noFile': 'Keine Datei gewählt', 'k.noFiles': 'Noch keine Dateien.',
+    'k.normalOp': 'Normalbetrieb', 'k.thisFile': 'Diese Datei',
+    'k.axX': 'Windgeschwindigkeit [m/s]', 'k.axP': 'Leistung [MW]', 'k.axC': 'Schubbeiwert ct',
+    'k.exName': 'Beispiel 4,2 MW',
+    'k.exH1': '\tAbgeschaltete WEA\tGeschützte WEA\tAbschaltungen',
+    'k.exH2': 'Nr.\tNr.\tBezeichnung\tNr.\tBezeichnung\tAbschaltung\tBetriebsmodus\tβ\tγstart\tγstop\tvstart\tvstop',
+    'k.exWT': 'WEA'
+  };
+
+  var cur = 'en', subs = [];
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function fill(s, p, escape) {
+    return s.replace(/\{(\w+)\}/g, function (m, k) { return p && p[k] != null ? (escape ? esc(p[k]) : String(p[k])) : m; });
+  }
+  function raw(key) {
+    var s = cur === 'de' ? DE[key] : EN[key];
+    if (s == null) s = EN[key];
+    return s == null ? key : s;
+  }
+  function t(key, p) { return fill(raw(key), p, false); }
+  function th(key, p) { return fill(raw(key), p, true); }
+  function tn(key, n, p) { p = p || {}; p.n = n; return t(key + (n === 1 ? '.one' : '.other'), p); }
+  function current() { return cur; }
+  function onChange(fn) { subs.push(fn); }
+
+  function eachEl(sel, fn) {
+    var list = document.querySelectorAll(sel);
+    for (var i = 0; i < list.length; i++) fn(list[i]);
+  }
+  function applyAttr(sel, dataAttr, attr) {
+    eachEl(sel, function (e) {
+      var store = '__en_' + attr;
+      if (e[store] == null) e[store] = e.getAttribute(attr) || '';
+      var s = cur === 'de' ? DE[e.getAttribute(dataAttr)] : null;
+      e.setAttribute(attr, s != null ? s : e[store]);
+    });
+  }
+  function apply() {
+    if (typeof document === 'undefined') return;
+    document.documentElement.setAttribute('lang', cur);
+    eachEl('[data-i]', function (e) {
+      if (e.__en == null) e.__en = e.textContent;
+      var s = cur === 'de' ? DE[e.getAttribute('data-i')] : null;
+      e.textContent = s != null ? s : e.__en;
+    });
+    applyAttr('[data-i-ph]', 'data-i-ph', 'placeholder');
+    applyAttr('[data-i-title]', 'data-i-title', 'title');
+    applyAttr('[data-i-aria]', 'data-i-aria', 'aria-label');
+    eachEl('[data-lang]', function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-lang') === cur ? 'true' : 'false'); });
+  }
+  function detect() {
+    try { var m = /[?&]lang=(en|de)\b/.exec(location.search); if (m) return m[1]; } catch (e) { /* no location */ }
+    try { var s = localStorage.getItem('boreas.lang'); if (s === 'en' || s === 'de') return s; } catch (e) { /* storage blocked */ }
+    var n = (typeof navigator !== 'undefined' && navigator.language) || '';
+    return /^de/i.test(n) ? 'de' : 'en';
+  }
+  function setLang(l) {
+    if (l !== 'en' && l !== 'de') return;
+    cur = l;
+    try { localStorage.setItem('boreas.lang', l); } catch (e) { /* storage blocked */ }
+    apply();
+    subs.forEach(function (fn) { fn(l); });
+  }
+  function init() {
+    cur = detect();
+    eachEl('[data-lang]', function (b) { b.addEventListener('click', function () { setLang(b.getAttribute('data-lang')); }); });
+    apply();
+  }
+
+  return { t: t, th: th, tn: tn, current: current, onChange: onChange, init: init, apply: apply, setLang: setLang, dict: { en: EN, de: DE }, esc: esc };
+});
+
+</script>
+<script>
+/* BOREAS WTG core: parsing, WTG writer, curtailment logic, zip, chart. No dependencies. */
+(function (root, factory) {
+  var I = null;
+  try { I = (typeof module === 'object' && module.exports && typeof require === 'function') ? require('./i18n.js') : root.I18N; } catch (e) { I = root.I18N || null; }
+  var api = factory(I);
+  if (typeof module === 'object' && module.exports) module.exports = api; else root.WTG = api;
+})(typeof self !== 'undefined' ? self : this, function (I18N) {
+  'use strict';
   var EPS = 1e-6;
+  function T(k, p) { return I18N ? I18N.t(k, p) : k; }
+  var decMode = 'auto';
+  function setDecimal(m) { decMode = (m === 'comma' || m === 'point') ? m : 'auto'; }
 
   /* ---------- number helpers ---------- */
-  function num(x) {
+  /* Decimal separator handling. mode: 'auto' | 'comma' | 'point'.
+     auto: with both separators present the last one is the decimal separator; a single separator is a decimal separator,
+     repeated separators in groups of three are thousands separators.
+     comma / point: that character is the decimal separator and the other one a thousands separator when it sits in groups
+     of three (not after a leading zero); otherwise it is read as a decimal separator after all. */
+  function normMant(m, mode) {
+    var nd = (m.match(/\./g) || []).length, nc = (m.match(/,/g) || []).length;
+    if (!nd && !nc) return m;
+    var dec = null, thou;
+    if (nd && nc) { dec = m.lastIndexOf(',') > m.lastIndexOf('.') ? ',' : '.'; thou = dec === ',' ? '.' : ','; }
+    else {
+      var ch = nd ? '.' : ',', n = nd || nc;
+      var grp = ch === '.' ? /^[1-9]\d{0,2}(?:\.\d{3})+$/ : /^[1-9]\d{0,2}(?:,\d{3})+$/;
+      if (n > 1) { if (!grp.test(m)) return null; dec = null; }
+      else if (mode === 'comma') dec = ch === ',' ? ',' : (grp.test(m) ? null : '.');
+      else if (mode === 'point') dec = ch === '.' ? '.' : (grp.test(m) ? null : ',');
+      else dec = ch;
+      thou = dec ? null : ch;
+    }
+    var out = thou ? m.split(thou).join('') : m;
+    if (dec && dec !== '.') out = out.replace(dec, '.');
+    return /^(?:\d+\.?\d*|\.\d+)$/.test(out) ? out : null;
+  }
+  function num(x, mode) {
     if (typeof x === 'number') return x;
-    var s = String(x == null ? '' : x).replace(/[*†‡]+/g, '').replace(/−/g, '-').trim();
+    var s = String(x == null ? '' : x).replace(/[*\u2020\u2021]+/g, '').replace(/\u2212/g, '-').trim();
     if (!s) return NaN;
-    if (/^-?\d{1,3}(\.\d{3})+,\d+$/.test(s)) s = s.replace(/\./g, '').replace(',', '.');
-    else s = s.replace(',', '.');
-    return /^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(s) ? parseFloat(s) : NaN;
+    var em = /^([-+]?)([\d.,]+)([eE][-+]?\d+)?$/.exec(s);
+    if (!em) return NaN;
+    var mant = normMant(em[2], mode || decMode);
+    if (mant == null) return NaN;
+    var v = parseFloat(em[1] + mant + (em[3] || ''));
+    return isFinite(v) ? v : NaN;
   }
   function fmt(n, d) {
     d = d == null ? 6 : d;
@@ -299,6 +683,9 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
     var s = (+n.toFixed(d)).toString();
     return /e/i.test(s) ? n.toFixed(d).replace(/\.?0+$/, '') : s;
   }
+  /* display formatting follows the page language; file output always uses fmt (decimal point) */
+  function nf(n, d) { var s = fmt(n, d); return I18N && I18N.current() === 'de' ? s.replace('.', ',') : s; }
+  function nfix(n, d) { var s = Number(n).toFixed(d); return I18N && I18N.current() === 'de' ? s.replace('.', ',') : s; }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function escText(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function unesc(s) { return s.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'); }
@@ -346,49 +733,50 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
       var starred = /\*/.test(ln.trim().split(/[\s;]+/)[0]);
       var vals = tok.slice(1).map(num);
       if (vals.length !== out.densities.length) {
-        out.errors.push('Line ' + (i + 1) + ': expected ' + out.densities.length + ' values after the wind speed, found ' + vals.length + '.');
+        out.errors.push(T('e.gridCols', { n: i + 1, e: out.densities.length, f: vals.length }));
         return;
       }
-      if (vals.some(isNaN)) { out.errors.push('Line ' + (i + 1) + ': a value is not a number.'); return; }
+      if (vals.some(isNaN)) { out.errors.push(T('e.gridNum', { n: i + 1 })); return; }
       out.rows.push({ v: num(tok[0]), vals: vals, starred: starred });
     });
-    if (!started && text.trim()) out.errors.push('No header row found. Include the row with the wind speed label and the air densities.');
+    if (!started && text.trim()) out.errors.push(T('e.noHeader'));
     return out;
   }
   function sameNum(a, b) { return Math.abs(a - b) < EPS; }
   function buildModel(pg, cg, opts) {
     opts = opts || {};
     var res = { ok: false, errors: [], warnings: [], starred: [], tables: [], densities: [], speeds: [], unit: null, maxP: 0 };
-    pg.errors.forEach(function (e) { res.errors.push('Power: ' + e); });
-    cg.errors.forEach(function (e) { res.errors.push('ct: ' + e); });
-    if (!pg.rows.length && !pg.errors.length) res.errors.push('Power: no data rows found.');
-    if (!cg.rows.length && !cg.errors.length) res.errors.push('ct: no data rows found.');
+    pg.errors.forEach(function (e) { res.errors.push(T('e.pPre', { m: e })); });
+    cg.errors.forEach(function (e) { res.errors.push(T('e.cPre', { m: e })); });
+    if (!pg.rows.length && !pg.errors.length) res.errors.push(T('e.pPre', { m: T('e.noRows') }));
+    if (!cg.rows.length && !cg.errors.length) res.errors.push(T('e.cPre', { m: T('e.noRows') }));
     if (res.errors.length) return res;
     var prow = pg.rows, crow = cg.rows;
     prow.concat(crow).forEach(function (r) { if (r.starred && res.starred.indexOf(r.v) < 0) res.starred.push(r.v); });
     if (opts.dropStarred) { prow = prow.filter(function (r) { return !r.starred; }); crow = crow.filter(function (r) { return !r.starred; }); }
     prow = prow.slice().sort(function (a, b) { return a.v - b.v; });
     crow = crow.slice().sort(function (a, b) { return a.v - b.v; });
-    for (var i = 1; i < prow.length; i++) if (sameNum(prow[i].v, prow[i - 1].v)) res.errors.push('Power: wind speed ' + fmt(prow[i].v) + ' appears twice.');
+    for (var i = 1; i < prow.length; i++) if (sameNum(prow[i].v, prow[i - 1].v)) res.errors.push(T('e.pPre', { m: T('e.dupV', { v: nf(prow[i].v) }) }));
     if (prow.length !== crow.length || prow.some(function (r, k) { return !sameNum(r.v, crow[k].v); })) {
       var ps = prow.map(function (r) { return r.v; }), cs = crow.map(function (r) { return r.v; });
       var onlyP = ps.filter(function (v) { return !cs.some(function (c) { return sameNum(c, v); }); });
       var onlyC = cs.filter(function (v) { return !ps.some(function (p) { return sameNum(p, v); }); });
-      res.errors.push('Power and ct tables have different wind speeds' + (onlyP.length ? ' (only in power: ' + onlyP.join(', ') + ')' : '') + (onlyC.length ? ' (only in ct: ' + onlyC.join(', ') + ')' : '') + '.');
+      res.errors.push(T('e.diffV', { x: (onlyP.length ? T('e.onlyP', { l: onlyP.map(function (v) { return nf(v); }).join(', ') }) : '') + (onlyC.length ? T('e.onlyC', { l: onlyC.map(function (v) { return nf(v); }).join(', ') }) : '') }));
     }
     var map = [];
     pg.densities.forEach(function (d, k) {
       var j = -1;
       cg.densities.forEach(function (e, m) { if (sameNum(d, e)) j = m; });
-      if (j < 0) res.errors.push('Density ' + fmt(d) + ' is in the power table but not in the ct table.');
+      if (j < 0) res.errors.push(T('e.densMissCt', { d: nf(d) }));
       map.push(j);
     });
     cg.densities.forEach(function (e) {
-      if (!pg.densities.some(function (d) { return sameNum(d, e); })) res.errors.push('Density ' + fmt(e) + ' is in the ct table but not in the power table.');
+      if (!pg.densities.some(function (d) { return sameNum(d, e); })) res.errors.push(T('e.densMissP', { d: nf(e) }));
     });
     pg.densities.forEach(function (d, k) {
-      if (pg.densities.some(function (o, m) { return m !== k && sameNum(o, d); })) res.errors.push('Density ' + fmt(d) + ' appears twice.');
+      if (pg.densities.some(function (o, m) { return m !== k && sameNum(o, d); })) res.errors.push(T('e.densDup', { d: nf(d) }));
     });
+    pg.densities.forEach(function (d) { if (d < 0.5 || d > 1.6) res.errors.push(T('e.densBad', { d: nf(d) })); });
     if (res.errors.length) return res;
     var maxP = 0;
     prow.forEach(function (r) { r.vals.forEach(function (x) { if (x > maxP) maxP = x; }); });
@@ -418,20 +806,20 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
       var tok = tokens(ln);
       if (isNaN(num(tok[0]))) return;
       var n = tok.map(num);
-      if (n.length < 3 || isNaN(n[0]) || isNaN(n[1]) || isNaN(n[2])) { out.errors.push('Line ' + (i + 1) + ': expected wind speed, power and ct.'); return; }
+      if (n.length < 3 || isNaN(n[0]) || isNaN(n[1]) || isNaN(n[2])) { out.errors.push(T('e.perfCols', { n: i + 1 })); return; }
       var starred = /\*/.test(ln.trim().split(/[\s;]+/)[0]);
       if (starred) out.starred.push(n[0]);
       if (starred && opts.dropStarred) return;
       raw.push({ v: n[0], praw: n[1], ct: n[2] });
     });
     raw.sort(function (a, b) { return a.v - b.v; });
-    for (var i = 1; i < raw.length; i++) if (sameNum(raw[i].v, raw[i - 1].v)) out.errors.push('Wind speed ' + fmt(raw[i].v) + ' appears twice.');
+    for (var i = 1; i < raw.length; i++) if (sameNum(raw[i].v, raw[i - 1].v)) out.errors.push(T('e.dupV', { v: nf(raw[i].v) }));
     var maxP = 0; raw.forEach(function (r) { if (r.praw > maxP) maxP = r.praw; });
     var unit = (!opts.unit || opts.unit === 'auto') ? detectUnit(maxP) : opts.unit;
     var f = unitFactor(unit);
     out.unit = unit;
     out.points = raw.map(function (r) { return { v: r.v, p: Math.round(r.praw * f), ct: r.ct }; });
-    if (out.points.length && out.points.length < 3) out.errors.push('Fewer than 3 data rows found.');
+    if (out.points.length && out.points.length < 3) out.errors.push(T('e.fewRows'));
     return out;
   }
 
@@ -489,8 +877,8 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
   }
   function vTok(s) {
     var t = String(s).trim().toLowerCase().replace(/\s+/g, '');
-    if (/^v-?in$/.test(t)) return 'in';
-    if (/^v-?out$/.test(t)) return 'out';
+    if (/^v-?(in|ein)$/.test(t)) return 'in';
+    if (/^v-?(out|aus)$/.test(t)) return 'out';
     var n = num(s);
     return isNaN(n) ? null : n;
   }
@@ -508,20 +896,20 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
       var isData = N >= 4 && !isNaN(gs) && !isNaN(ge) && vs !== null && ve !== null;
       if (!isData) { out.ignored.push(raw.trim()); return; }
       var line = idx + 1;
-      if (N < 9) { out.errors.push({ line: line, text: raw.trim(), msg: 'Too few columns. Copy the table with its column breaks (from Excel or a PDF table).' }); return; }
+      if (N < 9) { out.errors.push({ line: line, text: raw.trim(), msg: T('e.cuTooFew') }); return; }
       var cut = cells[N - 7], mode = cells[N - 6];
       var left = cells.slice(0, N - 7), group, c, p;
       if (left.length === 5) { group = left[0]; c = { no: left[1], id: left[2] }; p = { no: left[3], id: left[4] }; lastP = p; lastGroup = group; }
       else if (left.length === 4) { group = ''; c = { no: left[0], id: left[1] }; p = { no: left[2], id: left[3] }; lastP = p; lastGroup = group; }
       else if (left.length === 2) {
-        if (!lastP) { out.errors.push({ line: line, text: raw.trim(), msg: 'Continuation row without a protected turbine above it.' }); return; }
+        if (!lastP) { out.errors.push({ line: line, text: raw.trim(), msg: T('e.cuCont') }); return; }
         group = lastGroup; c = { no: left[0], id: left[1] }; p = lastP;
-      } else { out.errors.push({ line: line, text: raw.trim(), msg: 'Unexpected number of columns before the cut-off column.' }); return; }
+      } else { out.errors.push({ line: line, text: raw.trim(), msg: T('e.cuCols') }); return; }
       var dash = /^[-–—]?$/;
       var kind, modeName = '';
       if (cut.toUpperCase() === 'X') kind = 'off';
       else if (!dash.test(mode)) { kind = 'reduced'; modeName = mode; if (out.modes.indexOf(mode) < 0) out.modes.push(mode); }
-      else { out.errors.push({ line: line, text: raw.trim(), msg: 'Neither a cut-off (X) nor an operating mode is given.' }); return; }
+      else { out.errors.push({ line: line, text: raw.trim(), msg: T('e.cuNone') }); return; }
       out.rules.push({ line: line, group: group, c: c, p: p, kind: kind, mode: modeName, gs: gs, ge: ge, vs: vs, ve: ve });
     });
     return out;
@@ -539,16 +927,16 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
     if (ve !== 'out') { hi = -1; for (i = 0; i < n; i++) if (grid[i] >= ve - tol) { hi = i; break; } if (hi < 0) hi = n - 1; }
     return [lo, hi];
   }
-  function showV(v) { return v === 'in' ? 'v-in' : v === 'out' ? 'v-out' : fmt(v, 2); }
+  function showV(v) { return v === 'in' ? 'v-in' : v === 'out' ? 'v-out' : nf(v, 2); }
 
   /* Splits the compass at every sector boundary and merges equal neighbours.
      rules: parsed rules of ONE curtailed/protected pair. grid: wind speeds of the curtailed turbine's table. */
   function buildVariants(rules, grid, tol) {
     var n = grid.length, items = [], warnings = [];
     rules.forEach(function (r) {
-      if (r.vs !== 'in' && r.ve !== 'out' && r.vs > r.ve) { warnings.push('Line ' + r.line + ': start speed is above stop speed, rule ignored.'); return; }
+      if (r.vs !== 'in' && r.ve !== 'out' && r.vs > r.ve) { warnings.push(T('w.startAbove', { n: r.line })); return; }
       var rg = idxRange(grid, r.vs, r.ve, tol);
-      if (!rg) { warnings.push('Line ' + r.line + ': speed range ' + showV(r.vs) + ' to ' + showV(r.ve) + ' m/s is outside the performance table, rule ignored.'); return; }
+      if (!rg) { warnings.push(T('w.outside', { n: r.line, a: showV(r.vs), b: showV(r.ve) })); return; }
       var full = Math.abs(r.ge - r.gs) >= 360 - EPS || norm360(r.gs) === norm360(r.ge);
       items.push({ kind: r.kind, mode: r.mode, lo: rg[0], hi: rg[1], gs: norm360(r.gs), ge: norm360(r.ge), full: full });
     });
@@ -607,16 +995,17 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
     return (Math.round(v.start) % 360) + '-' + (Math.round(v.end) % 360);
   }
   function variantLabel(v, grid, multiMode) {
-    var parts = [], text = [];
-    var byKind = {};
+    var parts = [], text = [], byKind = {};
     runs(v.st).forEach(function (r) {
-      var key = r.s === 'OFF' ? 'off' : (multiMode ? 'red-' + safeName(r.s.slice(2).replace(/\|/g, '+')) : 'red');
-      var rng = fmt(grid[r.lo], 2) + '-' + fmt(grid[r.hi], 2);
-      (byKind[key] = byKind[key] || []).push(rng);
-      text.push((r.s === 'OFF' ? 'cut-off ' : 'reduced ' + r.s.slice(2).replace(/\|/g, '/') + ' ') + fmt(grid[r.lo], 2) + '–' + fmt(grid[r.hi], 2) + ' m/s');
+      var off = r.s === 'OFF', mode = off ? '' : r.s.slice(2).replace(/\|/g, '/');
+      var key = off ? 'off' : (multiMode ? 'red-' + safeName(r.s.slice(2).replace(/\|/g, '+')) : 'red');
+      (byKind[key] = byKind[key] || []).push(fmt(grid[r.lo], 2) + '-' + fmt(grid[r.hi], 2));
+      text.push(T(off ? 'v.off' : 'v.red', { mode: mode, a: nf(grid[r.lo], 2), b: nf(grid[r.hi], 2) }));
+      parts.push({ kind: off ? 'off' : 'red', mode: mode, lo: grid[r.lo], hi: grid[r.hi] });
     });
-    Object.keys(byKind).forEach(function (k) { parts.push(k + '_' + byKind[k].join('+')); });
-    return { file: parts.join('_'), text: text.join(', ') };
+    var files = [];
+    Object.keys(byKind).forEach(function (k) { files.push(k + '_' + byKind[k].join('+')); });
+    return { file: files.join('_'), text: text.join(', '), parts: parts };
   }
   function interpAt(pts, v) {
     var n = pts.length, i;
@@ -700,6 +1089,7 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
   }
   function chart(svg, series, o) {
     o = o || {};
+    var nfn = o.fmt || fmt;
     var W = 640, H = 300, m = { l: 54, r: 14, t: 12, b: 42 };
     var xs = [], ys = [];
     series.forEach(function (s) { s.points.forEach(function (p) { xs.push(p[0]); ys.push(p[1]); }); });
@@ -710,8 +1100,8 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
     var X = function (v) { return m.l + (v - xmin) / (xmax - xmin || 1) * (W - m.l - m.r); };
     var Y = function (v) { return H - m.b - v / ymax * (H - m.t - m.b); };
     var s = '';
-    yt.forEach(function (v) { s += '<line class="gl" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text class="tk" x="' + (m.l - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + fmt(v, 3) + '</text>'; });
-    xt.forEach(function (v) { s += '<text class="tk" x="' + X(v) + '" y="' + (H - m.b + 16) + '" text-anchor="middle">' + fmt(v, 2) + '</text>'; });
+    yt.forEach(function (v) { s += '<line class="gl" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text class="tk" x="' + (m.l - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + nfn(v, 3) + '</text>'; });
+    xt.forEach(function (v) { s += '<text class="tk" x="' + X(v) + '" y="' + (H - m.b + 16) + '" text-anchor="middle">' + nfn(v, 2) + '</text>'; });
     s += '<line class="axl" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + Y(0) + '" y2="' + Y(0) + '"/>';
     s += '<text class="axt" x="' + ((m.l + W - m.r) / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + escText(o.xlabel || '') + '</text>';
     s += '<text class="axt" transform="translate(13 ' + ((m.t + H - m.b) / 2) + ') rotate(-90)" text-anchor="middle">' + escText(o.ylabel || '') + '</text>';
@@ -729,7 +1119,7 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
   }
 
   return {
-    EPS: EPS, num: num, fmt: fmt, esc: esc, detectUnit: detectUnit, unitFactor: unitFactor, safeName: safeName,
+    EPS: EPS, num: num, setDecimal: setDecimal, fmt: fmt, nf: nf, nfix: nfix, esc: esc, detectUnit: detectUnit, unitFactor: unitFactor, safeName: safeName,
     splitBlocks: splitBlocks, parseGrid: parseGrid, buildModel: buildModel, parsePerf: parsePerf,
     writeWTG: writeWTG, parseWTG: parseWTG, parseCurtailments: parseCurtailments,
     idxRange: idxRange, buildVariants: buildVariants, variantLabel: variantLabel, sectorLabel: sectorLabel,
@@ -742,20 +1132,34 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var F = WTG.fmt;
+  I18N.init();
+  var L = I18N.t, LH = I18N.th, LN = I18N.tn;
+  var F = WTG.nf, key = function (d) { return WTG.fmt(d, 4); };
+  var N = function (s) { return WTG.num(s, 'auto'); };
   var el = {};
-  ['power', 'ct', 'unit', 'dropStar', 'dataMsg', 'desc', 'mfr', 'rotor', 'heights', 'control', 'rated', 'ratedNote', 'cutin', 'cutout', 'date', 'status', 'stat', 'source', 'comment',
+  ['power', 'ct', 'dec', 'unit', 'dropStar', 'dataMsg', 'desc', 'mfr', 'rotor', 'heights', 'control', 'rated', 'ratedNote', 'cutin', 'cutout', 'date', 'status', 'stat', 'source', 'comment',
     'chips', 'selCount', 'selAll', 'selNone', 'selStd', 'rFrom', 'rTo', 'selRange', 'overall', 'checks', 'fname', 'download', 'chart', 'legend', 'lgLo', 'lgHi', 'cvP', 'cvC',
     'tblDens', 'tblBody', 'xml', 'example'].forEach(function (id) { el[id] = $(id); });
 
-  var model = null, selected = {}, keyList = '', dirty = {}, chartKind = 'P', current = null;
-  var key = function (d) { return F(d, 4); };
+  var model = null, selected = {}, keyList = '', dirty = {}, chartKind = 'P';
 
   function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   el.date.value = today();
-
-  function msg(level, html) { return '<div class="msg ' + level + '"><span class="dot"></span><div>' + html + '</div></div>'; }
   function esc(s) { return WTG.esc(s); }
+  function msg(level, html) { return '<div class="msg ' + level + '"><span class="dot"></span><div>' + html + '</div></div>'; }
+  function msgT(level, k, p) { return msg(level, LH(k, p)); }
+
+  /* hub heights: separated by ; or spaces or ", "; a comma inside a number such as 118,5 is a decimal comma */
+  function listNums(str) {
+    var out = [];
+    String(str).split(/[;\s]+/).forEach(function (chunk) {
+      chunk = chunk.replace(/,+$/, '');
+      if (!chunk) return;
+      if (/^\d+,\d{1,2}$/.test(chunk)) { var v = N(chunk); if (!isNaN(v)) out.push(v); return; }
+      chunk.split(',').forEach(function (p) { var v = N(p); if (p && !isNaN(v)) out.push(v); });
+    });
+    return out;
+  }
 
   /* ---------- reading the pasted tables ---------- */
   function readData() {
@@ -765,15 +1169,20 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
       if (b.length >= 2) { el.power.value = pt = b[0]; el.ct.value = ct = b.slice(1).join('\n'); }
     }
     var out = { model: null, html: '' };
-    if (!pt.trim() && !ct.trim()) { out.html = msg('', 'Paste the power table and the ct table to begin.'); return out; }
-    if (!pt.trim()) { out.html = msg('warn', 'The power table is empty.'); return out; }
-    if (!ct.trim()) { out.html = msg('warn', 'Paste the ct table as well.'); return out; }
+    if (!pt.trim() && !ct.trim()) { out.html = msgT('', 'g.paste'); return out; }
+    if (!pt.trim()) { out.html = msgT('warn', 'g.powerEmpty'); return out; }
+    if (!ct.trim()) { out.html = msgT('warn', 'g.ctEmpty'); return out; }
     var m = WTG.buildModel(WTG.parseGrid(pt), WTG.parseGrid(ct), { unit: el.unit.value, dropStarred: el.dropStar.checked });
     if (!m.ok) { out.html = m.errors.slice(0, 6).map(function (e) { return msg('err', esc(e)); }).join(''); return out; }
     out.model = m;
-    var h = msg('ok', m.densities.length + ' air densities (' + F(m.densities[0], 3) + ' to ' + F(m.densities[m.densities.length - 1], 3) + ' kg/m³), ' + m.speeds.length + ' wind speeds (' + F(m.speeds[0], 2) + ' to ' + F(m.speeds[m.speeds.length - 1], 2) + ' m/s).');
-    h += msg('', 'Power read as <strong>' + m.unit + '</strong>, highest value ' + F(m.maxP / 1e6, 3) + ' MW.' + (el.unit.value === 'auto' ? ' Change the unit above if this is wrong.' : ''));
-    if (m.starred.length) h += msg('warn', el.dropStar.checked ? 'Rows marked * were dropped: ' + m.starred.join(', ') + ' m/s.' : 'Wind speed ' + m.starred.map(function (v) { return F(v, 2) + '*'; }).join(', ') + ' carries an asterisk. The asterisk is ignored and the row is kept. Tick "Drop rows marked with *" to leave it out.');
+    var last = m.densities.length - 1, sl = m.speeds.length - 1;
+    var h = msgT('ok', 'g.read', { n: m.densities.length, lo: F(m.densities[0], 3), hi: F(m.densities[last], 3), m: m.speeds.length, a: F(m.speeds[0], 2), b: F(m.speeds[sl], 2) });
+    h += msg('', LH('g.unit', { u: m.unit, x: F(m.maxP / 1e6, 3) }) + (el.unit.value === 'auto' ? LH('g.unitHint') : ''));
+    if (m.starred.length) {
+      h += el.dropStar.checked
+        ? msgT('warn', 'g.starDrop', { l: m.starred.map(function (v) { return F(v, 2); }).join(', ') })
+        : msgT('warn', 'g.starKeep', { l: m.starred.map(function (v) { return F(v, 2) + '*'; }).join(', ') });
+    }
     out.html = h;
     return out;
   }
@@ -785,12 +1194,12 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
     return sel;
   }
   function renderChips() {
-    if (!model) { el.chips.innerHTML = '<span class="hint">Densities appear here once the tables are read.</span>'; el.tblDens.innerHTML = ''; return; }
+    if (!model) { el.chips.innerHTML = '<span class="hint">' + esc(L('g.chipsEmpty')) + '</span>'; el.tblDens.innerHTML = ''; return; }
     el.chips.innerHTML = model.densities.map(function (d) {
       var k = key(d);
-      return '<label class="chip"><input type="checkbox" data-k="' + k + '"' + (selected[k] ? ' checked' : '') + '><span>' + d.toFixed(3) + '</span></label>';
+      return '<label class="chip"><input type="checkbox" data-k="' + k + '"' + (selected[k] ? ' checked' : '') + '><span>' + WTG.nfix(d, 3) + '</span></label>';
     }).join('');
-    el.tblDens.innerHTML = model.densities.map(function (d) { return '<option value="' + key(d) + '">' + F(d, 3) + '</option>'; }).join('');
+    el.tblDens.innerHTML = model.densities.map(function (d) { return '<option value="' + key(d) + '">' + WTG.nfix(d, 3) + '</option>'; }).join('');
     var firstSel = model.densities.filter(function (d) { return selected[key(d)]; })[0];
     el.tblDens.value = key(firstSel != null ? firstSel : model.densities[0]);
   }
@@ -801,7 +1210,7 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
   el.selStd.onclick = function () { if (model) setSel(function (d) { return d >= 1.05 - 1e-9 && d <= 1.25 + 1e-9; }); };
   el.selRange.onclick = function () {
     if (!model) return;
-    var a = WTG.num(el.rFrom.value), b = WTG.num(el.rTo.value);
+    var a = N(el.rFrom.value), b = N(el.rTo.value);
     if (isNaN(a)) a = -Infinity; if (isNaN(b)) b = Infinity;
     setSel(function (d) { return d >= a - 1e-9 && d <= b + 1e-9; });
   };
@@ -813,19 +1222,18 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
 
   function autoFill() {
     if (!model) return;
-    if (!dirty.rated) { el.rated.value = F(model.maxP / 1e6, 4); el.ratedNote.textContent = 'auto'; }
+    if (!dirty.rated) { el.rated.value = F(model.maxP / 1e6, 4); el.ratedNote.textContent = L('x.auto'); }
     if (!dirty.cutin) el.cutin.value = F(model.speeds[0], 3);
     if (!dirty.cutout) el.cutout.value = F(model.speeds[model.speeds.length - 1], 3);
   }
 
   function buildSpec() {
     var sel = model ? model.tables.filter(function (t) { return selected[key(t.density)]; }) : [];
-    var cutin = WTG.num(el.cutin.value), cutout = WTG.num(el.cutout.value), stat = WTG.num(el.stat.value);
-    var heights = el.heights.value.split(/[\s,;]+/).filter(Boolean).map(WTG.num).filter(function (x) { return !isNaN(x); });
+    var cutin = N(el.cutin.value), cutout = N(el.cutout.value), stat = N(el.stat.value);
     return {
       description: el.desc.value.trim(), manufacturer: el.mfr.value.trim(), referenceURI: '',
-      rotorDiameter: WTG.num(el.rotor.value), controlSystem: el.control.value.trim() || 'Pitch',
-      ratedPower: Math.round(WTG.num(el.rated.value) * 1e6), comments: el.comment.value.trim(), heights: heights,
+      rotorDiameter: N(el.rotor.value), controlSystem: el.control.value.trim() || 'Pitch',
+      ratedPower: Math.round(N(el.rated.value) * 1e6), comments: el.comment.value.trim(), heights: listNums(el.heights.value),
       cutin: cutin, cutout: cutout,
       tables: sel.map(function (t) {
         return {
@@ -841,15 +1249,14 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
   function runChecks(spec) {
     var c = [];
     var add = function (l, t) { c.push({ l: l, t: t }); };
-    var N = model.densities.length, n = spec.tables.length;
-    if (!n) add('err', 'Select at least one air density.');
-    else add('ok', n + ' of ' + N + ' air densities selected.');
-    if (!spec.description) add('err', 'Enter a name for the turbine.');
-    if (!(spec.rotorDiameter > 0)) add('err', 'Enter the rotor diameter.');
-    if (!(spec.ratedPower > 0)) add('err', 'Enter the rated power.');
-    if (!spec.heights.length) add('warn', 'No hub height entered. The file will have no suggested height.');
-    if (!el.date.value) add('warn', 'No release date entered.');
-    if (!(spec.cutin < spec.cutout)) add('err', 'Cut-in speed must be lower than cut-out speed.');
+    var N0 = model.densities.length, n = spec.tables.length;
+    if (!n) add('err', L('ck.none')); else add('ok', L('ck.sel', { n: n, N: N0 }));
+    if (!spec.description) add('err', L('ck.name'));
+    if (!(spec.rotorDiameter > 0)) add('err', L('ck.rotor'));
+    if (!(spec.ratedPower > 0)) add('err', L('ck.rated'));
+    if (!spec.heights.length) add('warn', L('ck.height'));
+    if (!el.date.value) add('warn', L('ck.date'));
+    if (!(spec.cutin < spec.cutout)) add('err', L('ck.cut'));
     if (n) {
       var over = [], badCt = [], drops = [], rampEnd = Infinity;
       /* density check only on the rising part of the curve, before any table reaches 97 % of rated power */
@@ -859,26 +1266,26 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
       });
       spec.tables.forEach(function (t, k) {
         t.points.forEach(function (p, i) {
-          if (spec.ratedPower > 0 && p.p > spec.ratedPower * 1.005) over.push(F(p.v, 2) + ' m/s at ' + F(t.airDensity, 3));
-          if (p.ct < 0 || p.ct > 1.3) badCt.push(F(p.v, 2) + ' m/s at ' + F(t.airDensity, 3));
+          if (spec.ratedPower > 0 && p.p > spec.ratedPower * 1.005) over.push(L('ck.at', { v: F(p.v, 2), d: F(t.airDensity, 3) }));
+          if (p.ct < 0 || p.ct > 1.3) badCt.push(L('ck.at', { v: F(p.v, 2), d: F(t.airDensity, 3) }));
           if (k > 0 && p.v < rampEnd) {
             var q = spec.tables[k - 1].points[i];
-            if (p.p < q.p - 0.002 * spec.ratedPower) drops.push(F(p.v, 2) + ' m/s, ' + F(spec.tables[k - 1].airDensity, 3) + ' to ' + F(t.airDensity, 3));
+            if (p.p < q.p - 0.002 * spec.ratedPower) drops.push(L('ck.at2', { v: F(p.v, 2), d1: F(spec.tables[k - 1].airDensity, 3), d2: F(t.airDensity, 3) }));
           }
         });
       });
-      if (over.length) add('warn', 'Power is above the rated power at ' + over.length + ' points, first at ' + over[0] + '.');
-      if (badCt.length) add('warn', 'ct is outside 0 to 1.3 at ' + badCt.length + ' points, first at ' + badCt[0] + '.');
-      if (drops.length) add('warn', 'Power falls with rising density at ' + drops.length + ' points on the rising part of the curve, first at ' + drops[0] + '. Check that the columns are matched to the right densities.');
-      if (!over.length && !badCt.length && !drops.length) add('ok', 'Power stays at or below rated, ct is between 0 and 1.3 and power rises with density below rated.');
+      if (over.length) add('warn', L('ck.over', { n: over.length, where: over[0] }));
+      if (badCt.length) add('warn', L('ck.ct', { n: badCt.length, where: badCt[0] }));
+      if (drops.length) add('warn', L('ck.drop', { n: drops.length, where: drops[0] }));
+      if (!over.length && !badCt.length && !drops.length) add('ok', L('ck.good'));
       var xml = WTG.writeWTG(spec), pts = spec.tables[0].points.length;
       try {
         var doc = new DOMParser().parseFromString(xml, 'application/xml');
         var bad = doc.getElementsByTagName('parsererror').length > 0;
         var tabs = doc.getElementsByTagName('PerformanceTable').length, dps = doc.getElementsByTagName('DataPoint').length;
-        if (bad || tabs !== n || dps !== n * pts) add('err', 'The generated XML is not well-formed or has the wrong number of tables.');
-        else add('ok', 'XML is well-formed: ' + tabs + ' density tables with ' + pts + ' data points each.');
-      } catch (e) { add('warn', 'XML could not be checked in this browser.'); }
+        if (bad || tabs !== n || dps !== n * pts) add('err', L('ck.xmlBad'));
+        else add('ok', L('ck.xmlOk', { n: tabs, p: pts }));
+      } catch (e) { add('warn', L('ck.xmlNo')); }
     }
     return c;
   }
@@ -902,10 +1309,10 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
       var f = n === 1 ? 0.5 : i / (n - 1);
       return { stroke: 'color-mix(in oklab, var(--s1) ' + Math.round((1 - f) * 100) + '%, var(--s2) ' + Math.round(f * 100) + '%)', width: 1.7, points: t.points.map(function (p) { return [p.v, P ? p.p / 1e6 : p.ct]; }) };
     });
-    WTG.chart(el.chart, series, { xlabel: 'Wind speed [m/s]', ylabel: P ? 'Power [MW]' : 'Thrust coefficient ct' });
+    WTG.chart(el.chart, series, { xlabel: L('g.axX'), ylabel: P ? L('g.axP') : L('g.axC'), fmt: WTG.nf });
     el.legend.hidden = false;
-    el.lgLo.textContent = spec.tables[0].airDensity.toFixed(3);
-    el.lgHi.textContent = spec.tables[n - 1].airDensity.toFixed(3);
+    el.lgLo.textContent = WTG.nfix(spec.tables[0].airDensity, 3);
+    el.lgHi.textContent = WTG.nfix(spec.tables[n - 1].airDensity, 3);
   }
   function drawTable() {
     if (!model) { el.tblBody.innerHTML = ''; return; }
@@ -914,10 +1321,10 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
   }
   function update() {
     var n = model ? Object.keys(selected).filter(function (k) { return selected[k]; }).length : 0;
-    el.selCount.textContent = n + ' selected';
+    el.selCount.textContent = L('g.sel', { n: n });
     if (!model) {
-      el.checks.innerHTML = msg('', 'Checks appear once the performance data is read.');
-      el.overall.className = 'pill'; el.overall.textContent = 'Waiting for data';
+      el.checks.innerHTML = msg('', esc(L('g.checksWait')));
+      el.overall.className = 'pill'; el.overall.textContent = L('g.wait');
       el.download.disabled = true; el.chart.innerHTML = ''; el.legend.hidden = true; el.xml.textContent = ''; drawTable();
       return;
     }
@@ -925,7 +1332,7 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
     var errs = checks.filter(function (c) { return c.l === 'err'; }).length, warns = checks.filter(function (c) { return c.l === 'warn'; }).length;
     el.checks.innerHTML = checks.sort(function (a, b) { var o = { err: 0, warn: 1, ok: 2 }; return o[a.l] - o[b.l]; }).map(function (c) { return msg(c.l, esc(c.t)); }).join('');
     el.overall.className = 'pill ' + (errs ? 'err' : warns ? 'warn' : 'ok');
-    el.overall.textContent = errs ? (errs + (errs === 1 ? ' issue to fix' : ' issues to fix')) : warns ? 'Ready, ' + warns + (warns === 1 ? ' note' : ' notes') : 'Ready';
+    el.overall.textContent = errs ? LN('g.issues', errs) : warns ? LN('g.readyNotes', warns) : L('g.ready');
     el.download.disabled = errs > 0;
     if (!dirty.fname) el.fname.value = (WTG.safeName(spec.description) || 'turbine') + '.wtg';
     drawChart(spec); drawTable();
@@ -944,6 +1351,7 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
   }
   ['power', 'ct'].forEach(function (id) { el[id].addEventListener('input', reread); });
   el.unit.addEventListener('change', reread); el.dropStar.addEventListener('change', reread);
+  el.dec.addEventListener('change', function () { WTG.setDecimal(el.dec.value); reread(); });
   el.tblDens.addEventListener('change', drawTable);
   el.cvP.onclick = function () { chartKind = 'P'; el.cvP.setAttribute('aria-pressed', 'true'); el.cvC.setAttribute('aria-pressed', 'false'); update(); };
   el.cvC.onclick = function () { chartKind = 'C'; el.cvC.setAttribute('aria-pressed', 'true'); el.cvP.setAttribute('aria-pressed', 'false'); update(); };
@@ -959,6 +1367,8 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
 
   /* ---------- synthetic example (generic 4.2 MW turbine, not a real product) ---------- */
   function loadExample() {
+    var de = I18N.current() === 'de';
+    var loc = function (s) { return de ? String(s).replace('.', ',') : String(s); };
     var vr = 11.5, Pr = 4200;
     var pc = function (v) {
       if (v < 3) return 0;
@@ -968,18 +1378,26 @@ pre.xml { margin: 0; padding: 10px 12px; background: var(--surface); border: 1px
     };
     var ctf = function (v, rho) { var vre = vr * Math.pow(1.225 / rho, 1 / 3); if (v < 3) return 0.9; return v <= vre ? 0.88 - 0.017 * (v - 3) : Math.max(0.03, 0.74 * Math.pow(vre / v, 2.3)); };
     var dens = [1.225]; for (var d = 0.95; d < 1.28; d += 0.025) { var r = Math.round(d * 1000) / 1000; if (r !== 1.225) dens.push(r); }
-    var head = 'Wind speed [m/s]\t' + dens.map(function (x) { return x.toFixed(3); }).join('\t');
+    var head = L('g.axX') + '\t' + dens.map(function (x) { return loc(x.toFixed(3)); }).join('\t');
     var pl = [head], cl = [head];
     for (var v = 3; v <= 25.001; v += 0.5) {
-      pl.push(v.toFixed(1) + '\t' + dens.map(function (rho) { return Math.round(pc(v * Math.pow(rho / 1.225, 1 / 3))); }).join('\t'));
-      cl.push(v.toFixed(1) + '\t' + dens.map(function (rho) { return ctf(v, rho).toFixed(3); }).join('\t'));
+      pl.push(loc(v.toFixed(1)) + '\t' + dens.map(function (rho) { return Math.round(pc(v * Math.pow(rho / 1.225, 1 / 3))); }).join('\t'));
+      cl.push(loc(v.toFixed(1)) + '\t' + dens.map(function (rho) { return loc(ctf(v, rho).toFixed(3)); }).join('\t'));
     }
-    el.power.value = pl.join('\n'); el.ct.value = cl.join('\n'); el.unit.value = 'auto';
-    el.desc.value = 'Example 4.2 MW'; el.rotor.value = '140'; el.heights.value = '110, 130'; el.source.value = 'Synthetic example data';
+    el.power.value = pl.join('\n'); el.ct.value = cl.join('\n'); el.unit.value = 'auto'; el.dec.value = 'auto'; WTG.setDecimal('auto');
+    el.desc.value = L('g.exName'); el.rotor.value = '140'; el.heights.value = '110, 130'; el.source.value = L('g.exSource');
     dirty = {}; dirty.fname = false;
     reread();
   }
   el.example.onclick = loadExample;
+
+  function onLang() {
+    document.title = L('g.title') + ' | BOREAS';
+    autoFill();
+    reread();
+  }
+  I18N.onChange(onLang);
+  document.title = L('g.title') + ' | BOREAS';
   reread();
 })();
 
