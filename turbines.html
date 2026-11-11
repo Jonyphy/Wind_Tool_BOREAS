@@ -23,6 +23,7 @@
   --info:#0a7c8a;--info-bg:#e0f4f7;
   --t1:#be185d;--t1-bg:#fce7f1;--t1-bd:#f6c3da;
   --t2:#2563eb;--t2-bg:#eaf1ff;--t2-bd:#c4d6fb;
+  --bad:#c0262d;--bad-bg:#fde8e8;
 }
 html[data-theme=dark]{
   --bg:#081019;--panel:#0f1b28;--panel-2:#13202e;
@@ -36,6 +37,7 @@ html[data-theme=dark]{
   --info:#38c9db;--info-bg:#0e2a32;
   --t1:#f472b6;--t1-bg:#2e1424;--t1-bd:#5c2744;
   --t2:#6ea8fe;--t2-bg:#10203e;--t2-bd:#2b4a86;
+  --bad:#f87171;--bad-bg:#2d1414;
 }
 html{scroll-behavior:smooth}
 body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
@@ -181,6 +183,59 @@ td.wrap{white-space:normal}
 .xopts label{display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer}
 .xopts select{background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:13.5px}
 .xopts .info{font-size:12.5px;color:var(--text-2)}
+
+/* spacing check */
+.sp-card{padding:18px 20px}
+.switch{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}
+.switch input{width:18px;height:18px}
+.switch small{font-weight:400;color:var(--text-3);font-size:12.5px}
+.sp-body{margin-top:16px;border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:18px}
+.sp-field{display:grid;grid-template-columns:210px 1fr;gap:6px 18px;align-items:start}
+.sp-field>.lab{font-size:13.5px;font-weight:600;color:var(--text);padding-top:6px}
+.sp-field>.lab small{display:block;font-weight:400;color:var(--text-3);font-size:12px;line-height:1.4;margin-top:2px}
+.sp-field>.ctl{display:flex;flex-direction:column;gap:8px;min-width:0}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--panel-2);width:max-content;max-width:100%;flex-wrap:wrap}
+.seg button{background:none;border:0;padding:6px 14px;font-size:13.5px;color:var(--text-2);cursor:pointer}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button[aria-pressed=true]{background:var(--gust);color:#fff}
+.sp-body select{background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:6px 9px;font-size:13.5px;max-width:100%;width:max-content}
+.sp-body input[type=number]{width:78px;font-family:var(--mono);background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:5px 9px}
+.sp-body textarea{min-height:120px}
+.hintline{font-size:12.5px;color:var(--text-3)}
+.hintline.warn{color:var(--warn)}
+.hintline.bad{color:var(--bad);font-weight:500}
+.hintline a{color:var(--gust);cursor:pointer;text-decoration:underline}
+.limits{display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;font-size:13.5px}
+.limits label{display:flex;align-items:center;gap:8px;cursor:pointer}
+.picktools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.picktools .btn{padding:4px 10px;font-size:12.5px}
+.picks{display:flex;flex-wrap:wrap;gap:6px;max-height:210px;overflow:auto;padding:2px}
+.picks button{font-family:var(--mono);font-size:12px;border:1px solid var(--border);background:var(--panel);border-radius:7px;padding:3px 9px;cursor:pointer;color:var(--text)}
+.picks button:hover{border-color:var(--gust)}
+.picks button.on{background:var(--gust);border-color:var(--gust);color:#fff}
+.picks button.lock{cursor:default;opacity:.85}
+.picks button.lock::after{content:" ●";font-size:9px;vertical-align:middle}
+.rdtbl{min-width:0}
+.rdtbl td,.rdtbl th{padding:6px 12px}
+.rdtbl input[type=number]{width:86px}
+.rdtbl tr.miss td{background:var(--warn-bg)}
+.rdtbl .src{font-size:12px;color:var(--text-3)}
+.sp-res{margin-top:18px;display:flex;flex-direction:column;gap:16px}
+.sp-sum{font-size:14px;color:var(--text-2)}
+.sp-sum b{color:var(--ink)}
+.okline{padding:14px 18px;border-radius:var(--r);background:var(--ok-bg);color:var(--ok);font-weight:500;border:1px solid color-mix(in srgb,var(--ok) 30%,transparent)}
+.warnline{padding:12px 18px;border-radius:var(--r);background:var(--warn-bg);color:var(--warn);font-size:13.5px;border:1px solid color-mix(in srgb,var(--warn) 30%,transparent)}
+.rbox{overflow:hidden}
+.rbox.red{border-color:color-mix(in srgb,var(--bad) 45%,var(--border))}
+.rbox.amb{border-color:color-mix(in srgb,var(--warn) 45%,var(--border))}
+.rbox.red .tbar h3{color:var(--bad)}
+.rbox.amb .tbar h3{color:var(--warn)}
+.rbox table{min-width:820px}
+td.under{color:var(--bad);font-weight:600}
+td.close{color:var(--warn);font-weight:600}
+.tag{font-size:11.5px;padding:1px 8px;border-radius:999px;background:var(--panel-2);border:1px solid var(--border);color:var(--text-2);white-space:nowrap}
+.tag.plan{color:var(--gust);border-color:color-mix(in srgb,var(--gust) 40%,transparent)}
+@media(max-width:720px){.sp-field{grid-template-columns:1fr}.sp-field>.lab{padding-top:0}}
 
 footer{border-top:1px solid var(--border);background:var(--panel)}
 .foot-in{max-width:var(--maxw);margin:0 auto;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--text-3)}
@@ -357,6 +412,80 @@ footer{border-top:1px solid var(--border);background:var(--panel)}
     </div>
   </section>
 
+  <!-- STEP 5 -->
+  <section aria-labelledby="h-s5" id="s5" hidden>
+    <div class="step-head">
+      <span class="step-no">5</span>
+      <div><h2 id="h-s5" data-i18n="s5">Check turbine spacing (2 D)</h2><p data-i18n="s5p">Find planned turbines that stand closer than 2 rotor diameters to another turbine. Every pair is checked both ways: with the planned turbine's rotor and with the other turbine's rotor.</p></div>
+    </div>
+    <div class="card sp-card">
+      <label class="switch" for="spOn"><input id="spOn" type="checkbox"> <span data-i18n="sp_on">Run the spacing check</span></label>
+      <div class="sp-body" id="spBody" hidden>
+
+        <div class="sp-field">
+          <div class="lab" data-i18n="sp_side">Turbines to check</div>
+          <div class="ctl">
+            <div class="seg" id="spSide" role="group"><button type="button" data-v="1" data-i18n="tbl1">Table 1</button><button type="button" data-v="2" data-i18n="tbl2">Table 2</button></div>
+          </div>
+        </div>
+
+        <div class="sp-field">
+          <div class="lab"><span id="spCrsLab"></span><small data-i18n="sp_crs_s">Needed to turn the coordinates into true distances.</small></div>
+          <div class="ctl">
+            <select id="spCrs" class="crs"></select>
+            <div class="hintline" id="spCrsHint"></div>
+          </div>
+        </div>
+
+        <div class="sp-field">
+          <div class="lab" data-i18n="sp_plan">Planned turbines</div>
+          <div class="ctl">
+            <div class="seg" id="spMode" role="group"><button type="button" data-v="mark" id="spModeMark"></button><button type="button" data-v="list" data-i18n="sp_mode_list">Paste a separate list</button></div>
+
+            <div id="spMarkPanel">
+              <div class="picktools">
+                <button type="button" class="btn" data-pick="only" id="spPickOnly"></button>
+                <button type="button" class="btn" data-pick="all" data-i18n="sp_pick_all">All</button>
+                <button type="button" class="btn" data-pick="none" data-i18n="sp_pick_none">None</button>
+                <button type="button" class="btn" data-pick="inv" data-i18n="sp_pick_inv">Invert</button>
+                <span class="hintline" id="spPickInfo"></span>
+              </div>
+              <div class="hintline" data-i18n="sp_pick_hint" style="margin:6px 0">Click a name to mark it as planned. Tip: a column with “geplant” / “planned” or “Bestand” / “existing” in your Excel table marks the rows for you (shown with a dot).</div>
+              <div class="picks" id="spPicks"></div>
+            </div>
+
+            <div id="spListPanel" hidden>
+              <textarea id="spList" spellcheck="false" aria-label="Planned turbines" data-i18n-ph="sp_list_ph"></textarea>
+              <div class="pfoot" id="spListFoot"></div>
+              <label class="hintline" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span data-i18n="sp_list_crs">Coordinate system of this list</span> <select id="spListCrs" class="crs"></select></label>
+              <div class="hintline" id="spListCrsHint"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-field">
+          <div class="lab" data-i18n="sp_lim">Limits</div>
+          <div class="ctl">
+            <div class="limits">
+              <label><span data-i18n="sp_lim1">Too close below</span> <input id="spL1" type="number" min="0" step="0.1" value="2"> D</label>
+              <label><span data-i18n="sp_lim2">Close below</span> <input id="spL2" type="number" min="0" step="0.1" value="2.3"> D</label>
+              <label><input id="spPP" type="checkbox" checked> <span data-i18n="sp_pp">Also check planned ↔ planned</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-field">
+          <div class="lab"><span data-i18n="sp_rd">Rotor diameters</span><small data-i18n="sp_rd_s">Read from the type name. Change any value, or fill in the missing ones.</small></div>
+          <div class="ctl">
+            <div class="card" style="box-shadow:none;overflow:hidden"><div class="scroll" style="max-height:300px"><table class="rdtbl" id="spRd"></table></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="sp-res" id="spOut" hidden></div>
+  </section>
+
 </main>
 
 <footer>
@@ -420,7 +549,42 @@ en:{
   nothing_here:"Nothing to show. Pick another filter or change the search.",
   x_info:function(f,n){return f+" of "+n+" turbines have a type."},
   x_paste:function(s){return "Paste data into Table "+s+" to see it here."},
-  copied:"Copied to clipboard", copy_blocked:"Copy is blocked in this browser. Select the text and copy it manually.", file_err:"The file could not be read."
+  copied:"Copied to clipboard", copy_blocked:"Copy is blocked in this browser. Select the text and copy it manually.", file_err:"The file could not be read.",
+  s5:"Check turbine spacing (2 D)", s5p:"Find planned turbines that stand closer than 2 rotor diameters to another turbine. Every pair is checked both ways: with the planned turbine's rotor and with the other turbine's rotor.",
+  sp_on:"Run the spacing check", sp_side:"Turbines to check", sp_crs_s:"Needed to turn the coordinates into true distances.",
+  sp_crs_lab:function(s){return "Coordinate system of Table "+s},
+  sp_plan:"Planned turbines", sp_mode_mark:function(s){return "Mark them in Table "+s}, sp_mode_list:"Paste a separate list",
+  sp_pick_only:function(s){return "Only in Table "+s}, sp_pick_all:"All", sp_pick_none:"None", sp_pick_inv:"Invert",
+  sp_pick_info:function(p,e){return p+" planned · "+e+" existing"},
+  sp_pick_hint:"Click a name to mark it as planned. Tip: a column with “geplant” / “planned” or “Bestand” / “existing” in your Excel table marks the rows for you (shown with a dot).",
+  sp_lock:"Set by the status column in the table",
+  sp_list_ph:"Planned turbines: name, type, hub height, easting, northing", sp_list_crs:"Coordinate system of this list",
+  sp_lim:"Limits", sp_lim1:"Too close below", sp_lim2:"Close below", sp_pp:"Also check planned ↔ planned",
+  sp_rd:"Rotor diameters", sp_rd_s:"Read from the type name. Change any value, or fill in the missing ones.",
+  rd_type:"Type", rd_turb:"Turbines", rd_val:"RD (m)", rd_src:"Source", rd_auto:"from type name", rd_user:"entered", rd_none:"missing – please enter", rd_notype:"no type",
+  rd_partner:function(s){return "type taken from Table "+s},
+  crs_g_etrs:"ETRS89 (standard today)", crs_g_wgs:"WGS 84", crs_g_gk:"Gauss-Krüger (DHDN, older data)",
+  crs_25832:"ETRS89 / UTM zone 32N · EPSG:25832 (most used)", crs_25833:"ETRS89 / UTM zone 33N · EPSG:25833",
+  crs_32632:"WGS 84 / UTM zone 32N · EPSG:32632", crs_32633:"WGS 84 / UTM zone 33N · EPSG:32633",
+  crs_31467:"DHDN / Gauss-Krüger zone 3 · EPSG:31467 (most used GK)", crs_31468:"DHDN / Gauss-Krüger zone 4 · EPSG:31468",
+  crs_31466:"DHDN / Gauss-Krüger zone 2 · EPSG:31466", crs_31469:"DHDN / Gauss-Krüger zone 5 · EPSG:31469",
+  crs_hint_gk:function(z){return "The eastings look like Gauss-Krüger zone "+z+"."},
+  crs_hint_utm:function(z){return "The eastings carry the zone prefix "+z+" (UTM zone "+z+")."},
+  crs_hint_utm6:"The eastings look like UTM. Zone 32 covers Germany west of 12° E, zone 33 east of it.",
+  crs_use:"Use it", crs_ok:"Positions fall inside Germany.",
+  crs_out:function(n){return n+(n===1?" turbine falls":" turbines fall")+" outside Germany with this coordinate system. Please check the selection."},
+  sp_need:"Mark at least one planned turbine to run the check.", sp_need_list:"Paste the planned turbines to run the check.",
+  sp_sum:function(p,e,n){return "Checked <b>"+p+"</b> planned against <b>"+e+"</b> existing turbines: <b>"+n+"</b> pairs."},
+  sp_red:function(l){return "Closer than "+l+" D"}, sp_amb:function(a,b){return "Between "+a+" D and "+b+" D"},
+  sp_none:function(l){return "No turbine is closer than "+l+" D. All pairs are fine."},
+  sp_min:function(a,b,d,r){return "Closest pair: "+a+" ↔ "+b+", "+d+" m ("+r+" D)."},
+  sp_missing:function(l){return "Rotor diameter missing, these pairs could not be checked: "+l},
+  sp_same:function(l){return "Treated as the same turbine (within the position tolerance), not checked: "+l},
+  sp_cnt:function(n){return n+(n===1?" pair":" pairs")},
+  sh_plan:"Planned turbine", sh_other:"Other turbine", sh_kind:"Other is", sh_dist:"Distance (m)", sh_rdp:"RD planned (m)", sh_dp:"Distance / RD planned", sh_rdo:"RD other (m)", sh_do:"Distance / RD other", sh_note:"Note",
+  k_plan:"planned", k_exist:"existing",
+  n_both:"Too close for both rotors", n_p:"Too close for the planned rotor", n_o:"Too close for the other rotor",
+  sp_file:"spacing-check.csv"
 },
 de:{
   title:"Anlagenabgleich · BOREAS", brand_sub:"Windwerkzeuge", back:"Alle Werkzeuge",
@@ -456,7 +620,42 @@ de:{
   nothing_here:"Nichts anzuzeigen. Wähle einen anderen Filter oder ändere die Suche.",
   x_info:function(f,n){return f+" von "+n+" Anlagen haben einen Typ."},
   x_paste:function(s){return "Füge Daten in Tabelle "+s+" ein, um sie hier zu sehen."},
-  copied:"In die Zwischenablage kopiert", copy_blocked:"Kopieren ist in diesem Browser blockiert. Text markieren und manuell kopieren.", file_err:"Die Datei konnte nicht gelesen werden."
+  copied:"In die Zwischenablage kopiert", copy_blocked:"Kopieren ist in diesem Browser blockiert. Text markieren und manuell kopieren.", file_err:"Die Datei konnte nicht gelesen werden.",
+  s5:"Anlagenabstände prüfen (2 D)", s5p:"Finde geplante Anlagen, die näher als 2 Rotordurchmesser an einer anderen Anlage stehen. Jedes Paar wird in beide Richtungen geprüft: mit dem Rotor der geplanten und mit dem Rotor der anderen Anlage.",
+  sp_on:"Abstandsprüfung durchführen", sp_side:"Zu prüfende Anlagen", sp_crs_s:"Wird gebraucht, um aus den Koordinaten echte Abstände zu berechnen.",
+  sp_crs_lab:function(s){return "Koordinatensystem von Tabelle "+s},
+  sp_plan:"Geplante Anlagen", sp_mode_mark:function(s){return "In Tabelle "+s+" markieren"}, sp_mode_list:"Separate Liste einfügen",
+  sp_pick_only:function(s){return "Nur in Tabelle "+s}, sp_pick_all:"Alle", sp_pick_none:"Keine", sp_pick_inv:"Umkehren",
+  sp_pick_info:function(p,e){return p+" geplant · "+e+" Bestand"},
+  sp_pick_hint:"Klicke auf einen Namen, um ihn als geplant zu markieren. Tipp: Eine Spalte mit „geplant“ / „planned“ oder „Bestand“ / „existing“ in der Excel-Tabelle markiert die Zeilen automatisch (mit Punkt angezeigt).",
+  sp_lock:"Durch die Statusspalte in der Tabelle festgelegt",
+  sp_list_ph:"Geplante Anlagen: Name, Typ, Nabenhöhe, Rechtswert, Hochwert", sp_list_crs:"Koordinatensystem dieser Liste",
+  sp_lim:"Grenzwerte", sp_lim1:"Zu nah unter", sp_lim2:"Knapp unter", sp_pp:"Auch geplant ↔ geplant prüfen",
+  sp_rd:"Rotordurchmesser", sp_rd_s:"Aus dem Typnamen gelesen. Werte können geändert, fehlende ergänzt werden.",
+  rd_type:"Typ", rd_turb:"Anlagen", rd_val:"RD (m)", rd_src:"Quelle", rd_auto:"aus Typname", rd_user:"eingegeben", rd_none:"fehlt – bitte eintragen", rd_notype:"kein Typ",
+  rd_partner:function(s){return "Typ aus Tabelle "+s},
+  crs_g_etrs:"ETRS89 (heutiger Standard)", crs_g_wgs:"WGS 84", crs_g_gk:"Gauß-Krüger (DHDN, ältere Daten)",
+  crs_25832:"ETRS89 / UTM Zone 32N · EPSG:25832 (am häufigsten)", crs_25833:"ETRS89 / UTM Zone 33N · EPSG:25833",
+  crs_32632:"WGS 84 / UTM Zone 32N · EPSG:32632", crs_32633:"WGS 84 / UTM Zone 33N · EPSG:32633",
+  crs_31467:"DHDN / Gauß-Krüger Zone 3 · EPSG:31467 (häufigstes GK)", crs_31468:"DHDN / Gauß-Krüger Zone 4 · EPSG:31468",
+  crs_31466:"DHDN / Gauß-Krüger Zone 2 · EPSG:31466", crs_31469:"DHDN / Gauß-Krüger Zone 5 · EPSG:31469",
+  crs_hint_gk:function(z){return "Die Rechtswerte sehen nach Gauß-Krüger Zone "+z+" aus."},
+  crs_hint_utm:function(z){return "Die Rechtswerte tragen die Zonenkennung "+z+" (UTM Zone "+z+")."},
+  crs_hint_utm6:"Die Rechtswerte sehen nach UTM aus. Zone 32 gilt westlich von 12° O, Zone 33 östlich davon.",
+  crs_use:"Übernehmen", crs_ok:"Die Positionen liegen in Deutschland.",
+  crs_out:function(n){return n+(n===1?" Anlage liegt":" Anlagen liegen")+" mit diesem Koordinatensystem außerhalb Deutschlands. Bitte die Auswahl prüfen."},
+  sp_need:"Markiere mindestens eine geplante Anlage, um die Prüfung zu starten.", sp_need_list:"Füge die geplanten Anlagen ein, um die Prüfung zu starten.",
+  sp_sum:function(p,e,n){return "<b>"+p+"</b> geplante gegen <b>"+e+"</b> Bestandsanlagen geprüft: <b>"+n+"</b> Paare."},
+  sp_red:function(l){return "Näher als "+l+" D"}, sp_amb:function(a,b){return "Zwischen "+a+" D und "+b+" D"},
+  sp_none:function(l){return "Keine Anlage steht näher als "+l+" D. Alle Paare sind in Ordnung."},
+  sp_min:function(a,b,d,r){return "Kleinster Abstand: "+a+" ↔ "+b+", "+d+" m ("+r+" D)."},
+  sp_missing:function(l){return "Rotordurchmesser fehlt, diese Paare konnten nicht geprüft werden: "+l},
+  sp_same:function(l){return "Als dieselbe Anlage behandelt (innerhalb der Positionstoleranz), nicht geprüft: "+l},
+  sp_cnt:function(n){return n+(n===1?" Paar":" Paare")},
+  sh_plan:"Geplante Anlage", sh_other:"Andere Anlage", sh_kind:"Andere ist", sh_dist:"Abstand (m)", sh_rdp:"RD geplant (m)", sh_dp:"Abstand / RD geplant", sh_rdo:"RD andere (m)", sh_do:"Abstand / RD andere", sh_note:"Hinweis",
+  k_plan:"geplant", k_exist:"Bestand",
+  n_both:"Zu nah für beide Rotoren", n_p:"Zu nah für den geplanten Rotor", n_o:"Zu nah für den anderen Rotor",
+  sp_file:"abstandspruefung.csv"
 }};
 var lang='en';
 function t(k){var v=(T[lang]&&T[lang][k]!=null)?T[lang][k]:T.en[k];if(typeof v==='function')return v.apply(null,[].slice.call(arguments,1));return v}
@@ -476,6 +675,8 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp
 function num(s){return parseFloat(String(s).replace(',','.'))}
 var MAKER=/^(vestas|enercon|nordex|ge|siemens|senvion|gamesa|repower|suzlon|fuhrl|fuhrländer|bonus|eno|adwen|lagerwey|goldwind|envision|mingyang)$/i;
 function isNum(s){return /^\d+([.,]\d+)?$/.test(s)}
+var PLAN_FIELD=/^(geplant|planned|plan|planung|in planung|zubau|neu|new)$/i,EXIST_FIELD=/^(bestand|existing|vorhanden|in betrieb|alt|old)$/i;
+var PLAN_WORD=/^(geplant|planned|planung|zubau)$/i,EXIST_WORD=/^(bestand|existing|vorhanden)$/i;
 function parseTable(text){
   var rows=[],skipped=0,lines=String(text||'').split(/\r?\n/);
   lines.forEach(function(raw){
@@ -483,9 +684,26 @@ function parseTable(text){
     if(!line)return;
     /* header rows and CSV with ; are tolerated: turn ; into tabs */
     if(line.indexOf('\t')<0&&line.indexOf(';')>=0)line=line.split(';').join('\t');
+    /* optional status column: geplant / planned … or Bestand / existing … */
+    var status=null;
+    if(line.indexOf('\t')>=0){
+      line=line.split('\t').filter(function(f){
+        var s=f.trim();
+        if(PLAN_FIELD.test(s)){status='plan';return false}
+        if(EXIST_FIELD.test(s)){status='exist';return false}
+        return true;
+      }).join('\t');
+    }else{
+      line=line.split(/\s+/).filter(function(w){
+        if(PLAN_WORD.test(w)){status='plan';return false}
+        if(EXIST_WORD.test(w)){status='exist';return false}
+        return true;
+      }).join(' ');
+    }
     var tokens=line.split(/\s+/),ei=-1;
+    /* easting: 6 digits (UTM), 7 (Gauss-Krüger) or 8 (UTM with zone prefix); northing: 7 digits */
     for(var i=0;i<tokens.length-1;i++){
-      if(/^\d{6}([.,]\d+)?$/.test(tokens[i])&&/^\d{7}([.,]\d+)?$/.test(tokens[i+1])){ei=i;break}
+      if(/^\d{6,8}([.,]\d+)?$/.test(tokens[i])&&/^\d{7}([.,]\d+)?$/.test(tokens[i+1])){ei=i;break}
     }
     if(ei<0){skipped++;return}
     var name,rest,model='';
@@ -507,7 +725,7 @@ function parseTable(text){
     for(var j=0;j<rest.length;j++){
       if(isNum(rest[j])){var v=num(rest[j]);if(hub==null&&v>=20&&v<=350)hub=v;else if(kw==null&&v>=400&&v<100000)kw=v}
     }
-    rows.push({name:name,e:num(tokens[ei]),n:num(tokens[ei+1]),hub:hub,model:model,kw:kw});
+    rows.push({name:name,e:num(tokens[ei]),n:num(tokens[ei+1]),hub:hub,model:model,kw:kw,status:status});
   });
   return {rows:rows,skipped:skipped};
 }
@@ -603,7 +821,7 @@ function update(){
   footer($('f1'),p1,dupNames(p1.rows,sfx));
   footer($('f2'),p2,dupNames(p2.rows,sfx));
   var any=p1.rows.length+p2.rows.length>0;
-  $('placeholder').hidden=any;$('out').hidden=!any;$('s4').hidden=!any;
+  $('placeholder').hidden=any;$('out').hidden=!any;$('s4').hidden=!any;$('s5').hidden=!any;
   if(!any){visibleRows=[];exportRows=[];return}
 
   var res=compare(p1.rows,p2.rows,tol,sfx,hubc);
@@ -667,6 +885,8 @@ function update(){
   });
   $('tbl').innerHTML=h+'</tbody>';
   buildExport(res,p1,p2);
+  $('s5').hidden=false;
+  spUpdate(res,p1,p2,tol,sfx);
 }
 
 /* ---------- table with turbine types ---------- */
@@ -711,6 +931,325 @@ function buildExport(res,p1,p2){
   $('xinfo').textContent=t('x_info',filled,own.length);
 }
 function tsv(rows){return rows.map(function(r){return r.join('\t')}).join('\n')}
+
+/* ---------- geodesy: UTM / Gauss-Krüger → geographic → local metric plane ---------- */
+var ELL={grs80:{a:6378137,f:1/298.257222101},wgs84:{a:6378137,f:1/298.257223563},bessel:{a:6377397.155,f:1/299.1528128}};
+var CRS={
+  '25832':{t:'utm',z:32,ell:'grs80'},'25833':{t:'utm',z:33,ell:'grs80'},
+  '32632':{t:'utm',z:32,ell:'wgs84'},'32633':{t:'utm',z:33,ell:'wgs84'},
+  '31466':{t:'gk',z:2},'31467':{t:'gk',z:3},'31468':{t:'gk',z:4},'31469':{t:'gk',z:5}
+};
+var CRS_GROUPS=[['crs_g_etrs',['25832','25833']],['crs_g_wgs',['32632','32633']],['crs_g_gk',['31467','31468','31466','31469']]];
+var D2R=Math.PI/180;
+function tmSetup(ell){
+  if(ell._c)return ell._c;
+  var n=ell.f/(2-ell.f),n2=n*n,n3=n2*n,n4=n3*n,n5=n4*n,n6=n5*n;
+  return ell._c={e:Math.sqrt(ell.f*(2-ell.f)),A:ell.a/(1+n)*(1+n2/4+n4/64+n6/256),
+    al:[n/2-2*n2/3+5*n3/16+41*n4/180-127*n5/288+7891*n6/37800,
+      13*n2/48-3*n3/5+557*n4/1440+281*n5/630-1983433*n6/1935360,
+      61*n3/240-103*n4/140+15061*n5/26880+167603*n6/181440,
+      49561*n4/161280-179*n5/168+6601661*n6/7257600,
+      34729*n5/80640-3418889*n6/1995840,
+      212378941*n6/319334400],
+    be:[n/2-2*n2/3+37*n3/96-n4/360-81*n5/512+96199*n6/604800,
+      n2/48+n3/15-437*n4/1440+46*n5/105-1118711*n6/3870720,
+      17*n3/480-37*n4/840-209*n5/4480+5569*n6/90720,
+      4397*n4/161280-11*n5/504-830251*n6/7257600,
+      4583*n5/161280-108847*n6/3991680,
+      20648693*n6/638668800]};
+}
+/* transverse Mercator (Krüger series, mm accuracy); x,y without false easting/northing */
+function tmFwd(lat,lon,lon0,k0,ell){
+  var c=tmSetup(ell),e=c.e,s=Math.sin(lat*D2R),lam=(lon-lon0)*D2R;
+  var tau=Math.sinh(Math.atanh(s)-e*Math.atanh(e*s));
+  var xi=Math.atan2(tau,Math.cos(lam)),eta=Math.atanh(Math.sin(lam)/Math.sqrt(1+tau*tau)),X=xi,Y=eta;
+  for(var j=1;j<=6;j++){X+=c.al[j-1]*Math.sin(2*j*xi)*Math.cosh(2*j*eta);Y+=c.al[j-1]*Math.cos(2*j*xi)*Math.sinh(2*j*eta)}
+  return {x:k0*c.A*Y,y:k0*c.A*X};
+}
+function tmInv(x,y,lon0,k0,ell){
+  var c=tmSetup(ell),e=c.e,e2=e*e,xi=y/(k0*c.A),eta=x/(k0*c.A),xp=xi,ep=eta;
+  for(var j=1;j<=6;j++){xp-=c.be[j-1]*Math.sin(2*j*xi)*Math.cosh(2*j*eta);ep-=c.be[j-1]*Math.cos(2*j*xi)*Math.sinh(2*j*eta)}
+  var tp=Math.sin(xp)/Math.sqrt(Math.sinh(ep)*Math.sinh(ep)+Math.cos(xp)*Math.cos(xp)),lam=Math.atan2(Math.sinh(ep),Math.cos(xp)),tau=tp;
+  for(var i=0;i<8;i++){
+    var sg=Math.sinh(e*Math.atanh(e*tau/Math.sqrt(1+tau*tau)));
+    var ti=tau*Math.sqrt(1+sg*sg)-sg*Math.sqrt(1+tau*tau);
+    var dt=(tp-ti)/Math.sqrt(1+ti*ti)*(1+(1-e2)*tau*tau)/((1-e2)*Math.sqrt(1+tau*tau));
+    tau+=dt;if(Math.abs(dt)<1e-14)break;
+  }
+  return {lat:Math.atan(tau)/D2R,lon:lon0+lam/D2R};
+}
+function geo2ecef(lat,lon,ell){var e2=ell.f*(2-ell.f),p=lat*D2R,l=lon*D2R,N=ell.a/Math.sqrt(1-e2*Math.sin(p)*Math.sin(p));return [N*Math.cos(p)*Math.cos(l),N*Math.cos(p)*Math.sin(l),N*(1-e2)*Math.sin(p)]}
+function ecef2geo(X,Y,Z,ell){
+  var e2=ell.f*(2-ell.f),p=Math.hypot(X,Y),lat=Math.atan2(Z,p*(1-e2));
+  for(var i=0;i<6;i++){var s=Math.sin(lat),N=ell.a/Math.sqrt(1-e2*s*s);lat=Math.atan2(Z+e2*N*s,p)}
+  return {lat:lat/D2R,lon:Math.atan2(Y,X)/D2R};
+}
+/* DHDN → ETRS89 with the EPSG:1777 Helmert parameters (position vector, about 3 m) */
+function dhdn2etrs(g){
+  var x=geo2ecef(g.lat,g.lon,ELL.bessel),as=D2R/3600,rx=0.202*as,ry=0.045*as,rz=-2.455*as,s=1+6.7e-6;
+  return ecef2geo(598.1+s*(x[0]-rz*x[1]+ry*x[2]),73.7+s*(rz*x[0]+x[1]-rx*x[2]),418.2+s*(-ry*x[0]+rx*x[1]+x[2]),ELL.grs80);
+}
+function toGeo(e,n,code){
+  var c=CRS[code]||CRS['25832'];
+  if(c.t==='utm'){if(e>=1e7)e=e%1e6;return tmInv(e-500000,n,c.z*6-183,0.9996,ELL[c.ell])}
+  return dhdn2etrs(tmInv(e-(c.z*1e6+500000),n,c.z*3,1,ELL.bessel));
+}
+function inGermany(g){return g.lat>47&&g.lat<55.3&&g.lon>5.5&&g.lon<15.3}
+function guessCrs(rows){
+  if(!rows.length)return null;
+  var es=rows.map(function(r){return r.e}).sort(function(a,b){return a-b}),m=es[Math.floor(es.length/2)],z;
+  if(m>=1e7){z=Math.floor(m/1e6);return (z===32||z===33)?{kind:'utm',z:z,code:'258'+z}:null}
+  if(m>=1e6){z=Math.floor(m/1e6);return (z>=2&&z<=5)?{kind:'gk',z:z,code:String(31464+z)}:null}
+  if(m>=1e5)return {kind:'utm6',code:'25832'};
+  return null;
+}
+
+/* ---------- rotor diameter from the type name ---------- */
+var RD_RE=[/\bV\s?-?(\d{2,3})\b/,/\bE\s?-?\s?(\d{2,3})\b/,/\bN\s?-?(\d{2,3})\b/,/\bSWT\s?-?\d+(?:[.,]\d+)?-(\d{2,3})\b/,/\bSG\s?\d+(?:[.,]\d+)?-(\d{2,3})\b/,/\bMM\s?-?(\d{2,3})\b/,/\b\d(?:[.,]\d+)?M(\d{3})\b/,/\bG\s?-?(\d{2,3})\b/,/\bMD\s?-?(\d{2,3})\b/,/\b\d+(?:[.,]\d+)?\s?-\s?(\d{2,3})\b/];
+function rdFromModel(m){
+  if(!m)return null;
+  var s=String(m).toUpperCase();
+  if(/\b1[.,]5\s*SLE?\b/.test(s))return 77;
+  if(/\b1[.,]5\s*S\b/.test(s))return 70.5;
+  for(var i=0;i<RD_RE.length;i++){var r=s.match(RD_RE[i]);if(r){var v=+r[1];if(v>=30&&v<=260)return v}}
+  return null;
+}
+
+/* ---------- spacing check (2 D) ---------- */
+var SP=(function(){
+  var d={on:false,side:'1',crs:{'1':'25832','2':'25832'},listCrs:'25832',mode:'mark',l1:2,l2:2.3,pp:true,planned:{'1':[],'2':[]},rd:{}};
+  try{var s=JSON.parse(lsGet('wt_spacing')||'null');if(s&&typeof s==='object')for(var k in d)if(s[k]!=null)d[k]=s[k]}catch(e){}
+  return d;
+})();
+function spSave(){lsSet('wt_spacing',JSON.stringify(SP))}
+var spCtx=null;
+function nameKey(n){return String(n).toUpperCase().replace(/\s+/g,' ').trim()}
+function rdKey(x){return x.model?'T:'+nameKey(x.model):'N:'+nameKey(x.name)}
+function rdOf(x){var v=SP.rd[rdKey(x)];if(v!=null&&v!==''&&+v>0)return +v;return rdFromModel(x.model)}
+function isPlanned(it){
+  if(it.status==='plan')return true;
+  if(it.status==='exist')return false;
+  return SP.planned[spCtx.side].indexOf(nameKey(it.name))>=0;
+}
+function fillCrs(sel,val){
+  sel.innerHTML=CRS_GROUPS.map(function(g){return '<optgroup label="'+esc(t(g[0]))+'">'+g[1].map(function(c){return '<option value="'+c+'">'+esc(t('crs_'+c))+'</option>'}).join('')+'</optgroup>'}).join('');
+  sel.value=CRS[val]?val:'25832';
+}
+
+function spUpdate(res,p1,p2,tol){
+  var side=SP.side==='2'?'2':'1',rows=side==='1'?p1.rows:p2.rows;
+  var partner=new Map(),only=[];
+  res.forEach(function(r){
+    var own=side==='1'?r.a:r.b,oth=side==='1'?r.b:r.a;
+    if(own&&oth)partner.set(own,oth);
+    if(own&&!oth)only.push(nameKey(own.name));
+  });
+  var items=rows.map(function(x){
+    var o=partner.get(x),m=x.model||(o&&o.model)||'';
+    return {name:x.name,e:x.e,n:x.n,model:m,fromPartner:!x.model&&!!m,status:x.status};
+  });
+  var list=null;
+  if(SP.mode==='list'){
+    list=parseTable($('spList').value);
+    list.rows.forEach(function(x){x.isList=true;x.status='plan'});
+  }
+  spCtx={side:side,other:side==='1'?'2':'1',items:items,only:only,list:list,tol:tol};
+  spRenderConfig();
+  spRenderResults();
+}
+
+function spRenderConfig(){
+  $('spOn').checked=!!SP.on;
+  $('spBody').hidden=!SP.on;
+  if(!spCtx)return;
+  var c=spCtx;
+  document.querySelectorAll('#spSide button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v===c.side?'true':'false')});
+  document.querySelectorAll('#spMode button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v===SP.mode?'true':'false')});
+  $('spModeMark').textContent=t('sp_mode_mark',c.side);
+  $('spCrsLab').textContent=t('sp_crs_lab',c.side);
+  fillCrs($('spCrs'),SP.crs[c.side]);
+  fillCrs($('spListCrs'),SP.listCrs);
+  $('spMarkPanel').hidden=SP.mode!=='mark';
+  $('spListPanel').hidden=SP.mode!=='list';
+  $('spPickOnly').textContent=t('sp_pick_only',c.side);
+  $('spPickOnly').disabled=!c.only.length;
+  $('spL1').value=SP.l1;$('spL2').value=SP.l2;$('spPP').checked=!!SP.pp;
+
+  /* planned picker */
+  var box=$('spPicks'),st=box.scrollTop;
+  box.innerHTML=c.items.map(function(it,i){
+    var lock=it.status!=null,on=isPlanned(it);
+    return '<button type="button" data-i="'+i+'" class="'+(on?'on':'')+(lock?' lock':'')+'"'+(lock?' title="'+esc(t('sp_lock'))+'"':'')+' aria-pressed="'+on+'">'+esc(it.name)+'</button>';
+  }).join('');
+  box.scrollTop=st;
+  spPickInfo();
+
+  if(c.list)footer($('spListFoot'),c.list,[]);else $('spListFoot').textContent='';
+
+  /* rotor diameter table */
+  var groups=[],gm={};
+  var all=c.items.concat(SP.mode==='list'&&c.list?c.list.rows:[]);
+  all.forEach(function(x){
+    var k=rdKey(x);
+    if(!gm[k]){gm[k]={k:k,model:x.model,names:[],auto:rdFromModel(x.model),partner:true};groups.push(gm[k])}
+    gm[k].names.push(x.name);
+    if(!x.fromPartner)gm[k].partner=false;
+  });
+  groups.sort(function(a,b){return (a.model?0:1)-(b.model?0:1)||(a.model||a.names[0]).localeCompare(b.model||b.names[0],undefined,{numeric:true})});
+  var h='<thead><tr><th>'+esc(t('rd_type'))+'</th><th>'+esc(t('rd_turb'))+'</th><th class="num">'+esc(t('rd_val'))+'</th><th>'+esc(t('rd_src'))+'</th></tr></thead><tbody>';
+  groups.forEach(function(g){
+    var ov=SP.rd[g.k],has=ov!=null&&ov!=='',val=has?ov:(g.auto!=null?g.auto:'');
+    var nm=g.names.length>6?g.names.slice(0,6).join(', ')+' +'+(g.names.length-6):g.names.join(', ');
+    h+='<tr class="'+(val===''?'miss':'')+'" data-row="'+esc(g.k)+'"><td class="wrap mono">'+(g.model?esc(g.model):'<span class="dim">'+esc(t('rd_notype'))+'</span>')+'</td>'+
+      '<td class="wrap" style="font-size:12.5px">'+esc(nm)+'</td>'+
+      '<td class="num"><input type="number" min="0" step="0.5" data-k="'+esc(g.k)+'" value="'+esc(val)+'"></td>'+
+      '<td class="src">'+esc(rdSrc(g,has,val))+'</td></tr>';
+  });
+  $('spRd').innerHTML=h+'</tbody>';
+  $('spRd')._groups=gm;
+}
+function rdSrc(g,has,val){
+  if(val===''||val==null)return t('rd_none');
+  if(has&&+val!==g.auto)return t('rd_user');
+  return t('rd_auto')+(g.partner&&g.model?' · '+t('rd_partner',spCtx.other):'');
+}
+function spPickInfo(){
+  var p=0;spCtx.items.forEach(function(it){if(isPlanned(it))p++});
+  $('spPickInfo').textContent=t('sp_pick_info',p,spCtx.items.length-p);
+}
+
+function crsHint(el,rows,code,bad,target){
+  var g=guessCrs(rows),c=CRS[code],h='',cls='hintline';
+  if(g&&g.kind==='gk'&&!(c.t==='gk'&&c.z===g.z))h=esc(t('crs_hint_gk',g.z));
+  else if(g&&g.kind==='utm'&&!(c.t==='utm'&&c.z===g.z))h=esc(t('crs_hint_utm',g.z));
+  else if(g&&g.kind==='utm6'&&c.t==='gk')h=esc(t('crs_hint_utm6'));
+  if(h){h+=' <a data-usecrs="'+g.code+'" data-target="'+target+'">'+esc(t('crs_use'))+'</a>';cls+=' warn'}
+  if(bad){h=esc(t('crs_out',bad))+(h?' '+h:'');cls='hintline bad'}
+  else if(!h&&rows.length)h=esc(t('crs_ok'));
+  el.className=cls;el.innerHTML=h;
+}
+
+function spRenderResults(){
+  var out=$('spOut');
+  if(!SP.on||!spCtx){out.hidden=true;out.innerHTML='';return}
+  out.hidden=false;
+  var c=spCtx,planned=[],existing=[],l1=+SP.l1||0,l2=+SP.l2||0;
+  if(l2<l1)l2=l1;
+  if(SP.mode==='mark')c.items.forEach(function(it){(isPlanned(it)?planned:existing).push(it)});
+  else{existing=c.items.slice();planned=c.list?c.list.rows.slice():[]}
+
+  /* coordinates → geographic → one local plane (true ground distances) */
+  var bad=0,badL=0,pts=existing.concat(planned),lon0=0;
+  pts.forEach(function(it){
+    it.g=toGeo(it.e,it.n,it.isList?SP.listCrs:SP.crs[c.side]);
+    if(!inGermany(it.g)){if(it.isList)badL++;else bad++}
+    lon0+=it.g.lon;
+  });
+  crsHint($('spCrsHint'),c.items,SP.crs[c.side],bad,'table');
+  if(SP.mode==='list')crsHint($('spListCrsHint'),c.list?c.list.rows:[],SP.listCrs,badL,'list');
+  if(pts.length){lon0/=pts.length;pts.forEach(function(it){var p=tmFwd(it.g.lat,it.g.lon,lon0,1,ELL.grs80);it.x=p.x;it.y=p.y})}
+
+  if(!planned.length){out.innerHTML='<div class="warnline">'+esc(t(SP.mode==='list'?'sp_need_list':'sp_need'))+'</div>';return}
+
+  var pairs=[],same=[],miss={};
+  function mk(p,o,d,kind){
+    var rp=rdOf(p),ro=rdOf(o),qp=rp?d/rp:null,qo=ro?d/ro:null;
+    if(!rp)miss[p.name]=1;if(!ro)miss[o.name]=1;
+    var w=Math.min(qp==null?Infinity:qp,qo==null?Infinity:qo);
+    var cls=w<l1?'red':w<l2?'amb':'ok',lim=cls==='red'?l1:l2;
+    var up=qp!=null&&qp<lim,uo=qo!=null&&qo<lim;
+    return {p:p,o:o,d:d,kind:kind,rp:rp,ro:ro,qp:qp,qo:qo,w:w,cls:cls,note:cls==='ok'?'':(up&&uo?'n_both':up?'n_p':'n_o')};
+  }
+  planned.forEach(function(p,i){
+    existing.forEach(function(o){
+      var d=Math.hypot(p.x-o.x,p.y-o.y);
+      if(p.isList&&d<=c.tol+1e-9){same.push(p.name+' = '+o.name);return}
+      pairs.push(mk(p,o,d,'exist'));
+    });
+    if(SP.pp)for(var j=i+1;j<planned.length;j++){var q=planned[j];pairs.push(mk(p,q,Math.hypot(p.x-q.x,p.y-q.y),'plan'))}
+  });
+  pairs.sort(function(a,b){return a.w-b.w});
+  var red=pairs.filter(function(x){return x.cls==='red'}),amb=pairs.filter(function(x){return x.cls==='amb'});
+  var nfmt=function(v){return String(v).replace('.',lang==='de'?',':'.')};
+
+  var h='<div class="sp-sum">'+t('sp_sum',planned.length,existing.length,pairs.length)+'</div>';
+  if(!red.length&&!amb.length){
+    h+='<div class="okline">✓ '+esc(t('sp_none',nfmt(l2)))+(pairs.length&&isFinite(pairs[0].w)?'<br><span style="font-weight:400">'+esc(t('sp_min',pairs[0].p.name,pairs[0].o.name,fmt(pairs[0].d,0),fmtR(pairs[0].w)))+'</span>':'')+'</div>';
+  }else{
+    if(!red.length)h+='<div class="okline">✓ '+esc(t('sp_none',nfmt(l1)))+'</div>';
+    if(red.length)h+=spBox('red',t('sp_red',nfmt(l1)),red,l1);
+    if(amb.length)h+=spBox('amb',t('sp_amb',nfmt(l1),nfmt(l2)),amb,l2);
+  }
+  var ml=Object.keys(miss);
+  if(ml.length)h+='<div class="warnline">'+esc(t('sp_missing',ml.join(', ')))+'</div>';
+  if(same.length)h+='<div class="warnline">'+esc(t('sp_same',same.join(', ')))+'</div>';
+  out.innerHTML=h;
+  out._sets={red:red,amb:amb};
+}
+function fmtR(v){return v==null||!isFinite(v)?'–':v.toFixed(2)}
+function spHead(){return [t('sh_plan'),t('sh_other'),t('sh_kind'),t('sh_dist'),t('sh_rdp'),t('sh_dp'),t('sh_rdo'),t('sh_do'),t('sh_note')]}
+function spRow(x){return [x.p.name,x.o.name,t(x.kind==='plan'?'k_plan':'k_exist'),x.d.toFixed(1),x.rp||'',x.qp==null?'':x.qp.toFixed(2),x.ro||'',x.qo==null?'':x.qo.toFixed(2),t(x.note)]}
+function spBox(cls,title,list,lim){
+  var hd=spHead();
+  var h='<div class="card tbox rbox '+cls+'" style="margin-top:0"><div class="tbar"><h3>'+esc(title)+' · '+esc(t('sp_cnt',list.length))+'</h3><div class="tools">'+
+    '<button type="button" class="btn" data-spcopy="'+cls+'">'+esc(t('copy_table'))+'</button>'+
+    '<button type="button" class="btn primary" data-spcsv="'+cls+'">'+esc(t('dl_csv'))+'</button></div></div>'+
+    '<div class="scroll"><table><thead><tr>'+hd.map(function(c,i){return '<th'+(i>=3&&i<=7?' class="num"':'')+'>'+esc(c)+'</th>'}).join('')+'</tr></thead><tbody>';
+  list.forEach(function(x){
+    var cp=x.qp!=null&&x.qp<lim?(cls==='red'?'under':'close'):'',co=x.qo!=null&&x.qo<lim?(cls==='red'?'under':'close'):'';
+    h+='<tr><td class="nm">'+esc(x.p.name)+'</td><td class="nm">'+esc(x.o.name)+'</td>'+
+      '<td><span class="tag'+(x.kind==='plan'?' plan':'')+'">'+esc(t(x.kind==='plan'?'k_plan':'k_exist'))+'</span></td>'+
+      '<td class="num mono">'+fmt(x.d,1)+'</td>'+
+      '<td class="num mono'+(x.rp?'':' dim')+'">'+(x.rp||'–')+'</td><td class="num mono '+cp+'">'+fmtR(x.qp)+'</td>'+
+      '<td class="num mono'+(x.ro?'':' dim')+'">'+(x.ro||'–')+'</td><td class="num mono '+co+'">'+fmtR(x.qo)+'</td>'+
+      '<td class="note">'+esc(t(x.note))+'</td></tr>';
+  });
+  return h+'</tbody></table></div></div>';
+}
+
+/* spacing wiring */
+$('spOn').addEventListener('change',function(){SP.on=this.checked;spSave();spRenderConfig();spRenderResults()});
+document.querySelectorAll('#spSide button').forEach(function(b){b.addEventListener('click',function(){SP.side=b.dataset.v;spSave();update()})});
+document.querySelectorAll('#spMode button').forEach(function(b){b.addEventListener('click',function(){SP.mode=b.dataset.v;spSave();update()})});
+$('spCrs').addEventListener('change',function(){SP.crs[spCtx.side]=this.value;spSave();spRenderResults()});
+$('spListCrs').addEventListener('change',function(){SP.listCrs=this.value;spSave();spRenderResults()});
+$('spList').addEventListener('input',function(){lsSet('wt_sp_list',this.value);update()});
+$('spL1').addEventListener('input',function(){SP.l1=num(this.value)||0;spSave();spRenderResults()});
+$('spL2').addEventListener('input',function(){SP.l2=num(this.value)||0;spSave();spRenderResults()});
+$('spPP').addEventListener('change',function(){SP.pp=this.checked;spSave();spRenderResults()});
+$('spPicks').addEventListener('click',function(ev){
+  var b=ev.target.closest('button[data-i]');if(!b)return;
+  var it=spCtx.items[+b.dataset.i];if(!it||it.status!=null)return;
+  var arr=SP.planned[spCtx.side],k=nameKey(it.name),ix=arr.indexOf(k);
+  if(ix>=0)arr.splice(ix,1);else arr.push(k);
+  b.classList.toggle('on',ix<0);b.setAttribute('aria-pressed',ix<0);
+  spSave();spPickInfo();spRenderResults();
+});
+document.querySelectorAll('[data-pick]').forEach(function(b){b.addEventListener('click',function(){
+  var all=spCtx.items.map(function(it){return nameKey(it.name)}),cur=SP.planned[spCtx.side],a=b.dataset.pick;
+  SP.planned[spCtx.side]=a==='all'?all:a==='none'?[]:a==='only'?spCtx.only.slice():all.filter(function(k){return cur.indexOf(k)<0});
+  spSave();spRenderConfig();spRenderResults();
+})});
+$('spRd').addEventListener('input',function(ev){
+  var inp=ev.target;if(!inp.dataset||!inp.dataset.k)return;
+  var k=inp.dataset.k,v=inp.value.trim(),g=$('spRd')._groups[k];
+  if(v===''||(g&&g.auto!=null&&num(v)===g.auto))delete SP.rd[k];else SP.rd[k]=num(v);
+  spSave();
+  var tr=inp.closest('tr');
+  if(tr&&g){tr.className=v===''&&g.auto==null?'miss':'';tr.querySelector('.src').textContent=rdSrc(g,SP.rd[k]!=null,v===''?(g.auto!=null?g.auto:''):num(v))}
+  spRenderResults();
+});
+$('s5').addEventListener('click',function(ev){
+  var u=ev.target.closest('[data-usecrs]');
+  if(u){if(u.dataset.target==='list')SP.listCrs=u.dataset.usecrs;else SP.crs[spCtx.side]=u.dataset.usecrs;spSave();spRenderConfig();spRenderResults();return}
+  var cp=ev.target.closest('[data-spcopy],[data-spcsv]');
+  if(cp){
+    var key=cp.dataset.spcopy||cp.dataset.spcsv,list=($('spOut')._sets||{})[key]||[];
+    var rows=[spHead()].concat(list.map(spRow));
+    if(cp.dataset.spcopy)copyText(tsv(rows));else downloadCsv(rows,(key==='red'?'under-':'close-')+t('sp_file'));
+  }
+});
+(function(){var v=lsGet('wt_sp_list');if(v)$('spList').value=v})();
 
 /* ---------- wiring ---------- */
 ['t1','t2','tol','sfx','sfxl','hubc','xt','xa','xh','xk','xn','xs'].forEach(function(id){
