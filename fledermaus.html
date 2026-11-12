@@ -137,7 +137,42 @@ tr.hl td{background:var(--accent-bg)!important;font-weight:500}
 .help-content p{font-size:13px;color:var(--text-2)}
 code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:4px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+/* --- site / months / NZ / grids --- */
+.chips{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+@media(max-width:520px){.chips{grid-template-columns:repeat(4,1fr)}}
+.chip{font-family:var(--sans);font-size:12px;font-weight:500;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text-2);cursor:pointer;transition:background .12s,color .12s,border-color .12s}
+.chip:hover{color:var(--text);border-color:var(--border-strong)}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:12px 0 10px}
+.tab{font-family:var(--sans);font-size:12px;font-weight:500;padding:7px 12px;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+#map{height:230px;border-radius:var(--r);border:1px solid var(--border);margin-top:12px;z-index:0}
+.conv{font-size:11px;color:var(--text-3);margin-top:5px;min-height:16px;font-family:var(--mono)}
+.conv.bad{color:var(--danger);font-family:var(--sans)}
+.filebox{display:block;border:1.5px dashed var(--border-strong);border-radius:var(--r);padding:14px;text-align:center;color:var(--text-2);font-size:12px;cursor:pointer}
+.filebox:hover{border-color:var(--accent);color:var(--accent)}
+.filebox input{display:block;margin:8px auto 0;font-size:11px}
+.inline-num{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2)}
+.inline-num input{width:80px}
+.sub{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
+table.grid{border-collapse:separate;border-spacing:0;font-size:11.5px;width:100%}
+table.grid th{font-size:10.5px;font-weight:500;color:var(--text-2);padding:4px 3px;background:var(--surface2);border-bottom:1px solid var(--border);text-align:center;white-space:nowrap;position:sticky;top:0}
+table.grid th:first-child,table.grid td:first-child{text-align:left;padding-left:8px;position:sticky;left:0;background:var(--surface);z-index:1;font-weight:500;white-space:nowrap}
+table.grid th:first-child{background:var(--surface2);z-index:2}
+table.grid td{padding:2px;border-bottom:1px solid var(--border)}
+table.grid input{width:100%;min-width:46px;padding:4px 5px;text-align:right;font-size:11.5px;border-radius:6px;background:transparent;border-color:transparent}
+table.grid input:hover{border-color:var(--border)}
+table.grid input:focus{background:var(--surface2)}
+table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
+.grid-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+.grid-tools input{width:70px}
+.nzbar{position:relative;height:8px;border-radius:4px;background:var(--surface2);min-width:120px;overflow:hidden}
+.nzbar i{position:absolute;top:0;bottom:0;background:var(--accent);opacity:.75;border-right:1px solid var(--surface)}
+.nzbar i.z0{background:var(--warn);opacity:.8}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 </head>
 <body>
 
@@ -186,6 +221,147 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
     </div>
   </div>
 
+  <!-- Site & season -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span data-i18n="card.site">Site &amp; season</span></div>
+    </div>
+    <div class="card-body">
+      <p class="hint" style="margin:0 0 10px" data-i18n="site.hint">Enter the site as coordinates, click the map, or load a shapefile. Sunrise and sunset are calculated for this point.</p>
+      <div class="grid-2">
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.crs">Coordinate system</label>
+          <select id="crs" style="width:100%">
+            <option value="etrs" data-i18n="crs.etrs">ETRS89 / UTM (EPSG:258xx)</option>
+            <option value="wgs84" data-i18n="crs.wgs">Lat / Lon (WGS84)</option>
+            <option value="utmw" data-i18n="crs.utmw">WGS84 / UTM (EPSG:326xx)</option>
+            <option value="gk" data-i18n="crs.gk">Gauss-Krüger DHDN (EPSG:3146x)</option>
+          </select>
+        </div>
+        <div class="field" style="margin:0" id="zoneWrap"><label class="label" data-i18n="label.zone">Zone</label><select id="zone" style="width:100%"></select></div>
+      </div>
+      <div class="tabs">
+        <button class="tab on" id="tabC" type="button" data-i18n="tab.coord">Coordinates</button>
+        <button class="tab" id="tabS" type="button" data-i18n="tab.shp">Shapefile</button>
+      </div>
+      <div id="paneC">
+        <div class="grid-2">
+          <div class="field" style="margin:0"><label class="label" id="x1l">Easting (m)</label><input type="number" id="x1" step="any"/></div>
+          <div class="field" style="margin:0"><label class="label" id="x2l">Northing (m)</label><input type="number" id="x2" step="any"/></div>
+        </div>
+        <div class="conv" id="conv"></div>
+      </div>
+      <div id="paneS" hidden>
+        <label class="filebox"><span data-i18n="shp.pick">Choose .zip (with .shp, .dbf, .prj) or .shp + .prj</span><input type="file" id="shpFile" accept=".zip,.shp,.prj,.dbf" multiple/></label>
+        <div class="status" id="shpMsg"></div>
+        <p class="hint" data-i18n="shp.hint">Read in your browser, nothing is uploaded. The centre of the shape is used. With a .prj the system is read from the file; otherwise the system selected above is used.</p>
+      </div>
+      <div id="map"></div>
+
+      <div class="field" style="margin:14px 0 0"><label class="label" data-i18n="label.tz">Time zone of your data</label>
+        <select id="tz" style="width:100%">
+          <option value="Europe/Berlin" data-i18n="tz.berlin">German local time (MEZ/MESZ, with summer time)</option>
+          <option value="UTC+1" data-i18n="tz.utc1">MEZ all year (UTC+1, no summer time)</option>
+          <option value="UTC" data-i18n="tz.utc">UTC</option>
+        </select>
+        <p class="hint" data-i18n="tz.hint">Must match the timestamps of your meteo data. Most German met-mast and SCADA exports use local time with summer time.</p>
+      </div>
+
+      <div class="sub" data-i18n="label.months">Bat-active months</div>
+      <div class="chips" id="monthChips"></div>
+      <div class="presets">
+        <button type="button" class="btn btn-secondary btn-sm" data-preset="4-10" data-i18n="preset.aprOct">Apr–Oct (standard)</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-preset="3-11" data-i18n="preset.marNov">Mar–Nov</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-preset="1-12" data-i18n="preset.all">All</button>
+        <button type="button" class="btn btn-ghost btn-sm" data-preset="none" data-i18n="preset.none">None</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Night windows -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/></svg><span data-i18n="card.nz">Night windows (Nachtzehntel)</span></div>
+    </div>
+    <div class="card-body">
+      <div class="seg" role="radiogroup" aria-label="NZ mode">
+        <label><input type="radio" name="nzMode" value="auto" checked/><span data-i18n="seg.auto">Automatic from sunrise/sunset</span></label>
+        <label><input type="radio" name="nzMode" value="manual"/><span data-i18n="seg.manualNz">Manual (type windows)</span></label>
+      </div>
+
+      <div id="nzAuto">
+        <div class="field" style="margin-top:12px"><label class="label" data-i18n="label.sunSrc">Sunrise / sunset source</label>
+          <select id="sunSrc" style="width:100%">
+            <option value="noaa" data-i18n="src.noaa">Astronomical calculation (NOAA) — offline, recommended</option>
+            <option value="om" data-i18n="src.om">Open-Meteo API — online, same service as the wind rose tool</option>
+          </select>
+          <p class="hint" data-i18n="src.hint">Sunrise and sunset follow from the Earth's orbit, so the NOAA calculation is accurate to about a minute anywhere. Open-Meteo serves the same values from its servers — useful as a cross-check.</p>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label class="label" data-i18n="label.nightDef">Night runs from</label>
+            <select id="nightDef" style="width:100%">
+              <option value="sun" data-i18n="nd.sun">Sunset → sunrise</option>
+              <option value="civil" data-i18n="nd.civil">Civil dusk → civil dawn (sun 6° below horizon)</option>
+            </select></div>
+          <div class="field"><label class="label" data-i18n="label.parts">Divide the night into</label>
+            <select id="nzParts" style="width:100%"></select></div>
+          <div class="field"><label class="label" data-i18n="label.ref">Clock times per month</label>
+            <select id="sunRef" style="width:100%">
+              <option value="mean" data-i18n="ref.mean">Monthly mean</option>
+              <option value="mid" data-i18n="ref.mid">15th of the month</option>
+              <option value="long" data-i18n="ref.long">Longest night (earliest sunset, latest sunrise)</option>
+            </select></div>
+          <div class="field"><label class="label" data-i18n="label.nz0">NZ0 before sunset</label>
+            <div style="display:flex;gap:6px">
+              <input type="number" id="nz0Val" step="1" value="15" style="width:80px"/>
+              <select id="nz0Mode" style="flex:1">
+                <option value="pct" data-i18n="nz0.pct">% of night length</option>
+                <option value="min" data-i18n="nz0.min">minutes</option>
+                <option value="off" data-i18n="nz0.off">no NZ0</option>
+              </select>
+            </div></div>
+        </div>
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.classicAuto">Classic scheme (reference)</label>
+          <div style="display:flex;flex-wrap:wrap;gap:14px">
+            <span class="inline-num"><input type="number" id="clsBefore" step="5" value="60"/><span data-i18n="classic.before">min before sunset</span></span>
+            <span class="inline-num"><input type="number" id="clsAfter" step="5" value="0"/><span data-i18n="classic.after">min after sunrise</span></span>
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" id="genBtn" type="button"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span data-i18n="btn.gen">Calculate night windows</span></button>
+        </div>
+        <div class="status" id="genStatus"></div>
+        <div class="data-table-wrap" id="nzPreview" style="margin-top:10px"></div>
+      </div>
+
+      <div id="nzManual" style="display:none;margin-top:12px">
+        <p class="hint" style="margin:0 0 6px" data-i18n-html="hint.nz">One line per window: <code>Month NZ start end</code> (HH:MM). NZ0 is generated automatically: it starts <span id="nz0FactorLbl">15</span>% of the night length before NZ1 start and ends at NZ1 start. Each month can have a different number of windows (NZ1&hellip;NZ8, NZ1&hellip;NZ12, etc.) &mdash; just be consistent with the thresholds below.</p>
+        <textarea id="cfgNz" rows="9" spellcheck="false"></textarea>
+        <label class="label" style="margin-top:10px" data-i18n="cfg.classic">Classic scheme (reference)</label>
+        <p class="hint" style="margin:0 0 6px" data-i18n-html="hint.classic">Fixed night windows, single threshold. One line per month: <code>Month start end</code>.</p>
+        <textarea id="cfgClassic" rows="7" spellcheck="false"></textarea>
+        <div class="field" style="margin:10px 0 0"><label class="label" data-i18n="label.nz0f">NZ0 pre-factor</label><input type="number" id="nz0Factor" step="0.01" value="0.15" style="width:120px"/></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thresholds -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg><span data-i18n="cfg.thr">Wind speed thresholds (m/s)</span></div>
+      <button class="btn btn-ghost btn-sm" id="thrDefault" type="button" data-i18n="btn.thrDefault">Load standard values</button>
+    </div>
+    <div class="card-body">
+      <p class="hint" style="margin:0 0 8px" data-i18n="thr.hint">The turbine stops when the wind is below the value inside the window. Type the values, or copy a block from Excel, click the first cell and press Ctrl+V.</p>
+      <div class="data-table-wrap"><table class="grid" id="thrGrid"></table></div>
+      <div class="grid-tools">
+        <input type="number" id="thrFillVal" step="0.1" placeholder="6.0"/>
+        <button class="btn btn-secondary btn-sm" id="thrFillEmpty" type="button" data-i18n="btn.fillEmpty">Fill empty cells</button>
+        <button class="btn btn-ghost btn-sm" id="thrFillAll" type="button" data-i18n="btn.fillAll">Set all</button>
+      </div>
+      <div class="field" style="margin:12px 0 0"><label class="label" data-i18n="label.classicThr">Classic threshold (m/s)</label><input type="number" id="classicThr" step="0.1" value="6.5" style="width:120px"/></div>
+    </div>
+  </div>
+
   <!-- Meteo CSV -->
   <div class="card" id="meteoCard">
     <div class="card-header">
@@ -193,6 +369,19 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
       <span class="badge badge-violet" id="meteoBadge">no file</span>
     </div>
     <div class="card-body">
+      <div class="seg" role="radiogroup" aria-label="Meteo source" style="margin-bottom:12px">
+        <label><input type="radio" name="meteoSrc" value="csv" checked/><span data-i18n="seg.upload">Upload CSV</span></label>
+        <label><input type="radio" name="meteoSrc" value="era5"/><span data-i18n="seg.era5">Fetch ERA5 for the site</span></label>
+      </div>
+      <div id="era5Pane" style="display:none">
+        <p class="hint" style="margin:0 0 10px" data-i18n="era5.hint">Hourly 2 m temperature and 100 m wind from ERA5 (via Open-Meteo) at the site coordinates, in the time zone chosen above, for the year range below. Reanalysis wind is not hub-height site wind — for the time-series method, set each turbine's wind scale.</p>
+        <div class="grid-2">
+          <div class="field" style="margin:0"><label class="label" data-i18n="label.yearFrom">Year from</label><input type="number" id="eraFrom" value="2010"/></div>
+          <div class="field" style="margin:0"><label class="label" data-i18n="label.yearTo">Year to</label><input type="number" id="eraTo" value="2025"/></div>
+        </div>
+        <div style="margin-top:12px"><button class="btn btn-secondary btn-sm" id="era5Btn" type="button"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="btn.fetch">Fetch ERA5 data</span></button></div>
+      </div>
+      <div id="csvPane">
       <input type="file" id="meteoFile" accept=".csv,.txt" style="font-size:12px;font-family:var(--sans);width:100%"/>
       <div class="grid-3" style="margin-top:12px">
         <div class="field" style="margin:0"><label class="label" data-i18n="label.colDt">DateTime column</label><select id="colDt"></select></div>
@@ -213,6 +402,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
         <div class="field" style="margin:0"><label class="label" data-i18n="label.timestep">Timestep (min)</label><select id="timestep"><option>10</option><option>15</option><option>30</option><option>60</option></select></div>
       </div>
       <div style="margin-top:12px"><button class="btn btn-secondary btn-sm" id="parseBtn"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span data-i18n="btn.parse">Parse file</span></button></div>
+      </div>
       <div class="status" id="meteoStatus"></div>
     </div>
   </div>
@@ -224,9 +414,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
       <button class="btn btn-ghost btn-sm" id="fillFromCsv" data-i18n-title="title.fillCsv" title="Fill with hours computed from the parsed CSV"><span data-i18n="btn.fillCsv">Fill from CSV</span></button>
     </div>
     <div class="card-body">
-      <div class="field"><label class="label" data-i18n-html="label.manualHours">NZ hours &mdash; one line per window: <code>Month NZ hours</code></label>
-        <textarea id="manualHours" rows="8" spellcheck="false"></textarea>
-        <p class="hint" data-i18n-html="hint.manualHours">Any month name from the Configuration &rarr; Months list below (edit that list to change your season) &middot; NZ: 0&ndash;N, wherever N is your last defined window</p>
+      <div class="field"><label class="label" data-i18n="label.manualGrid">Active hours per window (h/a) — type or paste from Excel</label>
+        <div class="data-table-wrap"><table class="grid" id="hoursGrid"></table></div>
+        <textarea id="manualHours" rows="8" spellcheck="false" style="display:none"></textarea>
       </div>
       <div class="field" style="margin:0"><label class="label" data-i18n="label.manualClassic">Classic scheme active hours (h/a)</label><input type="number" id="manualClassicHours" step="0.1" placeholder="e.g. 1450"/></div>
     </div>
@@ -246,50 +436,23 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
 
   <!-- Configuration -->
   <div class="card">
-    <div class="card-header"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span data-i18n="card.config">Configuration</span> <span class="badge badge-green" style="margin-left:6px" data-i18n="badge.defaults">defaults loaded</span></div></div>
+    <div class="card-header"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span data-i18n="card.config">Temperature filter &amp; calculate</span></div></div>
     <div class="card-body">
 
-      <details class="cfg" open>
-        <summary data-i18n="cfg.months">Months in scope (season definition)</summary>
-        <div class="cfg-body">
-          <p class="hint" style="margin:0 0 6px" data-i18n-html="hint.months">One month name per line, in <b>any order</b>, choosing however many months your local bat-active season covers. Names are matched case-insensitively against German <i>or</i> English spellings (e.g. <code>Mai</code> or <code>May</code>, <code>Oktober</code> or <code>October</code>). All 12 calendar months are supported &mdash; not just April&ndash;October &mdash; so a Southern-Hemisphere or shifted-season project (e.g. November&ndash;February) works the same way. Any month you don't list here is simply skipped everywhere else in the tool.</p>
-          <textarea id="cfgMonths" rows="7" spellcheck="false"></textarea>
-        </div>
-      </details>
+      <div class="grid-2">
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.tempMin">Temp min (&deg;C)</label><input type="number" id="tempMin" step="0.5" value="10"/></div>
+        <div class="field" style="margin:0"><label class="label" data-i18n="label.tempMax">Temp max (&deg;C)</label><input type="number" id="tempMax" step="0.5" value="75"/></div>
+      </div>
+      <p class="hint" data-i18n="hint.temp">Turbines stop only while the temperature is inside this range.</p>
 
-      <details class="cfg" open>
-        <summary data-i18n="cfg.nz">NZ time windows (Nachtzehntel)</summary>
+      <details class="cfg" style="margin-top:12px;margin-bottom:0">
+        <summary data-i18n="cfg.advanced">Advanced: configuration as text</summary>
         <div class="cfg-body">
-          <p class="hint" style="margin:0 0 6px" data-i18n-html="hint.nz">One line per window: <code>Month NZ start end</code> (HH:MM). NZ0 is generated automatically: it starts <span id="nz0FactorLbl">15</span>% of the night length before NZ1 start and ends at NZ1 start. Each month can have a different number of windows (NZ1&hellip;NZ8, NZ1&hellip;NZ12, etc.) &mdash; just be consistent with the thresholds below.</p>
-          <textarea id="cfgNz" rows="9" spellcheck="false"></textarea>
-        </div>
-      </details>
-
-      <details class="cfg">
-        <summary data-i18n="cfg.thr">Wind speed thresholds (m/s)</summary>
-        <div class="cfg-body">
-          <p class="hint" style="margin:0 0 6px" data-i18n-html="hint.thr">One line per month: <code>Month NZ0 NZ1 &hellip; NZN</code> &mdash; give one value per NZ window used by that month (N+1 values total, where N is that month's highest window index). Turbine stops when wind &lt; threshold inside the window.</p>
-          <textarea id="cfgThr" rows="8" spellcheck="false"></textarea>
-        </div>
-      </details>
-
-      <details class="cfg">
-        <summary data-i18n="cfg.classic">Classic scheme (reference)</summary>
-        <div class="cfg-body">
-          <p class="hint" style="margin:0 0 6px" data-i18n-html="hint.classic">Fixed night windows, single threshold. One line per month: <code>Month start end</code>.</p>
-          <textarea id="cfgClassic" rows="7" spellcheck="false"></textarea>
-          <div class="field" style="margin-top:10px;margin-bottom:0"><label class="label" data-i18n="label.classicThr">Classic threshold (m/s)</label><input type="number" id="classicThr" step="0.1" value="6.5"/></div>
-        </div>
-      </details>
-
-      <details class="cfg">
-        <summary data-i18n="cfg.filters">Filters &amp; constants</summary>
-        <div class="cfg-body">
-          <div class="grid-3">
-            <div class="field" style="margin:0"><label class="label" data-i18n="label.tempMin">Temp min (&deg;C)</label><input type="number" id="tempMin" step="0.5" value="10"/></div>
-            <div class="field" style="margin:0"><label class="label" data-i18n="label.tempMax">Temp max (&deg;C)</label><input type="number" id="tempMax" step="0.5" value="75"/></div>
-            <div class="field" style="margin:0"><label class="label" data-i18n="label.nz0">NZ0 pre-factor</label><input type="number" id="nz0Factor" step="0.01" value="0.15"/></div>
-          </div>
+          <p class="hint" style="margin:0 0 6px" data-i18n="hint.advanced">This is what the buttons above produce. You can copy it into another project or paste a saved setup back in.</p>
+          <label class="label" data-i18n="cfg.months">Months in scope</label>
+          <textarea id="cfgMonths" rows="3" spellcheck="false"></textarea>
+          <label class="label" style="margin-top:8px" data-i18n="cfg.thr">Wind speed thresholds (m/s)</label>
+          <textarea id="cfgThr" rows="6" spellcheck="false"></textarea>
         </div>
       </details>
 
@@ -381,6 +544,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1
   </div>
 </template>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/proj4@2.9.2/dist/proj4.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/shpjs@4.0.4/dist/shp.min.js"></script>
 <script>
 'use strict';
 // ============================================================
@@ -435,11 +601,11 @@ en:{
 'card.turbines':'Turbines (WEA)',
 'btn.addWt':'Add turbine',
 'empty.wt':'Add at least one turbine',
-'card.config':'Configuration',
+'card.config':'Temperature filter &amp; calculate',
 'badge.defaults':'defaults loaded',
-'cfg.months':'Months in scope (season definition)',
+'cfg.months':'Months in scope',
 'hint.months':'One month name per line, in <b>any order</b>, choosing however many months your local bat-active season covers. Names are matched case-insensitively against German <i>or</i> English spellings (e.g. <code>Mai</code> or <code>May</code>, <code>Oktober</code> or <code>October</code>). All 12 calendar months are supported &mdash; not just April&ndash;October &mdash; so a Southern-Hemisphere or shifted-season project (e.g. November&ndash;February) works the same way. Any month you don\'t list here is simply skipped everywhere else in the tool.',
-'cfg.nz':'NZ time windows (Nachtzehntel)',
+
 'hint.nz':'One line per window: <code>Month NZ start end</code> (HH:MM). NZ0 is generated automatically: it starts <span id="nz0FactorLbl">15</span>% of the night length before NZ1 start and ends at NZ1 start. Each month can have a different number of windows (NZ1&hellip;NZ8, NZ1&hellip;NZ12, etc.) &mdash; just be consistent with the thresholds below.',
 'cfg.thr':'Wind speed thresholds (m/s)',
 'hint.thr':'One line per month: <code>Month NZ0 NZ1 &hellip; NZN</code> &mdash; give one value per NZ window used by that month (N+1 values total, where N is that month\'s highest window index). Turbine stops when wind &lt; threshold inside the window.',
@@ -468,11 +634,11 @@ en:{
 'help.s1t':'Choose a method',
 'help.s1p':'<strong>Weibull</strong> reproduces the windPRO-style sector-statistics calculation. <strong>Time series</strong> evaluates every 10-min step of the meteo data (needs a wind speed column). <strong>Compare both</strong> shows them side by side.',
 'help.s2t':'Load meteo data',
-'help.s2p':'Select the meteo CSV (<code>;</code> or <code>,</code> separated), map the DateTime, temperature and wind columns, choose the date format (or leave it on Auto-detect), set the year range, then press <strong>Parse file</strong>. German decimal commas are handled automatically.',
+'help.s2p':'Either <strong>fetch ERA5</strong> for the site (hourly temperature and 100 m wind, no file needed), or select a meteo CSV (<code>;</code> or <code>,</code> separated), map the DateTime, temperature and wind columns, set the year range and press <strong>Parse file</strong>. German decimal commas are handled automatically.',
 'help.s3t':'Add turbines',
 'help.s3p':'Per turbine paste the 12-row sector table (<code>sector angle freq% A k v_free v_wake</code>) and the power curve (<code>wind_speed power</code>, in W or kW &mdash; detected automatically). Optionally add a windPRO AEP reference for validation and a wind scale factor for the time-series method.',
-'help.s4t':'Set your months and check configuration',
-'help.s4p':'The <strong>Months in scope</strong> box defines your bat-active season &mdash; any subset of the 12 calendar months, in any order, German or English names. NZ windows, monthly thresholds, classic scheme and the temperature filter are pre-filled with the standard April&ndash;October defaults and fully editable.',
+'help.s4t':'Set site, months and night windows',
+'help.s4p':'Enter the site (coordinates in ETRS89/UTM, WGS84 or Gauss-Kr&uuml;ger, a click on the map, or a shapefile), pick the bat-active months, and the tool computes sunrise and sunset and divides each night into NZ windows (10 by default). Fill the threshold table &mdash; you can paste it straight from Excel. Switch to <strong>Manual</strong> to type windows yourself.',
 'help.s5t':'Calculate &amp; export',
 'help.s5p':'Results show full AEP, classic loss, NZ loss and the saving per turbine, plus the full NZ matrix. Export everything as a multi-sheet <code>.xlsx</code>. Results and exports are always in German.',
 'btn.gotit':'Got it',
@@ -520,6 +686,46 @@ en:{
 'm.nzBadLine':'NZ windows: bad line "{l}"',
 'm.thrMissingMonth':'Thresholds: month "{mo}" missing',
 'm.thrMissing':'Thresholds: {mo} NZ{nz} missing',
+'card.site':'Site &amp; season',
+'site.hint':'Enter the site as coordinates, click the map, or load a shapefile. Sunrise and sunset are calculated for this point.',
+'label.crs':'Coordinate system','label.zone':'Zone','zone.l':'Zone {z}',
+'crs.etrs':'ETRS89 / UTM (EPSG:258xx) · most used','crs.wgs':'Lat / Lon (WGS84)','crs.utmw':'WGS84 / UTM (EPSG:326xx)','crs.gk':'Gauss-Krüger DHDN (EPSG:3146x)',
+'tab.coord':'Coordinates','tab.shp':'Shapefile',
+'lbl.lat':'Latitude','lbl.lon':'Longitude','lbl.east':'Easting (m)','lbl.north':'Northing (m)',
+'conv.ok':'= {lat}, {lon} (WGS84)','conv.bad':'Could not read the coordinate — check the system and zone.',
+'shp.pick':'Choose .zip (with .shp, .dbf, .prj) or .shp + .prj',
+'shp.hint':'Read in your browser, nothing is uploaded. The centre of the shape is used. With a .prj the system is read from the file; otherwise the system selected above is used.',
+'shp.ok':'Centre: {lat}, {lon} ({n} feature(s))','shp.bad':'Could not read the shapefile: {e}',
+'shp.proj':'Coordinates are not lat/lon — add the .prj file, or choose the coordinate system above.','shp.need':'Select the .shp together with its .prj, or a .zip.',
+'label.tz':'Time zone of your data','tz.berlin':'German local time (MEZ/MESZ, with summer time)','tz.utc1':'MEZ all year (UTC+1, no summer time)','tz.utc':'UTC',
+'tz.hint':'Must match the timestamps of your meteo data. Most German met-mast and SCADA exports use local time with summer time.',
+'label.months':'Bat-active months','preset.aprOct':'Apr–Oct (standard)','preset.marNov':'Mar–Nov','preset.all':'All','preset.none':'None',
+'card.nz':'Night windows (Nachtzehntel)','seg.auto':'Automatic from sunrise/sunset','seg.manualNz':'Manual (type windows)',
+'label.sunSrc':'Sunrise / sunset source','src.noaa':'Astronomical calculation (NOAA) — offline, recommended','src.om':'Open-Meteo API — online, same service as the wind rose tool',
+'src.hint':'Sunrise and sunset follow from the Earth\'s orbit, so the NOAA calculation is accurate to about a minute anywhere. Open-Meteo serves the same values from its servers — useful as a cross-check.',
+'label.nightDef':'Night runs from','nd.sun':'Sunset → sunrise','nd.civil':'Civil dusk → civil dawn (sun 6° below horizon)',
+'label.parts':'Divide the night into','parts.n':'{n} parts','parts.ten':'10 parts (Nachtzehntel)',
+'label.ref':'Clock times per month','ref.mean':'Monthly mean','ref.mid':'15th of the month','ref.long':'Longest night (earliest sunset, latest sunrise)',
+'label.nz0':'NZ0 before sunset','nz0.pct':'% of night length','nz0.min':'minutes','nz0.off':'no NZ0','label.nz0f':'NZ0 pre-factor',
+'label.classicAuto':'Classic scheme (reference)','classic.before':'min before sunset','classic.after':'min after sunrise',
+'btn.gen':'Calculate night windows',
+'pv.month':'Month','pv.set':'Sunset','pv.rise':'Sunrise','pv.night':'Night','pv.one':'One NZ','pv.classic':'Classic','pv.all':'Show all windows ({n})',
+'thr.hint':'The turbine stops when the wind is below the value inside the window. Type the values, or copy a block from Excel, click the first cell and press Ctrl+V.',
+'btn.thrDefault':'Load standard values','btn.fillEmpty':'Fill empty cells','btn.fillAll':'Set all',
+'label.manualGrid':'Active hours per window (h/a) — type or paste from Excel',
+'seg.upload':'Upload CSV','seg.era5':'Fetch ERA5 for the site',
+'era5.hint':'Hourly 2 m temperature and 100 m wind from ERA5 (via Open-Meteo) at the site coordinates, in the time zone chosen above, for the year range below. Reanalysis wind is not hub-height site wind — for the time-series method, set each turbine\'s wind scale.',
+'btn.fetch':'Fetch ERA5 data',
+'hint.temp':'Turbines stop only while the temperature is inside this range.',
+'cfg.advanced':'Advanced: configuration as text','hint.advanced':'This is what the controls above produce. Copy it into another project, or paste a saved setup back in.',
+'m.noMonths':'Select at least one month.',
+'m.omPress':'Press “Calculate night windows” to fetch sunrise/sunset from Open-Meteo.',
+'m.omLoading':'Fetching sunrise/sunset from Open-Meteo…','m.omErr':'Open-Meteo request failed: {e}',
+'m.omCivil':'Open-Meteo only provides sunrise/sunset, so civil twilight uses the NOAA calculation.',
+'m.polar':'No sunset or sunrise in {mo} at this latitude (polar day or night).',
+'m.genOk':'{n} month(s) at {lat}, {lon} · source {src} · years {y0}–{y1}.',
+'m.era5Loading':'Fetching ERA5 {a}–{b}…','m.era5Ok':'ERA5 loaded: {k} hours, {y} years at {lat}, {lon}.',
+'m.era5Years':'Check the year range.','m.era5Clamp':'The current year is incomplete, so data ends in {y}.',
 'm.classicBadLine':'Classic windows: bad line "{l}"'
 },
 de:{
@@ -557,9 +763,9 @@ de:{
 'card.turbines':'Windenergieanlagen (WEA)',
 'btn.addWt':'WEA hinzuf&uuml;gen',
 'empty.wt':'Mindestens eine WEA hinzuf&uuml;gen',
-'card.config':'Konfiguration',
+'card.config':'Temperaturfilter &amp; Berechnung',
 'badge.defaults':'Standardwerte geladen',
-'cfg.months':'Monate im Betrachtungszeitraum (Saisondefinition)',
+'cfg.months':'Monate im Betrachtungszeitraum',
 'hint.months':'Ein Monatsname pro Zeile, in <b>beliebiger Reihenfolge</b>, mit so vielen Monaten, wie Ihre lokale Fledermaus-Aktivit&auml;tssaison umfasst. Die Namen werden unabh&auml;ngig von Gro&szlig;-/Kleinschreibung gegen deutsche <i>oder</i> englische Schreibweisen gepr&uuml;ft (z.&nbsp;B. <code>Mai</code> oder <code>May</code>, <code>Oktober</code> oder <code>October</code>). Alle 12 Kalendermonate werden unterst&uuml;tzt &mdash; nicht nur April&ndash;Oktober &mdash; sodass auch ein Projekt auf der S&uuml;dhalbkugel oder mit verschobener Saison (z.&nbsp;B. November&ndash;Februar) genauso funktioniert. Jeder hier nicht gelistete Monat wird im gesamten Werkzeug &uuml;bersprungen.',
 'cfg.nz':'NZ-Zeitfenster (Nachtzehntel)',
 'hint.nz':'Eine Zeile je Fenster: <code>Monat NZ Beginn Ende</code> (HH:MM). NZ0 wird automatisch erzeugt: es beginnt <span id="nz0FactorLbl">15</span>% der Nachtl&auml;nge vor Beginn von NZ1 und endet mit dem Beginn von NZ1. Jeder Monat kann unterschiedlich viele Fenster haben (NZ1&hellip;NZ8, NZ1&hellip;NZ12 usw.) &mdash; achten Sie nur auf Konsistenz mit den Schwellenwerten unten.',
@@ -590,11 +796,11 @@ de:{
 'help.s1t':'Methode w&auml;hlen',
 'help.s1p':'<strong>Weibull</strong> bildet die windPRO-typische Berechnung aus der Sektorstatistik nach. <strong>Zeitreihe</strong> wertet jeden 10-Minuten-Schritt der Meteodaten aus (ben&ouml;tigt eine Windgeschwindigkeitsspalte). <strong>Beide vergleichen</strong> zeigt beide nebeneinander.',
 'help.s2t':'Meteodaten laden',
-'help.s2p':'W&auml;hlen Sie die Meteo-CSV (<code>;</code>- oder <code>,</code>-getrennt), ordnen Sie die Spalten f&uuml;r Zeitstempel, Temperatur und Wind zu, w&auml;hlen Sie das Datumsformat (oder belassen Sie es auf Automatisch erkennen), setzen Sie den Jahresbereich und dr&uuml;cken Sie <strong>Datei einlesen</strong>. Deutsche Dezimalkommas werden automatisch verarbeitet.',
+'help.s2p':'Entweder <strong>ERA5 holen</strong> f&uuml;r den Standort (st&uuml;ndliche Temperatur und 100-m-Wind, keine Datei n&ouml;tig) oder eine Meteo-CSV w&auml;hlen (<code>;</code>- oder <code>,</code>-getrennt), Spalten zuordnen, Jahresbereich setzen und <strong>Datei einlesen</strong> dr&uuml;cken. Deutsche Dezimalkommas werden automatisch verarbeitet.',
 'help.s3t':'Anlagen hinzuf&uuml;gen',
 'help.s3p':'F&uuml;gen Sie je Anlage die 12-zeilige Sektortabelle ein (<code>Sektor Winkel H&auml;ufigkeit% A k v_frei v_Nachlauf</code>) sowie die Leistungskennlinie (<code>Windgeschwindigkeit Leistung</code>, in W oder kW &mdash; wird automatisch erkannt). Optional k&ouml;nnen Sie eine windPRO-Ertragsreferenz zur Validierung und einen Windskalierungsfaktor f&uuml;r die Zeitreihenmethode angeben.',
-'help.s4t':'Monate festlegen und Konfiguration pr&uuml;fen',
-'help.s4p':'Das Feld <strong>Monate im Betrachtungszeitraum</strong> definiert Ihre Fledermaus-Saison &mdash; eine beliebige Auswahl der 12 Kalendermonate, in beliebiger Reihenfolge, mit deutschen oder englischen Namen. NZ-Fenster, Monatsschwellenwerte, klassisches Schema und Temperaturfilter sind mit den Standardwerten f&uuml;r April&ndash;Oktober vorbelegt und vollst&auml;ndig editierbar.',
+'help.s4t':'Standort, Monate und Nachtfenster festlegen',
+'help.s4p':'Standort eingeben (Koordinaten in ETRS89/UTM, WGS84 oder Gau&szlig;-Kr&uuml;ger, Klick in die Karte oder Shapefile), fledermaus-aktive Monate w&auml;hlen &mdash; das Werkzeug berechnet Sonnenauf- und -untergang und teilt jede Nacht in NZ-Fenster (standardm&auml;&szlig;ig 10). Schwellenwerttabelle ausf&uuml;llen &mdash; sie l&auml;sst sich direkt aus Excel einf&uuml;gen. Mit <strong>Manuell</strong> lassen sich Fenster selbst eintippen.',
 'help.s5t':'Berechnen &amp; exportieren',
 'help.s5p':'Die Ergebnisse zeigen den vollen Jahresertrag, den klassischen Verlust, den NZ-Verlust und die Einsparung je Anlage sowie die vollst&auml;ndige NZ-Matrix. Alles l&auml;sst sich als mehrbl&auml;ttrige <code>.xlsx</code>-Datei exportieren. Ergebnisse und Exporte sind immer auf Deutsch.',
 'btn.gotit':'Verstanden',
@@ -642,6 +848,46 @@ de:{
 'm.nzBadLine':'NZ-Fenster: fehlerhafte Zeile "{l}"',
 'm.thrMissingMonth':'Schwellenwerte: Monat "{mo}" fehlt',
 'm.thrMissing':'Schwellenwerte: {mo} NZ{nz} fehlt',
+'card.site':'Standort &amp; Saison',
+'site.hint':'Standort als Koordinate eingeben, in die Karte klicken oder ein Shapefile laden. Sonnenauf- und -untergang werden für diesen Punkt berechnet.',
+'label.crs':'Koordinatensystem','label.zone':'Zone','zone.l':'Zone {z}',
+'crs.etrs':'ETRS89 / UTM (EPSG:258xx) · am häufigsten','crs.wgs':'Breite / Länge (WGS84)','crs.utmw':'WGS84 / UTM (EPSG:326xx)','crs.gk':'Gauß-Krüger DHDN (EPSG:3146x)',
+'tab.coord':'Koordinaten','tab.shp':'Shapefile',
+'lbl.lat':'Breitengrad','lbl.lon':'Längengrad','lbl.east':'Rechtswert (m)','lbl.north':'Hochwert (m)',
+'conv.ok':'= {lat}, {lon} (WGS84)','conv.bad':'Koordinate nicht lesbar — bitte System und Zone prüfen.',
+'shp.pick':'.zip (mit .shp, .dbf, .prj) oder .shp + .prj wählen',
+'shp.hint':'Wird im Browser gelesen, nichts wird hochgeladen. Die Mitte der Geometrie wird verwendet. Mit .prj wird das System aus der Datei gelesen, sonst gilt das oben gewählte.',
+'shp.ok':'Mitte: {lat}, {lon} ({n} Objekt(e))','shp.bad':'Shapefile konnte nicht gelesen werden: {e}',
+'shp.proj':'Koordinaten sind nicht in Breite/Länge — bitte die .prj mitgeben oder oben das Koordinatensystem wählen.','shp.need':'Bitte die .shp zusammen mit der .prj oder eine .zip wählen.',
+'label.tz':'Zeitzone Ihrer Daten','tz.berlin':'Deutsche Ortszeit (MEZ/MESZ, mit Sommerzeit)','tz.utc1':'MEZ ganzjährig (UTC+1, ohne Sommerzeit)','tz.utc':'UTC',
+'tz.hint':'Muss zu den Zeitstempeln der Meteodaten passen. Die meisten deutschen Messmast- und SCADA-Exporte nutzen Ortszeit mit Sommerzeit.',
+'label.months':'Fledermaus-aktive Monate','preset.aprOct':'Apr–Okt (Standard)','preset.marNov':'Mär–Nov','preset.all':'Alle','preset.none':'Keine',
+'card.nz':'Nachtfenster (Nachtzehntel)','seg.auto':'Automatisch aus Sonnenauf-/-untergang','seg.manualNz':'Manuell (Fenster eintippen)',
+'label.sunSrc':'Quelle Sonnenauf-/-untergang','src.noaa':'Astronomische Berechnung (NOAA) — offline, empfohlen','src.om':'Open-Meteo-API — online, derselbe Dienst wie im Windrosen-Tool',
+'src.hint':'Sonnenauf- und -untergang ergeben sich aus der Erdbahn, daher ist die NOAA-Berechnung überall auf etwa eine Minute genau. Open-Meteo liefert dieselben Werte vom Server — gut zur Gegenkontrolle.',
+'label.nightDef':'Nacht reicht von','nd.sun':'Sonnenuntergang → Sonnenaufgang','nd.civil':'Bürgerliche Dämmerung (Sonne 6° unter Horizont)',
+'label.parts':'Nacht teilen in','parts.n':'{n} Teile','parts.ten':'10 Teile (Nachtzehntel)',
+'label.ref':'Uhrzeiten je Monat','ref.mean':'Monatsmittel','ref.mid':'15. des Monats','ref.long':'Längste Nacht (frühester Unter-, spätester Aufgang)',
+'label.nz0':'NZ0 vor Sonnenuntergang','nz0.pct':'% der Nachtlänge','nz0.min':'Minuten','nz0.off':'kein NZ0','label.nz0f':'NZ0-Vorlauffaktor',
+'label.classicAuto':'Klassisches Schema (Referenz)','classic.before':'min vor Sonnenuntergang','classic.after':'min nach Sonnenaufgang',
+'btn.gen':'Nachtfenster berechnen',
+'pv.month':'Monat','pv.set':'Untergang','pv.rise':'Aufgang','pv.night':'Nacht','pv.one':'Ein NZ','pv.classic':'Klassisch','pv.all':'Alle Fenster anzeigen ({n})',
+'thr.hint':'Die Anlage stoppt, wenn der Wind im Fenster unter dem Wert liegt. Werte eintippen oder einen Block aus Excel kopieren, erste Zelle anklicken und Strg+V drücken.',
+'btn.thrDefault':'Standardwerte laden','btn.fillEmpty':'Leere Zellen füllen','btn.fillAll':'Alle setzen',
+'label.manualGrid':'Aktivstunden je Fenster (h/a) — eintippen oder aus Excel einfügen',
+'seg.upload':'CSV hochladen','seg.era5':'ERA5 für den Standort holen',
+'era5.hint':'Stündliche 2-m-Temperatur und 100-m-Wind aus ERA5 (über Open-Meteo) am Standort, in der oben gewählten Zeitzone, für den Jahresbereich unten. Reanalyse-Wind ist kein Nabenhöhen-Standortwind — für die Zeitreihenmethode die Windskalierung je Anlage setzen.',
+'btn.fetch':'ERA5-Daten holen',
+'hint.temp':'Die Anlagen stoppen nur, solange die Temperatur in diesem Bereich liegt.',
+'cfg.advanced':'Erweitert: Konfiguration als Text','hint.advanced':'Das erzeugen die Eingaben oben. In ein anderes Projekt kopieren oder ein gespeichertes Setup wieder einfügen.',
+'m.noMonths':'Bitte mindestens einen Monat wählen.',
+'m.omPress':'„Nachtfenster berechnen“ drücken, um Sonnenzeiten von Open-Meteo zu holen.',
+'m.omLoading':'Sonnenzeiten werden von Open-Meteo geholt…','m.omErr':'Open-Meteo-Abfrage fehlgeschlagen: {e}',
+'m.omCivil':'Open-Meteo liefert nur Sonnenauf-/-untergang, die bürgerliche Dämmerung wird daher mit NOAA berechnet.',
+'m.polar':'Kein Sonnenunter- oder -aufgang im {mo} auf dieser Breite (Polartag oder -nacht).',
+'m.genOk':'{n} Monat(e) bei {lat}, {lon} · Quelle {src} · Jahre {y0}–{y1}.',
+'m.era5Loading':'ERA5 {a}–{b} wird geholt…','m.era5Ok':'ERA5 geladen: {k} Stunden, {y} Jahre bei {lat}, {lon}.',
+'m.era5Years':'Bitte den Jahresbereich prüfen.','m.era5Clamp':'Das laufende Jahr ist unvollständig, daher enden die Daten {y}.',
 'm.classicBadLine':'Klassische Fenster: fehlerhafte Zeile "{l}"'
 }
 };
@@ -682,6 +928,7 @@ function applyI18n(){
 function setLang(l){
   LANG=l;try{localStorage.setItem('fm_lang',l);}catch(e){}
   applyI18n();
+  if(typeof refreshDynamic==='function')refreshDynamic();
 }
 document.querySelectorAll('#langSeg .langbtn').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
 
@@ -983,19 +1230,29 @@ function parseNzConfig(){
     byMonth[mo].push({nz,start:p[2],end:p[3]});
   }
   const thr=parseThrConfig(scope);
-  const f=num($('nz0Factor').value)||0.15;
+  // Auto mode writes explicit NZ0 lines (or none); manual mode generates NZ0 from the factor.
+  const auto=document.querySelector('input[name=nzMode]:checked').value==='auto';
+  let f=num($('nz0Factor').value);if(isNaN(f))f=0.15;
   const rows=[];
   // Iterate months in the order the user listed them in "Months in scope"
   for(const num_ of scope.order){
     const mo=MONTH_CANON[num_];
-    const list=(byMonth[mo]||[]).sort((a,b)=>a.nz-b.nz);
+    const all=(byMonth[mo]||[]).sort((a,b)=>a.nz-b.nz);
+    const z0line=all.find(w=>w.nz===0);
+    const list=all.filter(w=>w.nz!==0);
     if(!list.length)continue;
     if(!thr[mo])throw t('m.thrMissingMonth',{mo});
     // NZ0
-    const s=toMin(list[0].start);let e=toMin(list[list.length-1].end);
-    let e2=e;if(e2<=s)e2+=1440;
-    const z0=minToStr(s-(e2-s)*f);
-    rows.push({month:mo,monthNum:num_,nz:0,start:z0,end:list[0].start,thr:thr[mo][0]});
+    if(z0line){
+      if(thr[mo][0]===undefined)throw t('m.thrMissing',{mo,nz:0});
+      rows.push({month:mo,monthNum:num_,nz:0,start:z0line.start,end:z0line.end,thr:thr[mo][0]});
+    }else if(!auto&&f>0){
+      const s=toMin(list[0].start);let e=toMin(list[list.length-1].end);
+      let e2=e;if(e2<=s)e2+=1440;
+      const z0=minToStr(s-(e2-s)*f);
+      if(thr[mo][0]===undefined)throw t('m.thrMissing',{mo,nz:0});
+      rows.push({month:mo,monthNum:num_,nz:0,start:z0,end:list[0].start,thr:thr[mo][0]});
+    }
     for(const w of list){
       if(thr[mo][w.nz]===undefined)throw t('m.thrMissing',{mo,nz:w.nz});
       rows.push({month:mo,monthNum:num_,nz:w.nz,start:w.start,end:w.end,thr:thr[mo][w.nz]});
@@ -1053,7 +1310,9 @@ $('meteoFile').addEventListener('change',async e=>{
     const gi=(re)=>header.findIndex(h=>re.test(h));
     let i=gi(/date|time|stamp|datum|zeit/i);$('colDt').value=i>=0?i:0;
     i=header.findIndex(h=>/temp|(^|[^a-z])t(\b|[^a-z])/i.test(h)||/°?c\]?$/i.test(h));if(i<0)i=gi(/temp|^t$/i);$('colT').value=i>=0?i:0;
-    i=gi(/mean.?wind|wind.?speed|windgeschw|^ws|^v$|speed|m\/s/i);$('colV').value=i>=0?i:-1;
+    i=gi(/mean.?wind|wind.?speed|windgeschw|^ws|^v$|speed|m\/s/i);
+    if(i<0)i=header.findIndex(h=>/wind/i.test(h)&&!/dir|richt|grad|deg/i.test(h));
+    $('colV').value=i>=0?i:-1;
     setStatus($('meteoStatus'),'info',t('m.loaded',{name:f.name,size:(f.size/1048576).toFixed(1)}));
     setBadge('badge.file');
   }catch(err){setStatus($('meteoStatus'),'err',t('m.readErr',{err:String(err)}));}
@@ -1236,6 +1495,7 @@ $('fillFromCsv').addEventListener('click',()=>{
     const r=hoursFromMeteo(nzRows,cls,num($('tempMin').value),num($('tempMax').value));
     $('manualHours').value=nzRows.map((row,i)=>`${row.month} ${row.nz} ${r.nzHours[i].toFixed(2)}`).join('\n');
     $('manualClassicHours').value=r.classicHours.toFixed(2);
+    HRS_STORE=parseStoreFromHoursText($('manualHours').value);renderGrids();
     saveState();
   }catch(err){setStatus($('calcStatus'),'err',String(err));}
 });
@@ -1511,38 +1771,556 @@ $('downloadXLSX').addEventListener('click',()=>{
 });
 
 // ============================================================
+// SITE — coordinate systems, map, shapefile (same logic as wind.html)
+// ============================================================
+let SITE={lat:50.98,lon:11.03};
+const ZONES={etrs:[28,38,32],utmw:[1,60,32],gk:[2,5,4]};
+function crsDef(kind,zone){
+  zone=+zone;
+  if(kind==='etrs')return '+proj=utm +zone='+zone+' +ellps=GRS80 +units=m +no_defs';
+  if(kind==='utmw')return '+proj=utm +zone='+zone+' +datum=WGS84 +units=m +no_defs';
+  if(kind==='gk')return '+proj=tmerc +lat_0=0 +lon_0='+(zone*3)+' +k=1 +x_0='+(zone*1e6+500000)+' +y_0=0 +ellps=bessel +towgs84=598.1,73.7,418.2,0.202,0.045,-2.455,6.7 +units=m +no_defs';
+  return null;
+}
+function toLatLon(kind,zone,a,b){
+  if(kind==='wgs84')return{lat:a,lon:b,zone};
+  // easting with zone prefix, e.g. 32 640000 -> zone 32 (UTM); GK eastings always carry the zone digit
+  if((kind==='etrs'||kind==='utmw')&&a>=1e7){zone=Math.floor(a/1e6);a-=zone*1e6;}
+  else if(kind==='gk'){if(a>=1e6)zone=Math.floor(a/1e6);else a+=zone*1e6;}
+  const z=ZONES[kind];if(zone<z[0]||zone>z[1])throw new Error('zone');
+  const p=proj4(crsDef(kind,zone),'EPSG:4326',[a,b]);
+  return{lat:p[1],lon:p[0],zone};
+}
+function fromLatLon(kind,zone,lat,lon){
+  if(kind==='wgs84')return[lat,lon];
+  const p=proj4('EPSG:4326',crsDef(kind,zone),[lon,lat]);return[p[0],p[1]];
+}
+function autoZone(kind,lon){
+  if(kind==='gk')return Math.min(5,Math.max(2,Math.round(lon/3)));
+  return Math.min(60,Math.max(1,Math.floor((lon+180)/6)+1));
+}
+function fillZones(keep){
+  const kind=$('crs').value,zs=$('zone');
+  $('zoneWrap').style.visibility=kind==='wgs84'?'hidden':'';
+  if(kind==='wgs84'){zs.innerHTML='';return;}
+  const z=ZONES[kind];let sel=keep||autoZone(kind,SITE.lon);if(sel<z[0]||sel>z[1])sel=z[2];
+  let o='';for(let i=z[0];i<=z[1];i++)o+=`<option value="${i}"${i===sel?' selected':''}>${t('zone.l',{z:i})}</option>`;
+  zs.innerHTML=o;
+}
+function updateCoordLabels(){
+  const w=$('crs').value==='wgs84';
+  $('x1l').textContent=w?t('lbl.lat'):t('lbl.east');$('x2l').textContent=w?t('lbl.lon'):t('lbl.north');
+}
+function writeFields(){
+  const kind=$('crs').value,zone=+$('zone').value||0;
+  if(typeof proj4==='undefined'&&kind!=='wgs84')return;
+  const v=fromLatLon(kind,zone,SITE.lat,SITE.lon),d=kind==='wgs84'?5:1;
+  $('x1').value=v[0].toFixed(d);$('x2').value=v[1].toFixed(d);
+  const c=$('conv');c.className='conv';
+  c.textContent=kind==='wgs84'?'':t('conv.ok',{lat:SITE.lat.toFixed(5),lon:SITE.lon.toFixed(5)});
+}
+function readFields(){
+  const kind=$('crs').value,zone=+$('zone').value||0,c=$('conv');
+  const a=num($('x1').value),b=num($('x2').value);
+  c.className='conv';c.textContent='';
+  try{
+    if(!isFinite(a)||!isFinite(b))throw 0;
+    if(kind==='wgs84'&&(Math.abs(a)>90||Math.abs(b)>180))throw 0;
+    const r=toLatLon(kind,zone,a,b);
+    if(!isFinite(r.lat)||!isFinite(r.lon)||Math.abs(r.lat)>90||Math.abs(r.lon)>180)throw 0;
+    if(kind!=='wgs84'&&r.zone!==zone)$('zone').value=r.zone;
+    SITE={lat:r.lat,lon:r.lon};
+    if(kind!=='wgs84')c.textContent=t('conv.ok',{lat:r.lat.toFixed(5),lon:r.lon.toFixed(5)});
+    return true;
+  }catch(e){c.className='conv bad';c.textContent=t('conv.bad');return false;}
+}
+let map=null,marker=null,shapeLayer=null;
+function moveMarker(pan){
+  if(!map)return;
+  if(!marker){marker=L.marker([SITE.lat,SITE.lon],{draggable:true}).addTo(map);
+    marker.on('dragend',()=>{const p=marker.getLatLng();setSite(p.lat,p.lng,false);});}
+  marker.setLatLng([SITE.lat,SITE.lon]);
+  if(pan)map.setView([SITE.lat,SITE.lon],Math.max(map.getZoom(),9));
+}
+function setSite(lat,lon,pan){SITE={lat:+lat,lon:+lon};writeFields();moveMarker(pan);siteChanged();}
+function initMap(){
+  if(typeof L==='undefined'){$('map').style.display='none';return;}
+  map=L.map('map',{scrollWheelZoom:false}).setView([SITE.lat,SITE.lon],8);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
+  map.on('click',e=>setSite(e.latlng.lat,e.latlng.lng,false));
+  moveMarker(false);
+}
+['x1','x2','zone'].forEach(id=>$(id).addEventListener('change',()=>{if(readFields()){moveMarker(true);siteChanged();}}));
+$('crs').addEventListener('change',()=>{fillZones();updateCoordLabels();writeFields();saveState();});
+function showTab(c){$('tabC').classList.toggle('on',c);$('tabS').classList.toggle('on',!c);$('paneC').hidden=!c;$('paneS').hidden=c;}
+$('tabC').onclick=()=>showTab(true);$('tabS').onclick=()=>showTab(false);
+
+function coordsBBox(geom,bb){(function walk(c){if(typeof c[0]==='number'){if(c[0]<bb[0])bb[0]=c[0];if(c[0]>bb[2])bb[2]=c[0];if(c[1]<bb[1])bb[1]=c[1];if(c[1]>bb[3])bb[3]=c[1];}else c.forEach(walk);})(geom.coordinates);}
+function readFileAs(f,asText){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);asText?r.readAsText(f):r.readAsArrayBuffer(f);});}
+$('shpFile').addEventListener('change',async ev=>{
+  const files=Array.from(ev.target.files||[]),msg=$('shpMsg');msg.className='status';
+  if(!files.length)return;
+  try{
+    if(typeof shp==='undefined')throw new Error('shpjs not loaded');
+    const zip=files.find(f=>/\.zip$/i.test(f.name)),shpF=files.find(f=>/\.shp$/i.test(f.name)),prjF=files.find(f=>/\.prj$/i.test(f.name));
+    let geoms=[];
+    if(zip){const gj=await shp(await readFileAs(zip));(Array.isArray(gj)?gj:[gj]).forEach(c=>(c.features||[]).forEach(f=>{if(f.geometry)geoms.push(f.geometry);}));}
+    else if(shpF){const prj=prjF?await readFileAs(prjF,true):undefined;geoms=shp.parseShp(await readFileAs(shpF),prj);}
+    else throw new Error(t('shp.need'));
+    geoms=geoms.filter(Boolean);if(!geoms.length)throw new Error('no geometries');
+    let bb=[Infinity,Infinity,-Infinity,-Infinity];geoms.forEach(g=>coordsBBox(g,bb));
+    if(Math.abs(bb[0])>180||Math.abs(bb[2])>180||Math.abs(bb[1])>90||Math.abs(bb[3])>90){
+      const kind=$('crs').value,zone=+$('zone').value||0;
+      if(kind==='wgs84')throw new Error(t('shp.proj'));
+      const tf=c=>{const r=toLatLon(kind,zone,c[0],c[1]);return[r.lon,r.lat];};
+      const mapC=c=>typeof c[0]==='number'?tf(c):c.map(mapC);
+      geoms=geoms.map(g=>({type:g.type,coordinates:mapC(g.coordinates)}));
+      bb=[Infinity,Infinity,-Infinity,-Infinity];geoms.forEach(g=>coordsBBox(g,bb));
+    }
+    const lat=(bb[1]+bb[3])/2,lon=(bb[0]+bb[2])/2;
+    if(map){if(shapeLayer)map.removeLayer(shapeLayer);
+      shapeLayer=L.geoJSON({type:'GeometryCollection',geometries:geoms},{style:{color:'#7c3aed',weight:2,fillOpacity:.15}}).addTo(map);
+      map.fitBounds(shapeLayer.getBounds(),{maxZoom:13,padding:[20,20]});}
+    setSite(lat,lon,false);
+    setStatus(msg,'ok',t('shp.ok',{lat:lat.toFixed(5),lon:lon.toFixed(5),n:geoms.length}));
+  }catch(e){setStatus(msg,'err',t('shp.bad',{e:e.message||e}));}
+});
+
+// ============================================================
+// SUNRISE / SUNSET — NOAA solar calculator (offline) or Open-Meteo (online)
+// ============================================================
+const RAD=Math.PI/180;
+function jcent(jd){return(jd-2451545)/36525;}
+function gmls(t){const L=280.46646+t*(36000.76983+0.0003032*t);return((L%360)+360)%360;}
+function gmas(t){return 357.52911+t*(35999.05029-0.0001537*t);}
+function eccE(t){return 0.016708634-t*(0.000042037+0.0000001267*t);}
+function sunEqC(t){const m=gmas(t)*RAD;return Math.sin(m)*(1.914602-t*(0.004817+0.000014*t))+Math.sin(2*m)*(0.019993-0.000101*t)+Math.sin(3*m)*0.000289;}
+function sunAppLong(t){return gmls(t)+sunEqC(t)-0.00569-0.00478*Math.sin((125.04-1934.136*t)*RAD);}
+function obliq(t){const s=21.448-t*(46.815+t*(0.00059-t*0.001813));return 23+(26+s/60)/60+0.00256*Math.cos((125.04-1934.136*t)*RAD);}
+function sunDecl(t){return Math.asin(Math.sin(obliq(t)*RAD)*Math.sin(sunAppLong(t)*RAD))/RAD;}
+function eqTime(t){
+  let y=Math.tan(obliq(t)*RAD/2);y*=y;
+  const l0=gmls(t)*RAD,e=eccE(t),m=gmas(t)*RAD;
+  const E=y*Math.sin(2*l0)-2*e*Math.sin(m)+4*e*y*Math.sin(m)*Math.cos(2*l0)-0.5*y*y*Math.sin(4*l0)-1.25*e*e*Math.sin(2*m);
+  return 4*E/RAD; // minutes
+}
+function hourAngle(lat,decl,zen){
+  const c=Math.cos(zen*RAD)/(Math.cos(lat*RAD)*Math.cos(decl*RAD))-Math.tan(lat*RAD)*Math.tan(decl*RAD);
+  return(c>1||c<-1)?NaN:Math.acos(c)/RAD;
+}
+// minutes after 00:00 UTC of the given date (lon east-positive)
+function sunEventUTC(rise,y,m,d,lat,lon,zen){
+  const jd=Date.UTC(y,m-1,d)/86400000+2440587.5;
+  let t=jcent(jd+0.5),ha=hourAngle(lat,sunDecl(t),zen);if(isNaN(ha))return NaN;
+  let tm=720-4*(lon+(rise?ha:-ha))-eqTime(t);
+  t=jcent(jd+tm/1440);ha=hourAngle(lat,sunDecl(t),zen);if(isNaN(ha))return NaN;
+  return 720-4*(lon+(rise?ha:-ha))-eqTime(t);
+}
+const _dtf={};
+function tzOff(ms,tz){ // minutes local - UTC
+  if(tz==='UTC')return 0;if(tz==='UTC+1')return 60;
+  const f=_dtf[tz]||(_dtf[tz]=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric'}));
+  const p={};for(const x of f.formatToParts(new Date(ms)))p[x.type]=x.value;
+  return Math.round((Date.UTC(+p.year,+p.month-1,+p.day,(+p.hour)%24,+p.minute)-Math.floor(ms/60000)*60000)/60000);
+}
+function localMinOfDay(ms,tz){const l=ms/60000+tzOff(ms,tz);return((l%1440)+1440)%1440;}
+// nights[monthNum] = [{d, set, rise}] in local minutes; set = evening of day d, rise = following morning
+function nightsNOAA(lat,lon,y0,y1,tz,zen,months){
+  const out={};
+  for(let y=y0;y<=y1;y++)for(const m of months){
+    const nd=new Date(Date.UTC(y,m,0)).getUTCDate();
+    for(let d=1;d<=nd;d++){
+      const s=sunEventUTC(false,y,m,d,lat,lon,zen),r=sunEventUTC(true,y,m,d+1,lat,lon,zen);
+      if(isNaN(s)||isNaN(r)){(out[m]=out[m]||[]).push({d,set:NaN,rise:NaN});continue;}
+      (out[m]=out[m]||[]).push({d,
+        set:localMinOfDay(Date.UTC(y,m-1,d)+s*60000,tz),
+        rise:localMinOfDay(Date.UTC(y,m-1,d+1)+r*60000,tz)});
+    }
+  }
+  return out;
+}
+let OM_SUN=null; // {key, days:[{y,m,d,rise,set}]}
+async function getJSON(url){
+  for(let i=0;i<3;i++){
+    const r=await fetch(url);
+    if(r.status===429){await new Promise(res=>setTimeout(res,4000*(i+1)));continue;}
+    let j=null;try{j=await r.json();}catch(e){}
+    if(!r.ok||(j&&j.error))throw new Error((j&&j.reason)||('HTTP '+r.status));
+    return j;
+  }
+  throw new Error('rate limit (HTTP 429)');
+}
+function omTz(tz){return tz==='Europe/Berlin'?'Europe%2FBerlin':'GMT';}
+function lastArchiveDay(){const d=new Date();d.setUTCDate(d.getUTCDate()-7);return d.toISOString().slice(0,10);}
+function hhmmMin(s){const m=s.match(/T(\d{2}):(\d{2})/);return m?(+m[1])*60+(+m[2]):NaN;}
+async function fetchSunOM(lat,lon,y0,y1,tz){
+  const key=[lat.toFixed(3),lon.toFixed(3),y0,y1,tz].join('|');
+  if(OM_SUN&&OM_SUN.key===key)return OM_SUN;
+  let end=y1+'-12-31';const last=lastArchiveDay();if(end>last)end=last;
+  const url='https://archive-api.open-meteo.com/v1/archive?latitude='+lat.toFixed(4)+'&longitude='+lon.toFixed(4)+
+    '&start_date='+y0+'-01-01&end_date='+end+'&daily=sunrise,sunset&timezone='+omTz(tz);
+  const j=await getJSON(url);
+  const dd=j.daily||{},shift=tz==='UTC+1'?60:0,days=[];
+  for(let i=0;i<(dd.time||[]).length;i++){
+    const p=dd.time[i].split('-').map(Number);
+    days.push({y:p[0],m:p[1],d:p[2],rise:hhmmMin(dd.sunrise[i]||'')+shift,set:hhmmMin(dd.sunset[i]||'')+shift});
+  }
+  if(!days.length)throw new Error('no data');
+  OM_SUN={key,days};return OM_SUN;
+}
+function nightsFromOM(om,months){
+  const out={};
+  for(let i=0;i<om.days.length-1;i++){
+    const a=om.days[i];if(!months.has(a.m))continue;
+    (out[a.m]=out[a.m]||[]).push({d:a.d,set:a.set,rise:om.days[i+1].rise});
+  }
+  return out;
+}
+
+// ============================================================
+// AUTO NZ GENERATION
+// ============================================================
+const NZ_PARTS=[4,5,6,7,8,9,10,11,12];
+let GEN=null; // last generated summary for the preview table
+function scopeMonths(){try{return parseMonthsScope().order.slice().sort((a,b)=>a-b);}catch(e){return[];}}
+function yearRange(){
+  const now=new Date().getUTCFullYear();
+  let y0=Math.round(num($('yearFrom').value)),y1=Math.round(num($('yearTo').value));
+  if(!isFinite(y0))y0=now-10;if(!isFinite(y1))y1=now-1;
+  y0=Math.max(1940,Math.min(y0,now));y1=Math.max(y0,Math.min(y1,now));
+  if(y1-y0>40)y0=y1-40;
+  return[y0,y1];
+}
+function aggregate(list,ref){
+  const ok=list.filter(x=>isFinite(x.set)&&isFinite(x.rise)).map(x=>({d:x.d,set:x.set<720?x.set+1440:x.set,rise:x.rise}));
+  if(!ok.length||ok.length<list.length*0.5)return null;
+  let use=ok;
+  if(ref==='mid'){use=ok.filter(x=>x.d===15);if(!use.length)use=ok;}
+  if(ref==='long')return{set:Math.min(...use.map(x=>x.set)),rise:Math.max(...use.map(x=>x.rise))};
+  return{set:use.reduce((a,x)=>a+x.set,0)/use.length,rise:use.reduce((a,x)=>a+x.rise,0)/use.length};
+}
+let genTimer=null,genSeq=0;
+function scheduleGen(delay){clearTimeout(genTimer);genTimer=setTimeout(()=>generateNz(false),delay==null?250:delay);}
+async function generateNz(fromButton){
+  if(document.querySelector('input[name=nzMode]:checked').value!=='auto')return;
+  const st=$('genStatus'),seq=++genSeq;
+  const months=scopeMonths();
+  if(!months.length){setStatus(st,'warn',t('m.noMonths'));GEN=null;renderNzPreview();return;}
+  const tz=$('tz').value,[y0,y1]=yearRange(),civil=$('nightDef').value==='civil';
+  const src=$('sunSrc').value,mset=new Set(months);
+  let nights,srcLabel,extra='';
+  try{
+    if(src==='om'&&!civil){
+      const key=[SITE.lat.toFixed(3),SITE.lon.toFixed(3),y0,y1,tz].join('|');
+      if(!(OM_SUN&&OM_SUN.key===key)&&!fromButton){setStatus(st,'info',t('m.omPress'));return;}
+      setStatus(st,'info',t('m.omLoading'));
+      const om=await fetchSunOM(SITE.lat,SITE.lon,y0,y1,tz);
+      if(seq!==genSeq)return;
+      nights=nightsFromOM(om,mset);srcLabel='Open-Meteo';
+    }else{
+      if(src==='om'&&civil)extra=' '+t('m.omCivil');
+      nights=nightsNOAA(SITE.lat,SITE.lon,y0,y1,tz,civil?96:90.833,mset);srcLabel='NOAA';
+    }
+  }catch(e){setStatus(st,'err',t('m.omErr',{e:e.message||e}));return;}
+
+  const P=+$('nzParts').value||10,ref=$('sunRef').value;
+  const z0Mode=$('nz0Mode').value,z0Val=num($('nz0Val').value)||0;
+  const cb=num($('clsBefore').value)||0,ca=num($('clsAfter').value)||0;
+  const nzLines=[],clsLines=[],rows=[];
+  for(const m of months){
+    const mo=MONTH_CANON[m];
+    const a=aggregate(nights[m]||[],ref);
+    if(!a){setStatus(st,'err',t('m.polar',{mo:monthShort(m)}));return;}
+    const S=a.set,R=a.rise+1440,Lm=R-S;
+    const b=[];for(let i=0;i<=P;i++)b.push(Math.round(S+i*Lm/P));
+    let z0=null;
+    if(z0Mode!=='off'){
+      const pre=z0Mode==='pct'?Lm*z0Val/100:z0Val;
+      z0=Math.round(S-pre);
+      if(pre>0)nzLines.push(`${mo} 0 ${minToStr(z0)} ${minToStr(b[0])}`);else z0=null;
+    }
+    for(let i=1;i<=P;i++)nzLines.push(`${mo} ${i} ${minToStr(b[i-1])} ${minToStr(b[i])}`);
+    clsLines.push(`${mo} ${minToStr(Math.round(S-cb))} ${minToStr(Math.round(R+ca))}`);
+    rows.push({m,S,R,L:Lm,z0,b,cls:[Math.round(S-cb),Math.round(R+ca)]});
+  }
+  $('cfgNz').value=nzLines.join('\n');
+  $('cfgClassic').value=clsLines.join('\n');
+  GEN={rows,P,src:srcLabel,lat:SITE.lat,lon:SITE.lon,y0,y1};
+  renderNzPreview();renderGrids();saveState();
+  setStatus(st,'ok',t('m.genOk',{n:months.length,lat:SITE.lat.toFixed(4),lon:SITE.lon.toFixed(4),src:srcLabel,y0,y1})+extra);
+}
+function hm(m){return minToStr(Math.round(m));}
+function dur(m){m=Math.round(m);return Math.floor(m/60)+':'+String(m%60).padStart(2,'0');}
+function renderNzPreview(){
+  const el=$('nzPreview');
+  if(!GEN||!GEN.rows.length){el.innerHTML='';return;}
+  const pos=x=>((((x-720)%1440)+1440)%1440)/1440*100;
+  let h=`<table class="data-table"><thead><tr><th>${t('pv.month')}</th><th>${t('pv.set')}</th><th>${t('pv.rise')}</th><th>${t('pv.night')}</th><th>${t('pv.one')}</th><th>NZ0</th><th>${t('pv.classic')}</th><th style="text-align:left">12:00 → 12:00</th></tr></thead><tbody>`;
+  for(const r of GEN.rows){
+    let bar='';
+    if(r.z0!==null)bar+=`<i class="z0" style="left:${pos(r.z0)}%;width:${(r.b[0]-r.z0)/14.4}%"></i>`;
+    for(let i=1;i<r.b.length;i++)bar+=`<i style="left:${pos(r.b[i-1])}%;width:${(r.b[i]-r.b[i-1])/14.4}%"></i>`;
+    h+=`<tr><td>${monthShort(r.m)}</td><td>${hm(r.S)}</td><td>${hm(r.R)}</td><td>${dur(r.L)}</td><td>${Math.round(r.L/GEN.P)} min</td><td>${r.z0===null?'—':hm(r.z0)}</td><td>${hm(r.cls[0])}–${hm(r.cls[1])}</td><td><div class="nzbar">${bar}</div></td></tr>`;
+  }
+  h+=`</tbody></table>`;
+  let d=`<details class="cfg" style="margin-top:8px;margin-bottom:0"><summary>${t('pv.all',{n:$('cfgNz').value.split('\n').filter(Boolean).length})}</summary><div class="cfg-body"><div class="data-table-wrap"><table class="data-table"><thead><tr><th>${t('pv.month')}</th>`;
+  const maxN=GEN.P;
+  if(GEN.rows.some(r=>r.z0!==null))d+='<th>NZ0</th>';
+  for(let i=1;i<=maxN;i++)d+=`<th>NZ${i}</th>`;
+  d+='</tr></thead><tbody>';
+  for(const r of GEN.rows){
+    d+=`<tr><td>${monthShort(r.m)}</td>`;
+    if(GEN.rows.some(x=>x.z0!==null))d+=`<td>${r.z0===null?'—':hm(r.z0)+'–'+hm(r.b[0])}</td>`;
+    for(let i=1;i<=maxN;i++)d+=`<td>${hm(r.b[i-1])}–${hm(r.b[i])}</td>`;
+    d+='</tr>';
+  }
+  d+='</tbody></table></div></div></details>';
+  el.innerHTML=h+d;
+}
+
+// ============================================================
+// MONTH CHIPS
+// ============================================================
+const MONTH_SHORT={en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                   de:['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']};
+function monthShort(m){return(MONTH_SHORT[LANG]||MONTH_SHORT.en)[m-1];}
+function renderChips(){
+  const on=new Set(scopeMonths()),el=$('monthChips');el.innerHTML='';
+  for(let m=1;m<=12;m++){
+    const b=document.createElement('button');b.type='button';b.className='chip';
+    b.textContent=monthShort(m);b.setAttribute('aria-pressed',on.has(m)?'true':'false');
+    b.addEventListener('click',()=>{const s=new Set(scopeMonths());s.has(m)?s.delete(m):s.add(m);setMonths([...s]);});
+    el.appendChild(b);
+  }
+}
+function setMonths(nums){
+  $('cfgMonths').value=nums.slice().sort((a,b)=>a-b).map(n=>MONTH_CANON[n]).join('\n');
+  monthsChanged();
+}
+function monthsChanged(){
+  renderChips();
+  if(document.querySelector('input[name=nzMode]:checked').value==='auto')scheduleGen(0);
+  else renderGrids();
+  saveState();
+}
+document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{
+  const p=b.dataset.preset;if(p==='none'){setMonths([]);return;}
+  const[a,z]=p.split('-').map(Number),out=[];for(let m=a;m<=z;m++)out.push(m);setMonths(out);
+}));
+
+// ============================================================
+// EDITABLE GRIDS (thresholds, manual hours) with Excel paste
+// ============================================================
+let THR_STORE={},HRS_STORE={}; // {monthNum:{nz:value}}
+function parseStoreFromThrText(text){
+  const s={};
+  for(const l of text.split('\n').map(x=>x.trim()).filter(Boolean)){
+    const p=l.split(/[\s;\t]+/);const n=MONTH_ALIASES[(p[0]||'').toLowerCase()];if(!n)continue;
+    s[n]={};for(let i=1;i<p.length;i++){const v=num(p[i]);if(!isNaN(v))s[n][i-1]=v;}
+  }
+  return s;
+}
+function parseStoreFromHoursText(text){
+  const s={};
+  for(const l of text.split('\n').map(x=>x.trim()).filter(Boolean)){
+    const p=l.split(/[\s;\t]+/);const n=MONTH_ALIASES[(p[0]||'').toLowerCase()];if(!n||p.length<3)continue;
+    const v=num(p[2]);if(!isNaN(v))(s[n]=s[n]||{})[parseInt(p[1].replace(/\D/g,''))]=v;
+  }
+  return s;
+}
+function gridCols(){
+  const auto=document.querySelector('input[name=nzMode]:checked').value==='auto';
+  if(auto)return{from:$('nz0Mode').value==='off'?1:0,to:+$('nzParts').value||10};
+  let max=1,has0=false;
+  for(const l of $('cfgNz').value.split('\n').map(x=>x.trim()).filter(Boolean)){
+    const p=l.split(/[\s;,\t]+/);if(p.length<2)continue;const nz=parseInt(p[1].replace(/\D/g,''));
+    if(nz>max)max=nz;if(nz===0)has0=true;
+  }
+  const f=num($('nz0Factor').value);
+  return{from:(has0||isNaN(f)||f>0)?0:1,to:max};
+}
+function writeThrText(){
+  const{to}=gridCols(),ms=scopeMonths();
+  $('cfgThr').value=ms.map(m=>{const r=THR_STORE[m]||{},v=[];for(let i=0;i<=to;i++)v.push(r[i]===undefined?'-':String(r[i]));
+    return MONTH_CANON[m]+' '+v.join(' ');}).join('\n');
+}
+function writeHoursText(){
+  const{from,to}=gridCols(),ms=scopeMonths(),out=[];
+  for(const m of ms){const r=HRS_STORE[m]||{};for(let i=from;i<=to;i++)if(r[i]!==undefined)out.push(`${MONTH_CANON[m]} ${i} ${r[i]}`);}
+  $('manualHours').value=out.join('\n');
+}
+function buildEditGrid(tableId,store,onChange){
+  const tb=$(tableId),{from,to}=gridCols(),ms=scopeMonths();
+  if(!ms.length){tb.innerHTML=`<tbody><tr><td class="hint" style="padding:10px">${t('m.noMonths')}</td></tr></tbody>`;return;}
+  let h='<thead><tr><th></th>';for(let i=from;i<=to;i++)h+=`<th>NZ${i}</th>`;h+='</tr></thead><tbody>';
+  for(const m of ms){
+    h+=`<tr><td>${monthShort(m)}</td>`;
+    for(let i=from;i<=to;i++){const v=(store[m]||{})[i];
+      h+=`<td><input type="text" inputmode="decimal" data-m="${m}" data-nz="${i}" value="${v===undefined?'':fmtIn(v)}" class="${v===undefined?'miss':''}"/></td>`;}
+    h+='</tr>';
+  }
+  tb.innerHTML=h+'</tbody>';
+  tb.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      const m=+inp.dataset.m,nz=+inp.dataset.nz,v=num(inp.value);
+      store[m]=store[m]||{};if(isNaN(v))delete store[m][nz];else store[m][nz]=v;
+      inp.classList.toggle('miss',isNaN(v));onChange();
+    });
+    inp.addEventListener('paste',ev=>{
+      const txt=(ev.clipboardData||window.clipboardData).getData('text');
+      if(!/[\t\n]/.test(txt.trim()))return;
+      ev.preventDefault();
+      const r0=ms.indexOf(+inp.dataset.m),c0=+inp.dataset.nz;
+      let r=r0;
+      for(const line of txt.replace(/\r/g,'').split('\n')){
+        if(!line.trim())continue;
+        let cells=line.split(/\t|;/);
+        // a leading month name decides the row; a header row (no numbers) is skipped
+        const lead=MONTH_ALIASES[(cells[0]||'').trim().toLowerCase()];
+        let target=ms[r];
+        if(lead){cells=cells.slice(1);if(!ms.includes(lead))continue;target=lead;}
+        if(!cells.some(c=>!isNaN(num(c))))continue;
+        store[target]=store[target]||{};
+        cells.forEach((c,k)=>{const nz=c0+k,v=num(c);if(nz>to)return;if(!isNaN(v))store[target][nz]=v;});
+        r=(lead?ms.indexOf(lead):r)+1;
+        if(r>=ms.length&&!lead)break;
+      }
+      onChange();buildEditGrid(tableId,store,onChange);
+    });
+  });
+}
+function fmtIn(v){return LANG==='de'?String(v).replace('.',','):String(v);}
+function onThrChange(){writeThrText();saveState();}
+function onHrsChange(){writeHoursText();saveState();}
+function renderGrids(){
+  writeThrText();writeHoursText();
+  buildEditGrid('thrGrid',THR_STORE,onThrChange);
+  buildEditGrid('hoursGrid',HRS_STORE,onHrsChange);
+}
+$('thrDefault').addEventListener('click',()=>{
+  const d=parseStoreFromThrText(CFG_THR_DEFAULT);for(const m in d)THR_STORE[m]={...d[m]};renderGrids();saveState();
+});
+function fillThr(all){
+  const v=num($('thrFillVal').value);if(isNaN(v))return;
+  const{from,to}=gridCols();
+  for(const m of scopeMonths()){THR_STORE[m]=THR_STORE[m]||{};for(let i=from;i<=to;i++)if(all||THR_STORE[m][i]===undefined)THR_STORE[m][i]=v;}
+  renderGrids();saveState();
+}
+$('thrFillEmpty').addEventListener('click',()=>fillThr(false));
+$('thrFillAll').addEventListener('click',()=>fillThr(true));
+// raw-text edits in the advanced box flow back into the grid
+$('cfgThr').addEventListener('change',()=>{THR_STORE=parseStoreFromThrText($('cfgThr').value);renderGrids();saveState();});
+$('cfgMonths').addEventListener('change',()=>monthsChanged());
+$('cfgNz').addEventListener('change',()=>renderGrids());
+$('nz0Factor').addEventListener('change',()=>renderGrids());
+
+// ============================================================
+// ERA5 METEO FETCH (Open-Meteo archive, same source as wind.html)
+// ============================================================
+function syncYears(fromEra){
+  if(fromEra){$('yearFrom').value=$('eraFrom').value;$('yearTo').value=$('eraTo').value;}
+  else{$('eraFrom').value=$('yearFrom').value;$('eraTo').value=$('yearTo').value;}
+}
+$('eraFrom').addEventListener('input',()=>{syncYears(true);saveState();scheduleGen(600);});
+$('eraTo').addEventListener('input',()=>{syncYears(true);saveState();scheduleGen(600);});
+$('yearFrom').addEventListener('input',()=>{syncYears(false);scheduleGen(600);});
+$('yearTo').addEventListener('input',()=>{syncYears(false);scheduleGen(600);});
+$('era5Btn').addEventListener('click',async()=>{
+  const st=$('meteoStatus');
+  const now=new Date().getUTCFullYear();
+  let y0=Math.round(num($('eraFrom').value)),y1=Math.round(num($('eraTo').value));
+  if(!isFinite(y0)||!isFinite(y1)||y0>y1){setStatus(st,'err',t('m.era5Years'));return;}
+  let note='';if(y1>=now){y1=now-1;note=' '+t('m.era5Clamp',{y:y1});}
+  y0=Math.max(1940,y0);
+  const tz=$('tz').value,shift=tz==='UTC+1'?60:0;
+  const mo=[],mi=[],T=[],V=[],yrs=new Set();
+  const btn=$('era5Btn');btn.disabled=true;
+  try{
+    for(let y=y0;y<=y1;y+=5){
+      const b=Math.min(y+4,y1);
+      setStatus(st,'info',t('m.era5Loading',{a:y,b}));
+      const url='https://archive-api.open-meteo.com/v1/archive?latitude='+SITE.lat.toFixed(4)+'&longitude='+SITE.lon.toFixed(4)+
+        '&start_date='+y+'-01-01&end_date='+b+'-12-31&hourly=temperature_2m,wind_speed_100m&models=era5&wind_speed_unit=ms&timezone='+omTz(tz);
+      const j=await getJSON(url),h=j.hourly||{};
+      const tt=h.time||[],ta=h.temperature_2m||[],va=h.wind_speed_100m||[];
+      for(let i=0;i<tt.length;i++){
+        if(ta[i]==null||va[i]==null)continue;
+        let Y,M,MIN;
+        if(shift){const d=new Date(Date.parse(tt[i]+':00Z')+shift*60000);Y=d.getUTCFullYear();M=d.getUTCMonth()+1;MIN=d.getUTCHours()*60+d.getUTCMinutes();}
+        else{Y=+tt[i].slice(0,4);M=+tt[i].slice(5,7);MIN=(+tt[i].slice(11,13))*60+(+tt[i].slice(14,16));}
+        if(Y<y0||Y>y1)continue;
+        mo.push(M);mi.push(MIN);T.push(ta[i]);V.push(va[i]);yrs.add(Y);
+      }
+    }
+    if(!mo.length)throw new Error('no data');
+    METEO={month:Int8Array.from(mo),minute:Int16Array.from(mi),T:Float32Array.from(T),V:Float32Array.from(V),
+      years:yrs.size,dtH:1,n:mo.length,name:`ERA5 ${SITE.lat.toFixed(3)}, ${SITE.lon.toFixed(3)}`,dateFmt:'iso'};
+    setBadge('badge.rows',{k:mo.length,y:yrs.size});
+    setStatus(st,'ok',t('m.era5Ok',{k:mo.length.toLocaleString(LANG==='de'?'de-DE':'en-US'),y:yrs.size,lat:SITE.lat.toFixed(4),lon:SITE.lon.toFixed(4)})+note);
+  }catch(e){setStatus(st,'err',t('m.omErr',{e:e.message||e}));}
+  btn.disabled=false;
+});
+
+// ============================================================
 // UI WIRING
 // ============================================================
+function siteChanged(){saveState();scheduleGen(400);}
+['tz','sunSrc','nightDef','nzParts','sunRef','nz0Mode'].forEach(id=>$(id).addEventListener('change',()=>{saveState();scheduleGen(0);}));
+['nz0Val','clsBefore','clsAfter'].forEach(id=>$(id).addEventListener('input',()=>{saveState();scheduleGen(400);}));
+$('genBtn').addEventListener('click',()=>generateNz(true));
+document.querySelectorAll('input[name=nzMode]').forEach(el=>el.addEventListener('change',()=>{
+  syncVisibility();
+  if(el.value==='auto')generateNz(false);else{GEN=null;renderNzPreview();renderGrids();}
+  saveState();
+}));
+document.querySelectorAll('input[name=meteoSrc]').forEach(el=>el.addEventListener('change',()=>{syncVisibility();saveState();}));
 function syncVisibility(){
   const method=document.querySelector('input[name=method]:checked').value;
   const hoursSrc=document.querySelector('input[name=hoursSrc]:checked').value;
   const needCsv=(method!=='weibull')||hoursSrc==='csv';
   $('meteoCard').style.display=needCsv?'':'none';
   $('manualCard').style.display=hoursSrc==='manual'&&method!=='timeseries'?'':'none';
+  const auto=document.querySelector('input[name=nzMode]:checked').value==='auto';
+  $('nzAuto').style.display=auto?'':'none';$('nzManual').style.display=auto?'none':'';
+  const era=document.querySelector('input[name=meteoSrc]:checked').value==='era5';
+  $('era5Pane').style.display=era?'':'none';$('csvPane').style.display=era?'none':'';
 }
 document.querySelectorAll('input[name=method],input[name=hoursSrc]').forEach(el=>el.addEventListener('change',()=>{syncVisibility();saveState();}));
 $('cfgMonths').addEventListener('input',saveState);
 $('dateFmt').addEventListener('change',saveState);
+
+const OPT_DEFAULTS={crs:'etrs',tz:'Europe/Berlin',sunSrc:'noaa',nightDef:'sun',nzParts:'10',sunRef:'mean',nz0Mode:'pct',nz0Val:'15',clsBefore:'60',clsAfter:'0'};
+function setRadio(name,v){const el=document.querySelector(`input[name=${name}][value=${v}]`);if(el)el.checked=true;}
 
 $('loadExample').addEventListener('click',()=>{
   wts=[];nextId=1;$('wtList').innerHTML='';
   addWt({name:'BN14',ref:'19982.5',sectors:EX_SEC_BN14,curve:EX_PC_BN14});
   addWt({name:'BN15',sectors:EX_SEC_BN15,curve:EX_PC_BN15});
   addWt({name:'BN16',sectors:EX_SEC_BN16,curve:EX_PC_BN16});
+  // the validated example uses the original project windows -> manual NZ mode
+  setRadio('nzMode','manual');
+  $('cfgMonths').value=CFG_MONTHS_DEFAULT;$('cfgNz').value=CFG_NZ_DEFAULT;$('cfgClassic').value=CFG_CLASSIC_DEFAULT;
+  $('nz0Factor').value=0.15;
+  THR_STORE=parseStoreFromThrText(CFG_THR_DEFAULT);
+  GEN=null;renderNzPreview();renderChips();syncVisibility();renderGrids();
   renderWts();saveState();
 });
 
 $('resetAll').addEventListener('click',()=>{
   wts=[];nextId=1;$('wtList').innerHTML='';addWt({name:'WEA 1'});
+  for(const k in OPT_DEFAULTS)$(k).value=OPT_DEFAULTS[k];
+  setRadio('nzMode','auto');setRadio('meteoSrc','csv');
   $('cfgMonths').value=CFG_MONTHS_DEFAULT;
-  $('cfgNz').value=CFG_NZ_DEFAULT;$('cfgThr').value=CFG_THR_DEFAULT;$('cfgClassic').value=CFG_CLASSIC_DEFAULT;
+  $('cfgNz').value=CFG_NZ_DEFAULT;$('cfgClassic').value=CFG_CLASSIC_DEFAULT;
+  THR_STORE=parseStoreFromThrText(CFG_THR_DEFAULT);HRS_STORE={};
   $('classicThr').value=6.5;$('tempMin').value=10;$('tempMax').value=75;$('nz0Factor').value=0.15;
-  $('dateFmt').value='auto';
-  $('manualHours').value=manualHoursTemplate();$('manualClassicHours').value='';
+  $('dateFmt').value='auto';$('manualClassicHours').value='';
   RESULTS=null;$('resultsBody').innerHTML='';
   $('resultsCard').style.display='none';$('resultsPlaceholder').style.display='';
   $('calcStatus').className='status';
-  syncNz0Label();
+  fillZones();updateCoordLabels();writeFields();
+  syncNz0Label();renderChips();syncVisibility();renderGrids();
+  generateNz(false);
   saveState();
 });
 
@@ -1569,6 +2347,11 @@ function saveState(){
     manualClassicHours:$('manualClassicHours').value,
     yearFrom:$('yearFrom').value,yearTo:$('yearTo').value,timestep:$('timestep').value,
     dateFmt:$('dateFmt').value,
+    site:SITE,zone:$('zone').value,
+    nzMode:document.querySelector('input[name=nzMode]:checked').value,
+    meteoSrc:document.querySelector('input[name=meteoSrc]:checked').value,
+    opts:Object.fromEntries(Object.keys(OPT_DEFAULTS).map(k=>[k,$(k).value])),
+    thrStore:THR_STORE,hrsStore:HRS_STORE,
     wts:wts.map(w=>({...w})),nextId};
   try{localStorage.setItem('fm_state',JSON.stringify(st));}catch(e){}
 }
@@ -1578,34 +2361,62 @@ function loadState(){
   $('cfgMonths').value=CFG_MONTHS_DEFAULT;
   $('cfgNz').value=CFG_NZ_DEFAULT;$('cfgThr').value=CFG_THR_DEFAULT;$('cfgClassic').value=CFG_CLASSIC_DEFAULT;
   $('manualHours').value=manualHoursTemplate();
-  try{
-    const raw=localStorage.getItem('fm_state');
-    if(!raw){addWt({name:'WEA 1'});syncVisibility();return;}
-    const st=JSON.parse(raw);
-    if(st.cfgMonths)$('cfgMonths').value=st.cfgMonths;
-    if(st.cfgNz)$('cfgNz').value=st.cfgNz;
-    if(st.cfgThr)$('cfgThr').value=st.cfgThr;
-    if(st.cfgClassic)$('cfgClassic').value=st.cfgClassic;
-    if(st.classicThr)$('classicThr').value=st.classicThr;
-    if(st.tempMin)$('tempMin').value=st.tempMin;
-    if(st.tempMax)$('tempMax').value=st.tempMax;
-    if(st.nz0Factor)$('nz0Factor').value=st.nz0Factor;
-    if(st.manualHours)$('manualHours').value=st.manualHours;
-    if(st.manualClassicHours)$('manualClassicHours').value=st.manualClassicHours;
-    if(st.yearFrom)$('yearFrom').value=st.yearFrom;
-    if(st.yearTo)$('yearTo').value=st.yearTo;
-    if(st.timestep)$('timestep').value=st.timestep;
-    if(st.dateFmt)$('dateFmt').value=st.dateFmt;
-    if(st.method)document.querySelector(`input[name=method][value=${st.method}]`).checked=true;
-    if(st.hoursSrc)document.querySelector(`input[name=hoursSrc][value=${st.hoursSrc}]`).checked=true;
-    nextId=st.nextId||1;
-    wts=(st.wts||[]).map(w=>({...w}));
-    if(!wts.length)addWt({name:'WEA 1'});else renderWts();
-  }catch(e){addWt({name:'WEA 1'});}
+  for(const k in OPT_DEFAULTS)$(k).value=OPT_DEFAULTS[k];
+  let st=null;
+  try{const raw=localStorage.getItem('fm_state');if(raw)st=JSON.parse(raw);}catch(e){st=null;}
+  let zoneKeep=null;
+  if(st){
+    try{
+      if(st.cfgMonths)$('cfgMonths').value=st.cfgMonths;
+      if(st.cfgNz)$('cfgNz').value=st.cfgNz;
+      if(st.cfgThr)$('cfgThr').value=st.cfgThr;
+      if(st.cfgClassic)$('cfgClassic').value=st.cfgClassic;
+      if(st.classicThr)$('classicThr').value=st.classicThr;
+      if(st.tempMin)$('tempMin').value=st.tempMin;
+      if(st.tempMax)$('tempMax').value=st.tempMax;
+      if(st.nz0Factor)$('nz0Factor').value=st.nz0Factor;
+      if(st.manualHours)$('manualHours').value=st.manualHours;
+      if(st.manualClassicHours)$('manualClassicHours').value=st.manualClassicHours;
+      if(st.yearFrom)$('yearFrom').value=st.yearFrom;
+      if(st.yearTo)$('yearTo').value=st.yearTo;
+      if(st.timestep)$('timestep').value=st.timestep;
+      if(st.dateFmt)$('dateFmt').value=st.dateFmt;
+      if(st.method)setRadio('method',st.method);
+      if(st.hoursSrc)setRadio('hoursSrc',st.hoursSrc);
+      if(st.nzMode)setRadio('nzMode',st.nzMode);
+      if(st.meteoSrc)setRadio('meteoSrc',st.meteoSrc);
+      if(st.site&&isFinite(st.site.lat)&&isFinite(st.site.lon))SITE={lat:+st.site.lat,lon:+st.site.lon};
+      if(st.opts)for(const k in OPT_DEFAULTS)if(st.opts[k]!==undefined)$(k).value=st.opts[k];
+      if(st.zone)zoneKeep=+st.zone;
+      nextId=st.nextId||1;
+      wts=(st.wts||[]).map(w=>({...w}));
+    }catch(e){wts=[];}
+  }
+  THR_STORE=(st&&st.thrStore)?st.thrStore:parseStoreFromThrText($('cfgThr').value);
+  HRS_STORE=(st&&st.hrsStore)?st.hrsStore:parseStoreFromHoursText($('manualHours').value);
+  if(!wts.length)addWt({name:'WEA 1'});else renderWts();
+  syncYears(false);
+  fillZones(zoneKeep);updateCoordLabels();writeFields();
   syncVisibility();
 }
+function refreshDynamic(){
+  fillZones(+$('zone').value||null);updateCoordLabels();writeFields();
+  renderChips();renderGrids();renderNzPreview();
+}
+{ // nz parts selector
+  const sel=$('nzParts');
+  NZ_PARTS.forEach(n=>{const o=document.createElement('option');o.value=n;sel.appendChild(o);});
+}
+function labelParts(){
+  document.querySelectorAll('#nzParts option').forEach(o=>{o.textContent=t(+o.value===10?'parts.ten':'parts.n',{n:o.value});});
+}
+const _applyI18n=applyI18n;
+applyI18n=function(){_applyI18n();labelParts();};
 loadState();
 applyI18n();
+initMap();
+renderChips();renderGrids();
+generateNz(false);
 </script>
 </body>
 </html>

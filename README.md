@@ -27,6 +27,16 @@ To add a new calculator later: copy one of the tool pages, replace the logic, an
 
 **Compare both** runs the two methods side by side.
 
+### Site, months and night windows (NZ)
+
+- **Site:** coordinates in ETRS89/UTM (EPSG:258xx), WGS84 lat/lon, WGS84/UTM or Gauss-Krüger DHDN (EPSG:3146x), a click on the map, or a shapefile (.zip or .shp + .prj; the shape's centre is used).
+- **Months:** click Jan–Dec chips, or use the presets (Apr–Oct, Mar–Nov, all).
+- **Automatic NZ windows:** sunset and sunrise are computed for the site (NOAA solar algorithm, offline, ±1 min; or fetched from the Open-Meteo archive as a cross-check) in the data's time zone (German local time, MEZ all year, or UTC). Each night is divided into N equal parts (10 = Nachtzehntel; 4–12 selectable). Options: sunset/sunrise or civil twilight, monthly mean / 15th / longest night, NZ0 as % of night or minutes before sunset (or none), classic scheme as minutes before sunset / after sunrise. Switch to **Manual** to type windows as before.
+- **Thresholds and manual hours** are editable tables; a block copied from Excel can be pasted in (month names in the first column are recognised).
+- **Meteo data** can also be fetched directly: hourly ERA5 2 m temperature and 100 m wind for the site from Open-Meteo, so no CSV is needed.
+
+The "Load example (BN14–16)" button switches to Manual mode with the original project windows, so the validation figures below still reproduce.
+
 ### Active hours
 
 Either computed from the meteo CSV (timestamp + temperature, 10-min default timestep, year range filter, temperature window 10–75 °C by default) or entered manually per month/NZ window. "Fill from CSV" copies computed hours into the manual table for tweaking.
