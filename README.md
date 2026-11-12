@@ -1,23 +1,37 @@
-# Wind Analysis Tools
+# BOREAS · Wind Tools
 
-Browser-based calculators for wind farm curtailment analysis. Everything runs client-side — no server, no data upload — which makes the site perfect for GitHub Pages.
+Browser-based engineering tools for wind farm analysis. Every page is a single self-contained HTML file that runs client-side — no server and no data upload (the wind rose and the ERA5 options fetch public weather data, the account tracker uses a shared database). That makes the site easy to host on GitHub Pages or GitLab Pages.
 
 ## Pages
 
 | File | Tool |
 |---|---|
-| `index.html` | Hub — pick a calculator (add new tools here as cards) |
-| `fledermaus.html` | Bat (Fledermaus) curtailment losses — NZ windows, monthly thresholds, temperature filter |
-| `turbulence.html` | Turbulence curtailment losses — sector overlap between full and curtailed datasets |
+| `index.html` | Start page — links to every tool (add new tools here as cards) |
+| **Curtailment losses** | |
+| `fledermaus.html` | Bat (Fledermaus) curtailment losses — NZ windows, monthly thresholds, temperature filter; Weibull or time series; project files, bulk turbine import |
+| `turbulence.html` | Turbulence curtailment losses — sector overlap between full and curtailed datasets, several scenarios |
+| **Yield & probability** | |
+| `pvalues.html` | Exceedance probabilities — P50 / P75 / P90 or any P-value from an annual energy sum and combined uncertainty |
+| **Site data** | |
+| `turbines.html` | Turbine table matcher — compare two turbine lists by name and position, copy types/hub heights/power across, 2 D spacing check |
+| `wind.html` | Wind rose & main wind direction — ERA5, CERRA, ERA5-Land, ECMWF IFS, Global Wind Atlas, DWD station check; coordinates or shapefile |
+| **Turbine files (.wtg)** — one card on the start page, both pages linked to each other | |
+| `wtg-generator.html` | WTG generator — WAsP / windPRO .wtg file from manufacturer power and ct tables for the chosen air densities |
+| `wtg-curtailment.html` | Curtailment WTGs — curtailed .wtg files per sector from a turbulence report's curtailment table, downloaded as ZIP |
+| **Reporting & coordination** | |
+| `bericht.html` | Report generator (Berichtsgenerator) — print-ready A3/A4 PDF with header data, site plans, Excel tables, sources and remarks |
+| `konto.html` | Account tracker — live status of the shared Wake2e accounts with usage log |
+| `gwa-relay/` | Optional Cloudflare Worker that lets the wind rose download Global Wind Atlas data automatically (see its README) |
 
 ## Host on GitHub Pages
 
-1. Create a new repository on GitHub (e.g. `wind-tools`).
-2. Upload all files from this folder to the repository root (`index.html`, `fledermaus.html`, `turbulence.html`, `README.md`).
-3. In the repository: **Settings → Pages → Source: Deploy from a branch → Branch: `main` / root → Save**.
-4. After a minute the site is live at `https://<your-username>.github.io/wind-tools/`.
+1. Push all files in this folder to the repository root.
+2. In the repository: **Settings → Pages → Source: Deploy from a branch → Branch: `main` / root → Save**.
+3. After a minute the site is live at `https://<your-username>.github.io/<repository>/`.
 
-To add a new calculator later: copy one of the tool pages, replace the logic, and add a new card in `index.html`.
+On GitLab, use GitLab Pages with a job that publishes the repository root as `public/`.
+
+To add a new tool: copy one of the tool pages, replace the logic, and add a card in `index.html` (English and German text are in the `T` object at the bottom of the page).
 
 ## Fledermaus calculator — methods
 
@@ -51,4 +65,4 @@ NZ time windows (April–Oktober, NZ1–NZ10), monthly wind speed thresholds (NZ
 - **Power curve**: `wind_speed power` — W or kW, detected automatically
 - **Meteo CSV**: `;` or `,` separated, German decimal commas supported, timestamps `YYYY-MM-DD HH:MM` or `DD.MM.YYYY HH:MM`
 
-All inputs are stored in the browser (localStorage), so your setup survives a page reload. Results export as a multi-sheet `.xlsx` or as TSV to the clipboard.
+All inputs are stored in the browser (localStorage), so your setup survives a page reload. **Save / Open** in the top bar writes all inputs to a `.boreas.json` project file (meteo data is not included). Several turbines can be imported at once (one pasted block or one file per turbine). Results export as a multi-sheet `.xlsx` or as TSV to the clipboard.
