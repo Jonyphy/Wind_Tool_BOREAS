@@ -64,6 +64,7 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none;font-s
 .btn-sm{padding:5px 10px;font-size:12px}
 .btn-sm svg{width:13px;height:13px}
 .btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .field{margin-bottom:12px}
 .label{display:block;font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:5px}
@@ -171,6 +172,49 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
 .nzbar{position:relative;height:8px;border-radius:4px;background:var(--surface2);min-width:120px;overflow:hidden}
 .nzbar i{position:absolute;top:0;bottom:0;background:var(--accent);opacity:.75;border-right:1px solid var(--surface)}
 .nzbar i.z0{background:var(--warn);opacity:.8}
+
+/* --- UX additions: steps, readiness, toast, import, drop --- */
+.col.inputs{counter-reset:step}
+.card.step{counter-increment:step}
+.card.step .card-title::before{content:counter(step);width:20px;height:20px;border-radius:999px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600;flex-shrink:0}
+.card.step .card-title svg{display:none}
+.ready{margin:0 18px 12px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.ready-head{padding:8px 12px;font-size:12px;font-weight:600;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.ready-head .pill{margin-left:auto;font-size:11px;font-weight:500;padding:1px 8px;border-radius:999px}
+.ready-head .pill.ok{background:var(--success-bg);color:var(--success)}
+.ready-head .pill.no{background:var(--warn-bg);color:var(--warn)}
+.ready ul{list-style:none}
+.ready li{display:flex;gap:8px;align-items:flex-start;padding:6px 12px;font-size:12px;border-bottom:1px solid var(--border);cursor:pointer}
+.ready li:last-child{border-bottom:none}
+.ready li:hover{background:var(--surface2)}
+.ready li .ic{width:16px;flex-shrink:0;text-align:center;font-weight:700}
+.ready li.ok .ic{color:var(--success)}
+.ready li.no .ic{color:var(--warn)}
+.ready li.skip{color:var(--text-3)}
+.ready li .msg{color:var(--text-2);display:block;font-size:11px}
+.ready li.no .msg{color:var(--warn)}
+.card.flash{box-shadow:0 0 0 3px var(--accent-border),var(--shadow);transition:box-shadow .2s}
+.wt-check{font-size:11px;margin-top:8px;padding:6px 9px;border-radius:7px;background:var(--surface2);color:var(--text-2);font-family:var(--mono)}
+.wt-check.ok{background:var(--success-bg);color:var(--success)}
+.wt-check.err{background:var(--danger-bg);color:var(--danger);font-family:var(--sans)}
+.wt-check.warn{background:var(--warn-bg);color:var(--warn)}
+.toast-wrap{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;background:var(--text);color:var(--surface);padding:10px 12px 10px 16px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);font-size:13px;max-width:92vw}
+.toast button{color:var(--accent-border);font-weight:600;font-size:13px;padding:4px 8px;border-radius:6px}
+.toast button:hover{background:rgba(255,255,255,.12)}
+html[data-theme=dark] .toast button{color:var(--accent)}
+.card.drop-on{outline:2px dashed var(--accent);outline-offset:-4px;background:var(--accent-bg)}
+.drop-tip{font-size:11px;color:var(--text-3);margin-top:6px}
+.modal.wide{width:860px}
+.imp-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:12px}
+table.imp{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+table.imp th{font-size:11px;font-weight:500;color:var(--text-2);text-align:left;padding:5px 8px;background:var(--surface2);border-bottom:1px solid var(--border)}
+table.imp td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+table.imp td.num{font-family:var(--mono);text-align:right}
+table.imp td .bad{color:var(--danger)}
+table.imp td .wrn{color:var(--warn)}
+.modal-footer .left{margin-right:auto;display:flex;gap:14px;align-items:center;font-size:12px;color:var(--text-2)}
+.modal-footer{gap:8px}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 </head>
@@ -188,6 +232,9 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
         <button type="button" class="langbtn" data-lang="en">EN</button>
         <button type="button" class="langbtn" data-lang="de">DE</button>
       </div>
+      <button class="btn btn-ghost btn-sm" id="openProj" type="button" data-i18n-title="title.openProj" title="Open a saved project file (.boreas.json)"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span data-i18n="btn.openProj">Open</span></button>
+      <button class="btn btn-ghost btn-sm" id="saveProj" type="button" data-i18n-title="title.saveProj" title="Save all inputs as a project file"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span data-i18n="btn.saveProj">Save</span></button>
+      <input type="file" id="projFile" accept=".json,application/json" hidden/>
       <button class="btn btn-ghost btn-sm" id="themeBtn" data-i18n-title="title.theme" title="Toggle theme"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
       <button class="btn btn-secondary btn-sm" id="helpBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg><span data-i18n="btn.help">Help</span></button>
     </div>
@@ -197,10 +244,10 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
 <main class="main">
 
 <!-- LEFT COLUMN : INPUTS -->
-<div class="col">
+<div class="col inputs">
 
   <!-- Method -->
-  <div class="card">
+  <div class="card step" id="methodCard">
     <div class="card-header">
       <div class="card-title"><svg viewBox="0 0 24 24"><path d="M4 4h16v4H4zM4 12h16v8H4z"/></svg><span data-i18n="card.method">Calculation method</span></div>
     </div>
@@ -222,7 +269,7 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
   </div>
 
   <!-- Site & season -->
-  <div class="card">
+  <div class="card step" id="siteCard">
     <div class="card-header">
       <div class="card-title"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span data-i18n="card.site">Site &amp; season</span></div>
     </div>
@@ -253,6 +300,7 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
       <div id="paneS" hidden>
         <label class="filebox"><span data-i18n="shp.pick">Choose .zip (with .shp, .dbf, .prj) or .shp + .prj</span><input type="file" id="shpFile" accept=".zip,.shp,.prj,.dbf" multiple/></label>
         <div class="status" id="shpMsg"></div>
+        <p class="drop-tip" data-i18n="drop.shp">You can also drop the .zip or .shp + .prj onto this card.</p>
         <p class="hint" data-i18n="shp.hint">Read in your browser, nothing is uploaded. The centre of the shape is used. With a .prj the system is read from the file; otherwise the system selected above is used.</p>
       </div>
       <div id="map"></div>
@@ -278,7 +326,7 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
   </div>
 
   <!-- Night windows -->
-  <div class="card">
+  <div class="card step" id="nzCard">
     <div class="card-header">
       <div class="card-title"><svg viewBox="0 0 24 24"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/></svg><span data-i18n="card.nz">Night windows (Nachtzehntel)</span></div>
     </div>
@@ -345,7 +393,7 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
   </div>
 
   <!-- Thresholds -->
-  <div class="card">
+  <div class="card step" id="thrCard">
     <div class="card-header">
       <div class="card-title"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg><span data-i18n="cfg.thr">Wind speed thresholds (m/s)</span></div>
       <button class="btn btn-ghost btn-sm" id="thrDefault" type="button" data-i18n="btn.thrDefault">Load standard values</button>
@@ -363,7 +411,7 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
   </div>
 
   <!-- Meteo CSV -->
-  <div class="card" id="meteoCard">
+  <div class="card step" id="meteoCard">
     <div class="card-header">
       <div class="card-title"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span data-i18n="card.meteo">Meteo time series (CSV)</span></div>
       <span class="badge badge-violet" id="meteoBadge">no file</span>
@@ -383,6 +431,7 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
       </div>
       <div id="csvPane">
       <input type="file" id="meteoFile" accept=".csv,.txt" style="font-size:12px;font-family:var(--sans);width:100%"/>
+      <p class="drop-tip" data-i18n="drop.meteo">…or drop the CSV file onto this card.</p>
       <div class="grid-3" style="margin-top:12px">
         <div class="field" style="margin:0"><label class="label" data-i18n="label.colDt">DateTime column</label><select id="colDt"></select></div>
         <div class="field" style="margin:0"><label class="label" data-i18n="label.colT">Temperature column</label><select id="colT"></select></div>
@@ -408,7 +457,7 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
   </div>
 
   <!-- Manual hours -->
-  <div class="card" id="manualCard" style="display:none">
+  <div class="card step" id="manualCard" style="display:none">
     <div class="card-header">
       <div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span data-i18n="card.manual">Manual active hours (h/a)</span></div>
       <button class="btn btn-ghost btn-sm" id="fillFromCsv" data-i18n-title="title.fillCsv" title="Fill with hours computed from the parsed CSV"><span data-i18n="btn.fillCsv">Fill from CSV</span></button>
@@ -423,19 +472,20 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
   </div>
 
   <!-- Turbines -->
-  <div class="card">
+  <div class="card step" id="wtCard">
     <div class="card-header">
       <div class="card-title"><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.7A2.5 2.5 0 1 1 19.5 12H2"/></svg><span data-i18n="card.turbines">Turbines (WEA)</span></div>
-      <button class="btn btn-secondary btn-sm" id="addWt"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="btn.addWt">Add turbine</span></button>
+      <div style="display:flex;gap:6px"><button class="btn btn-secondary btn-sm" id="importWt" type="button"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="btn.importWt">Import several</span></button><button class="btn btn-secondary btn-sm" id="addWt"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="btn.addWt">Add turbine</span></button></div>
     </div>
     <div class="card-body" style="padding:12px">
       <div id="wtList"></div>
+      <p class="drop-tip" style="margin:0 0 10px" data-i18n="drop.wt">Tip: drop turbine files (.txt / .csv) here to import several at once.</p>
       <div id="noWt" class="empty-state" style="display:none"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><p data-i18n="empty.wt">Add at least one turbine</p></div>
     </div>
   </div>
 
   <!-- Configuration -->
-  <div class="card">
+  <div class="card step" id="calcCard">
     <div class="card-header"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span data-i18n="card.config">Temperature filter &amp; calculate</span></div></div>
     <div class="card-body">
 
@@ -456,6 +506,10 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
         </div>
       </details>
 
+    </div>
+    <div class="ready" id="ready" aria-live="polite">
+      <div class="ready-head"><span data-i18n="ready.title">Before you calculate</span><span class="pill" id="readyPill"></span></div>
+      <ul id="readyList"></ul>
     </div>
     <div class="action-bar">
       <button class="btn btn-primary" id="calcBtn"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg><span data-i18n="btn.calc">Calculate losses</span></button>
@@ -519,6 +573,46 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
   </div>
 </div>
 
+<!-- Import turbines modal -->
+<div class="modal-overlay" id="impModal">
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="impTitle">
+    <div class="modal-header"><span class="modal-title" id="impTitle" data-i18n="imp.title">Import several turbines</span>
+      <button class="btn btn-ghost btn-sm" id="impClose" type="button"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="imp-tabs">
+        <button class="tab on" id="impTabP" type="button" data-i18n="imp.tabPaste">Paste one block</button>
+        <button class="tab" id="impTabF" type="button" data-i18n="imp.tabFiles">One file per turbine</button>
+      </div>
+      <div id="impPaneP">
+        <p class="hint" style="margin:0 0 8px" data-i18n-html="imp.pasteHint">Put each turbine's name on its own line, followed by its sector rows (7 numbers: <code>sector angle freq% A k v_free v_wake</code>) and power-curve rows (<code>wind_speed power</code>). Rows are sorted by how many numbers they have, so the order does not matter. Header lines are skipped.</p>
+        <textarea id="impText" rows="12" spellcheck="false" placeholder="BN14&#10;1  0   4.5  6.0  1.91  5.35  5.35&#10;2  30  4.7  5.9  2.03  5.25  5.25&#10;...&#10;3.0  41918.33&#10;3.5  154301.1&#10;...&#10;BN15&#10;1  0   4.5  6.0  1.91  5.35  4.67&#10;..."></textarea>
+      </div>
+      <div id="impPaneF" hidden>
+        <label class="filebox" id="impDrop"><span data-i18n="imp.filesPick">Choose or drop .txt / .csv files — one per turbine. The file name becomes the turbine name.</span><input type="file" id="impFiles" accept=".txt,.csv,.tsv,.dat" multiple/></label>
+      </div>
+      <details class="cfg" style="margin-top:12px">
+        <summary data-i18n="imp.sharedSum">Same power curve for turbines without their own</summary>
+        <div class="cfg-body">
+          <p class="hint" style="margin:0 0 6px" data-i18n="imp.sharedHint">Used for every imported turbine that has no power-curve rows — handy when all turbines are the same type.</p>
+          <textarea id="impCurve" rows="5" spellcheck="false" placeholder="3.0  41918.33&#10;3.5  154301.1&#10;..."></textarea>
+        </div>
+      </details>
+      <div id="impPreview"></div>
+    </div>
+    <div class="modal-footer">
+      <div class="left">
+        <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="radio" name="impMode" value="add" checked/><span data-i18n="imp.add">Add to current turbines</span></label>
+        <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="radio" name="impMode" value="replace"/><span data-i18n="imp.replace">Replace current turbines</span></label>
+      </div>
+      <button class="btn btn-secondary" id="impCancel" type="button" data-i18n="btn.cancel">Cancel</button>
+      <button class="btn btn-primary" id="impGo" type="button" disabled>—</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts" aria-live="polite"></div>
+
 <template id="wtTpl">
   <div class="wt-block">
     <div class="wt-header">
@@ -540,6 +634,7 @@ table.grid input.miss{background:var(--danger-bg);border-color:var(--danger)}
       <div class="field" style="margin:0"><label class="label" data-i18n-html="wt.curve">Power curve &mdash; <code>wind_speed power</code> (W or kW)</label>
         <textarea class="wt-curve" rows="5" spellcheck="false" placeholder="3.0   41918.33&#10;3.5   154301.1&#10;..."></textarea>
       </div>
+      <div class="wt-check"></div>
     </div>
   </div>
 </template>
@@ -636,7 +731,7 @@ en:{
 'help.s2t':'Load meteo data',
 'help.s2p':'Either <strong>fetch ERA5</strong> for the site (hourly temperature and 100 m wind, no file needed), or select a meteo CSV (<code>;</code> or <code>,</code> separated), map the DateTime, temperature and wind columns, set the year range and press <strong>Parse file</strong>. German decimal commas are handled automatically.',
 'help.s3t':'Add turbines',
-'help.s3p':'Per turbine paste the 12-row sector table (<code>sector angle freq% A k v_free v_wake</code>) and the power curve (<code>wind_speed power</code>, in W or kW &mdash; detected automatically). Optionally add a windPRO AEP reference for validation and a wind scale factor for the time-series method.',
+'help.s3p':'Per turbine paste the 12-row sector table (<code>sector angle freq% A k v_free v_wake</code>) and the power curve (<code>wind_speed power</code>, in W or kW &mdash; detected automatically). Optionally add a windPRO AEP reference for validation and a wind scale factor for the time-series method. With <strong>Import several</strong> you can paste many turbines at once or drop one file per turbine. <strong>Save</strong> (top right) writes all inputs to a project file you can open again later or send to a colleague.',
 'help.s4t':'Set site, months and night windows',
 'help.s4p':'Enter the site (coordinates in ETRS89/UTM, WGS84 or Gauss-Kr&uuml;ger, a click on the map, or a shapefile), pick the bat-active months, and the tool computes sunrise and sunset and divides each night into NZ windows (10 by default). Fill the threshold table &mdash; you can paste it straight from Excel. Switch to <strong>Manual</strong> to type windows yourself.',
 'help.s5t':'Calculate &amp; export',
@@ -798,7 +893,7 @@ de:{
 'help.s2t':'Meteodaten laden',
 'help.s2p':'Entweder <strong>ERA5 holen</strong> f&uuml;r den Standort (st&uuml;ndliche Temperatur und 100-m-Wind, keine Datei n&ouml;tig) oder eine Meteo-CSV w&auml;hlen (<code>;</code>- oder <code>,</code>-getrennt), Spalten zuordnen, Jahresbereich setzen und <strong>Datei einlesen</strong> dr&uuml;cken. Deutsche Dezimalkommas werden automatisch verarbeitet.',
 'help.s3t':'Anlagen hinzuf&uuml;gen',
-'help.s3p':'F&uuml;gen Sie je Anlage die 12-zeilige Sektortabelle ein (<code>Sektor Winkel H&auml;ufigkeit% A k v_frei v_Nachlauf</code>) sowie die Leistungskennlinie (<code>Windgeschwindigkeit Leistung</code>, in W oder kW &mdash; wird automatisch erkannt). Optional k&ouml;nnen Sie eine windPRO-Ertragsreferenz zur Validierung und einen Windskalierungsfaktor f&uuml;r die Zeitreihenmethode angeben.',
+'help.s3p':'F&uuml;gen Sie je Anlage die 12-zeilige Sektortabelle ein (<code>Sektor Winkel H&auml;ufigkeit% A k v_frei v_Nachlauf</code>) sowie die Leistungskennlinie (<code>Windgeschwindigkeit Leistung</code>, in W oder kW &mdash; wird automatisch erkannt). Optional k&ouml;nnen Sie eine windPRO-Ertragsreferenz zur Validierung und einen Windskalierungsfaktor f&uuml;r die Zeitreihenmethode angeben. Mit <strong>Mehrere importieren</strong> lassen sich viele WEA auf einmal einfügen oder eine Datei je WEA ablegen. <strong>Speichern</strong> (oben rechts) schreibt alle Eingaben in eine Projektdatei, die später wieder geöffnet oder an Kollegen geschickt werden kann.',
 'help.s4t':'Standort, Monate und Nachtfenster festlegen',
 'help.s4p':'Standort eingeben (Koordinaten in ETRS89/UTM, WGS84 oder Gau&szlig;-Kr&uuml;ger, Klick in die Karte oder Shapefile), fledermaus-aktive Monate w&auml;hlen &mdash; das Werkzeug berechnet Sonnenauf- und -untergang und teilt jede Nacht in NZ-Fenster (standardm&auml;&szlig;ig 10). Schwellenwerttabelle ausf&uuml;llen &mdash; sie l&auml;sst sich direkt aus Excel einf&uuml;gen. Mit <strong>Manuell</strong> lassen sich Fenster selbst eintippen.',
 'help.s5t':'Berechnen &amp; exportieren',
@@ -892,7 +987,80 @@ de:{
 }
 };
 
-let LANG=localStorage.getItem('fm_lang');
+// ---- UX additions: strings (EN / DE) ----
+Object.assign(I18N.en,{
+'btn.importWt':'Import several','btn.openProj':'Open','btn.saveProj':'Save','btn.cancel':'Cancel','btn.undo':'Undo',
+'title.openProj':'Open a saved project file (.boreas.json)','title.saveProj':'Save all inputs as a project file',
+'drop.wt':'Tip: drop turbine files (.txt / .csv) here to import several at once.',
+'drop.meteo':'…or drop the CSV file onto this card.',
+'drop.shp':'You can also drop the .zip or .shp + .prj onto this card.',
+'drop.where':'Drop the file onto the matching card: meteo CSV → “Meteo time series”, shapefile → “Site & season”, turbine files → “Turbines”.',
+'ready.title':'Before you calculate','ready.ok':'Ready','ready.todo':'{n} to fix',
+'ready.months':'Bat-active months','ready.monthsOk':'{n} selected: {list}',
+'ready.nz':'Night windows','ready.nzOk':'{n} windows in {m} months',
+'ready.thr':'Wind speed thresholds','ready.thrOk':'A value for every window',
+'ready.meteo':'Meteo data','ready.meteoOk':'{name} · {n} rows','ready.meteoSkip':'Not needed — Weibull with manual hours',
+'ready.meteoWind':'The time-series method needs a wind speed column — pick it in the meteo card and parse again.',
+'ready.manual':'Manual active hours','ready.manualOk':'Complete',
+'ready.wt':'Turbines','ready.wtOk':'{n} turbine(s) with sector data and power curve','ready.wtBad':'{n} of {total} need attention — {first}',
+'wt.chk.sec':'{n} sectors · Σ freq {f} %','wt.chk.curve':'curve {n} pts, {v0}–{v1} m/s, max {p} kW{unit}',
+'wt.chk.unitW':' (read as W → kW)','wt.chk.freqWarn':' — frequencies are rescaled to 100 %',
+'wt.chk.noSec':'Paste the sector table','wt.chk.noCurve':'Paste the power curve',
+'toast.reset':'All inputs reset.','toast.example':'Example BN14–16 loaded.','toast.wtRemoved':'{name} removed.',
+'toast.undone':'Restored.','toast.saved':'Project saved as {f}','toast.opened':'Project “{f}” opened.',
+'toast.openedMeteo':'Project “{f}” opened. Meteo data is not stored in the file — load {m} again.',
+'toast.openBad':'This is not a Fledermaus project file.','toast.openErr':'Could not read the file: {e}',
+'toast.imported':'{n} turbine(s) imported.','toast.importedSkip':'{n} turbine(s) imported, {k} skipped (see preview).',
+'imp.title':'Import several turbines','imp.tabPaste':'Paste one block','imp.tabFiles':'One file per turbine',
+'imp.pasteHint':'Put each turbine’s name on its own line, followed by its sector rows (7 numbers: <code>sector angle freq% A k v_free v_wake</code>) and power-curve rows (<code>wind_speed power</code>). Rows are sorted by how many numbers they have, so the order does not matter. Header lines are skipped.',
+'imp.filesPick':'Choose or drop .txt / .csv files — one per turbine. The file name becomes the turbine name.',
+'imp.sharedSum':'Same power curve for turbines without their own',
+'imp.sharedHint':'Used for every imported turbine that has no power-curve rows — handy when all turbines are the same type.',
+'imp.add':'Add to current turbines','imp.replace':'Replace current turbines',
+'imp.go':'Import {n} turbine(s)','imp.none':'Nothing to import yet',
+'imp.colName':'Name','imp.colSec':'Sectors','imp.colFreq':'Σ freq %','imp.colCurve':'Curve pts','imp.colStatus':'Status',
+'imp.ok':'OK','imp.needSec':'needs at least 2 sector rows','imp.needCurve':'no power curve',
+'imp.sharedUsed':'uses the shared curve','imp.skipped':'{n} line(s) skipped','imp.dup':'name already used','imp.freq':'Σ freq is not 100 %',
+'imp.files':'{n} file(s) read'
+});
+Object.assign(I18N.de,{
+'btn.importWt':'Mehrere importieren','btn.openProj':'Öffnen','btn.saveProj':'Speichern','btn.cancel':'Abbrechen','btn.undo':'Rückgängig',
+'title.openProj':'Gespeicherte Projektdatei öffnen (.boreas.json)','title.saveProj':'Alle Eingaben als Projektdatei speichern',
+'drop.wt':'Tipp: WEA-Dateien (.txt / .csv) hier ablegen, um mehrere auf einmal zu importieren.',
+'drop.meteo':'…oder die CSV-Datei auf diese Karte ziehen.',
+'drop.shp':'Die .zip oder .shp + .prj kann auch auf diese Karte gezogen werden.',
+'drop.where':'Datei auf die passende Karte ziehen: Meteo-CSV → „Meteo-Zeitreihe“, Shapefile → „Standort & Saison“, WEA-Dateien → „WEA“.',
+'ready.title':'Vor der Berechnung','ready.ok':'Bereit','ready.todo':'{n} offen',
+'ready.months':'Fledermaus-aktive Monate','ready.monthsOk':'{n} gewählt: {list}',
+'ready.nz':'Nachtfenster','ready.nzOk':'{n} Fenster in {m} Monaten',
+'ready.thr':'Windschwellen','ready.thrOk':'Wert für jedes Fenster vorhanden',
+'ready.meteo':'Meteodaten','ready.meteoOk':'{name} · {n} Zeilen','ready.meteoSkip':'Nicht nötig — Weibull mit manuellen Stunden',
+'ready.meteoWind':'Die Zeitreihen-Methode braucht eine Windgeschwindigkeits-Spalte — in der Meteo-Karte wählen und neu einlesen.',
+'ready.manual':'Manuelle Aktivstunden','ready.manualOk':'Vollständig',
+'ready.wt':'WEA','ready.wtOk':'{n} WEA mit Sektordaten und Leistungskennlinie','ready.wtBad':'{n} von {total} prüfen — {first}',
+'wt.chk.sec':'{n} Sektoren · Σ Häufigkeit {f} %','wt.chk.curve':'Kennlinie {n} Pkt., {v0}–{v1} m/s, max {p} kW{unit}',
+'wt.chk.unitW':' (als W gelesen → kW)','wt.chk.freqWarn':' — Häufigkeiten werden auf 100 % skaliert',
+'wt.chk.noSec':'Sektortabelle einfügen','wt.chk.noCurve':'Leistungskennlinie einfügen',
+'toast.reset':'Alle Eingaben zurückgesetzt.','toast.example':'Beispiel BN14–16 geladen.','toast.wtRemoved':'{name} entfernt.',
+'toast.undone':'Wiederhergestellt.','toast.saved':'Projekt gespeichert als {f}','toast.opened':'Projekt „{f}“ geöffnet.',
+'toast.openedMeteo':'Projekt „{f}“ geöffnet. Meteodaten sind nicht in der Datei — {m} bitte erneut laden.',
+'toast.openBad':'Das ist keine Fledermaus-Projektdatei.','toast.openErr':'Datei konnte nicht gelesen werden: {e}',
+'toast.imported':'{n} WEA importiert.','toast.importedSkip':'{n} WEA importiert, {k} übersprungen (siehe Vorschau).',
+'imp.title':'Mehrere WEA importieren','imp.tabPaste':'Einen Block einfügen','imp.tabFiles':'Eine Datei je WEA',
+'imp.pasteHint':'Den Namen jeder WEA in eine eigene Zeile schreiben, danach ihre Sektorzeilen (7 Zahlen: <code>Sektor Winkel Häuf% A k v_frei v_Nachlauf</code>) und Kennlinienzeilen (<code>Windgeschw. Leistung</code>). Zeilen werden nach der Anzahl ihrer Zahlen zugeordnet, die Reihenfolge ist also egal. Kopfzeilen werden übersprungen.',
+'imp.filesPick':'.txt- / .csv-Dateien wählen oder hierher ziehen — eine je WEA. Der Dateiname wird zum WEA-Namen.',
+'imp.sharedSum':'Gleiche Kennlinie für WEA ohne eigene',
+'imp.sharedHint':'Wird für jede importierte WEA ohne Kennlinienzeilen verwendet — praktisch, wenn alle WEA denselben Typ haben.',
+'imp.add':'Zu den vorhandenen WEA hinzufügen','imp.replace':'Vorhandene WEA ersetzen',
+'imp.go':'{n} WEA importieren','imp.none':'Noch nichts zu importieren',
+'imp.colName':'Name','imp.colSec':'Sektoren','imp.colFreq':'Σ Häuf. %','imp.colCurve':'Kennl.-Pkt.','imp.colStatus':'Status',
+'imp.ok':'OK','imp.needSec':'braucht mind. 2 Sektorzeilen','imp.needCurve':'keine Leistungskennlinie',
+'imp.sharedUsed':'nutzt die gemeinsame Kennlinie','imp.skipped':'{n} Zeile(n) übersprungen','imp.dup':'Name schon vergeben','imp.freq':'Σ Häufigkeit ist nicht 100 %',
+'imp.files':'{n} Datei(en) gelesen'
+});
+
+// language is shared with the other BOREAS pages (wt_lang); fm_lang is read once for older setups
+let LANG=null;try{LANG=localStorage.getItem('wt_lang')||localStorage.getItem('fm_lang');}catch(e){}
 if(LANG!=='en'&&LANG!=='de')LANG=(navigator.language||'en').toLowerCase().startsWith('de')?'de':'en';
 
 // t() returns plain text (HTML entities decoded) — for textContent / messages.
@@ -926,7 +1094,7 @@ function applyI18n(){
   syncNz0Label();
 }
 function setLang(l){
-  LANG=l;try{localStorage.setItem('fm_lang',l);}catch(e){}
+  LANG=l;try{localStorage.setItem('wt_lang',l);}catch(e){}
   applyI18n();
   if(typeof refreshDynamic==='function')refreshDynamic();
 }
@@ -1289,7 +1457,7 @@ function parseClassicConfig(){
 let METEO=null; // {month,minute,T,V,years,dtH,n,name}
 let RAW=null;   // {header:[], text, sep}
 
-function setStatus(el,cls,msg){el.className='status '+cls;el.textContent=msg;}
+function setStatus(el,cls,msg){el.className='status '+cls;el.textContent=msg;if(typeof scheduleReady==='function')scheduleReady();}
 
 $('meteoFile').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
@@ -1521,11 +1689,14 @@ function renderWts(){
     b.querySelector('.wt-scale').value=w.scale;
     b.querySelector('.wt-sectors').value=w.sectors;
     b.querySelector('.wt-curve').value=w.curve;
-    b.querySelector('.removeWt').addEventListener('click',()=>{wts=wts.filter(x=>x.id!==w.id);renderWts();saveState();});
+    b.querySelector('.removeWt').addEventListener('click',()=>{captureWts();const snap=snapshot();const nm=w.name||'WEA';
+      wts=wts.filter(x=>x.id!==w.id);renderWts();saveState();toast(t('toast.wtRemoved',{name:nm}),snap);});
     b.querySelector('.dupWt').addEventListener('click',()=>{captureWts();const src=wts.find(x=>x.id===w.id);
       wts.splice(wts.indexOf(src)+1,0,{...src,id:nextId++,name:src.name+' copy'});renderWts();saveState();});
     b.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input',saveState));
+    b.querySelectorAll('.wt-sectors,.wt-curve,.wt-name').forEach(el=>el.addEventListener('input',()=>checkWtBlock(b)));
     list.appendChild(b);
+    checkWtBlock(b);
   });
   $('noWt').style.display=wts.length?'none':'block';
   applyI18n(); // translate the freshly cloned turbine blocks
@@ -2293,6 +2464,7 @@ const OPT_DEFAULTS={crs:'etrs',tz:'Europe/Berlin',sunSrc:'noaa',nightDef:'sun',n
 function setRadio(name,v){const el=document.querySelector(`input[name=${name}][value=${v}]`);if(el)el.checked=true;}
 
 $('loadExample').addEventListener('click',()=>{
+  const snap=snapshot();
   wts=[];nextId=1;$('wtList').innerHTML='';
   addWt({name:'BN14',ref:'19982.5',sectors:EX_SEC_BN14,curve:EX_PC_BN14});
   addWt({name:'BN15',sectors:EX_SEC_BN15,curve:EX_PC_BN15});
@@ -2304,9 +2476,11 @@ $('loadExample').addEventListener('click',()=>{
   THR_STORE=parseStoreFromThrText(CFG_THR_DEFAULT);
   GEN=null;renderNzPreview();renderChips();syncVisibility();renderGrids();
   renderWts();saveState();
+  toast(t('toast.example'),snap);
 });
 
 $('resetAll').addEventListener('click',()=>{
+  const snap=snapshot();
   wts=[];nextId=1;$('wtList').innerHTML='';addWt({name:'WEA 1'});
   for(const k in OPT_DEFAULTS)$(k).value=OPT_DEFAULTS[k];
   setRadio('nzMode','auto');setRadio('meteoSrc','csv');
@@ -2322,6 +2496,7 @@ $('resetAll').addEventListener('click',()=>{
   syncNz0Label();renderChips();syncVisibility();renderGrids();
   generateNz(false);
   saveState();
+  toast(t('toast.reset'),snap);
 });
 
 const helpModal=$('helpModal');
@@ -2334,9 +2509,9 @@ $('nz0Factor').addEventListener('input',syncNz0Label);
 // ============================================================
 // PERSISTENCE
 // ============================================================
-function saveState(){
+function buildState(){
   captureWts();
-  const st={
+  return{
     lang:LANG,
     method:document.querySelector('input[name=method]:checked').value,
     hoursSrc:document.querySelector('input[name=hoursSrc]:checked').value,
@@ -2352,18 +2527,27 @@ function saveState(){
     meteoSrc:document.querySelector('input[name=meteoSrc]:checked').value,
     opts:Object.fromEntries(Object.keys(OPT_DEFAULTS).map(k=>[k,$(k).value])),
     thrStore:THR_STORE,hrsStore:HRS_STORE,
-    wts:wts.map(w=>({...w})),nextId};
-  try{localStorage.setItem('fm_state',JSON.stringify(st));}catch(e){}
+    wts:wts.map(w=>({...w})),nextId,
+    meteoName:METEO?METEO.name||null:null};
+}
+function saveState(){
+  try{localStorage.setItem('fm_state',JSON.stringify(buildState()));}catch(e){}
+  if(typeof scheduleReady==='function')scheduleReady();
 }
 document.querySelectorAll('#cfgMonths,#cfgNz,#cfgThr,#cfgClassic,#classicThr,#tempMin,#tempMax,#nz0Factor,#manualHours,#manualClassicHours,#yearFrom,#yearTo,#timestep').forEach(el=>el.addEventListener('input',saveState));
 
 function loadState(){
+  let st=null;
+  try{const raw=localStorage.getItem('fm_state');if(raw)st=JSON.parse(raw);}catch(e){st=null;}
+  applyState(st);
+}
+// Writes a saved state (localStorage, undo snapshot or project file) into the page.
+function applyState(st){
+  wts=[];nextId=1;$('wtList').innerHTML='';
   $('cfgMonths').value=CFG_MONTHS_DEFAULT;
   $('cfgNz').value=CFG_NZ_DEFAULT;$('cfgThr').value=CFG_THR_DEFAULT;$('cfgClassic').value=CFG_CLASSIC_DEFAULT;
   $('manualHours').value=manualHoursTemplate();
   for(const k in OPT_DEFAULTS)$(k).value=OPT_DEFAULTS[k];
-  let st=null;
-  try{const raw=localStorage.getItem('fm_state');if(raw)st=JSON.parse(raw);}catch(e){st=null;}
   let zoneKeep=null;
   if(st){
     try{
@@ -2410,6 +2594,338 @@ function refreshDynamic(){
 function labelParts(){
   document.querySelectorAll('#nzParts option').forEach(o=>{o.textContent=t(+o.value===10?'parts.ten':'parts.n',{n:o.value});});
 }
+// ============================================================
+// UX ADDITIONS — undo, readiness checklist, turbine checks,
+// bulk import, project files, drag & drop
+// ============================================================
+const nf=(v,d)=>v.toLocaleString(LANG==='de'?'de-DE':'en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+function escHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+// ---- toast with optional undo ----
+function toast(msg,undoSnap,ms){
+  const wrap=$('toasts');
+  wrap.querySelectorAll('.toast').forEach(x=>x.remove()); // one message at a time: an older Undo would be confusing
+  const el=document.createElement('div');el.className='toast';
+  const sp=document.createElement('span');sp.textContent=msg;el.appendChild(sp);
+  let timer=null;
+  const close=()=>{clearTimeout(timer);el.remove();};
+  if(undoSnap){
+    const b=document.createElement('button');b.type='button';b.textContent=t('btn.undo');
+    b.addEventListener('click',()=>{close();restore(undoSnap);toast(t('toast.undone'));});
+    el.appendChild(b);
+  }
+  wrap.appendChild(el);
+  timer=setTimeout(close,ms||(undoSnap?12000:4000));
+  return el;
+}
+// a snapshot is the full saved state plus the current results (results are not saved to disk)
+function snapshot(){return{state:JSON.parse(JSON.stringify(buildState())),results:RESULTS};}
+function restore(snap){
+  applyState(snap.state);
+  afterStateApplied();
+  if(snap.results){RESULTS=snap.results;renderResults(RESULTS);}
+}
+function afterStateApplied(){
+  RESULTS=null;$('resultsBody').innerHTML='';
+  $('resultsCard').style.display='none';$('resultsPlaceholder').style.display='';
+  $('calcStatus').className='status';
+  syncNz0Label();renderChips();renderGrids();
+  if(map&&marker)moveMarker(true);
+  if(document.querySelector('input[name=nzMode]:checked').value==='auto')generateNz(false);else{GEN=null;renderNzPreview();}
+  saveState();
+}
+
+// ---- per-turbine live check ----
+function inspectSectors(text){
+  const rows=[];
+  for(const l of String(text||'').split('\n').map(x=>x.trim()).filter(Boolean)){
+    const p=l.split(/[\s;\t]+/).map(num);
+    if(p.length>=7&&p.slice(0,7).every(x=>!isNaN(x)))rows.push(p);
+  }
+  return{n:rows.length,fsum:rows.reduce((a,r)=>a+r[2],0)};
+}
+function inspectCurve(text){
+  const rows=[];
+  for(const l of String(text||'').split('\n').map(x=>x.trim()).filter(Boolean)){
+    const p=l.split(/[\s;\t]+/).map(num);
+    if(p.length>=2&&!isNaN(p[0])&&!isNaN(p[1]))rows.push(p);
+  }
+  if(!rows.length)return{n:0};
+  const vs=rows.map(r=>r[0]),ps=rows.map(r=>r[1]),maxP=Math.max(...ps),isW=maxP>20000;
+  return{n:rows.length,v0:Math.min(...vs),v1:Math.max(...vs),pk:isW?maxP/1000:maxP,isW};
+}
+function checkWtBlock(b){
+  const el=b.querySelector('.wt-check');if(!el)return;
+  const sec=inspectSectors(b.querySelector('.wt-sectors').value);
+  const cv=inspectCurve(b.querySelector('.wt-curve').value);
+  const parts=[];let cls='ok';
+  if(sec.n<2){parts.push(t('wt.chk.noSec'));cls='err';}
+  else{
+    const off=Math.abs(sec.fsum-100)>1;
+    parts.push(t('wt.chk.sec',{n:sec.n,f:nf(sec.fsum,1)})+(off?t('wt.chk.freqWarn'):''));
+    if(off&&cls==='ok')cls='warn';
+  }
+  if(cv.n<3){parts.push(t('wt.chk.noCurve'));cls='err';}
+  else parts.push(t('wt.chk.curve',{n:cv.n,v0:nf(cv.v0,1),v1:nf(cv.v1,1),p:nf(cv.pk,0),unit:cv.isW?t('wt.chk.unitW'):''}));
+  el.className='wt-check '+cls;el.textContent=(cls==='err'?'⚠ ':'')+parts.join('  ·  ');
+}
+function checkAllWt(){document.querySelectorAll('.wt-block').forEach(checkWtBlock);}
+
+// ---- readiness checklist ----
+let readyTimer=null;
+function scheduleReady(){clearTimeout(readyTimer);readyTimer=setTimeout(updateReady,150);}
+function thrPrefix(){return t('m.thrMissingMonth',{mo:''}).split(':')[0];}
+function readiness(){
+  const items=[];
+  const method=document.querySelector('input[name=method]:checked').value;
+  const hoursSrc=document.querySelector('input[name=hoursSrc]:checked').value;
+  // 1 months
+  const ms=scopeMonths();
+  items.push(ms.length?{k:'months',ok:true,msg:t('ready.monthsOk',{n:ms.length,list:ms.map(monthShort).join(', ')}),card:'siteCard'}
+                      :{k:'months',ok:false,msg:t('m.noMonths'),card:'siteCard'});
+  // 2 + 3 night windows and thresholds
+  let nzRows=null;
+  try{nzRows=parseNzConfig();}catch(e){
+    const m=String(e);
+    if(m.indexOf(thrPrefix())===0){
+      items.push({k:'nz',ok:true,msg:'',card:'nzCard'});
+      items.push({k:'thr',ok:false,msg:m,card:'thrCard'});
+    }else{
+      items.push({k:'nz',ok:false,msg:m,card:/month|monat/i.test(m)&&ms.length===0?'siteCard':'nzCard'});
+      items.push({k:'thr',ok:null,msg:'',card:'thrCard'});
+    }
+  }
+  if(nzRows){
+    if(!nzRows.length)items.push({k:'nz',ok:false,msg:t('m.noMonths'),card:'nzCard'},{k:'thr',ok:null,msg:'',card:'thrCard'});
+    else{
+      const mset=new Set(nzRows.map(r=>r.monthNum));
+      items.push({k:'nz',ok:true,msg:t('ready.nzOk',{n:nzRows.length,m:mset.size}),card:'nzCard'});
+      items.push({k:'thr',ok:true,msg:t('ready.thrOk'),card:'thrCard'});
+    }
+    try{parseClassicConfig();}catch(e){const it=items.find(x=>x.k==='nz');it.ok=false;it.msg=String(e);}
+  }
+  // 4 meteo data
+  const needMeteo=(method!=='weibull')||hoursSrc==='csv';
+  if(!needMeteo)items.push({k:'meteo',ok:null,msg:t('ready.meteoSkip'),card:'meteoCard'});
+  else if(!METEO)items.push({k:'meteo',ok:false,msg:t('m.noMeteo'),card:'meteoCard'});
+  else if(method!=='weibull'&&!METEO.V)items.push({k:'meteo',ok:false,msg:t('ready.meteoWind'),card:'meteoCard'});
+  else items.push({k:'meteo',ok:true,msg:t('ready.meteoOk',{name:METEO.name||'ERA5',n:nf(METEO.n,0)}),card:'meteoCard'});
+  // 5 manual hours (only when used)
+  if(method!=='timeseries'&&hoursSrc==='manual'){
+    if(!nzRows||!nzRows.length)items.push({k:'manual',ok:null,msg:'',card:'manualCard'});
+    else{try{parseManualHours(nzRows);items.push({k:'manual',ok:true,msg:t('ready.manualOk'),card:'manualCard'});}
+         catch(e){items.push({k:'manual',ok:false,msg:String(e),card:'manualCard'});}}
+  }
+  // 6 turbines
+  captureWts();
+  const bad=[];
+  for(const w of wts){const nm=w.name||'WEA';
+    try{parseSectors(w.sectors,nm);parseCurve(w.curve,nm);}catch(e){bad.push(String(e));}}
+  if(!wts.length)items.push({k:'wt',ok:false,msg:t('m.addWt'),card:'wtCard'});
+  else if(bad.length)items.push({k:'wt',ok:false,msg:t('ready.wtBad',{n:bad.length,total:wts.length,first:bad[0]}),card:'wtCard'});
+  else items.push({k:'wt',ok:true,msg:t('ready.wtOk',{n:wts.length}),card:'wtCard'});
+  return items;
+}
+function updateReady(){
+  let items;try{items=readiness();}catch(e){return;}
+  const ul=$('readyList');ul.innerHTML='';
+  items.forEach(it=>{
+    const li=document.createElement('li');li.className=it.ok===true?'ok':it.ok===false?'no':'skip';
+    li.innerHTML=`<span class="ic">${it.ok===true?'✓':it.ok===false?'!':'–'}</span><span><span>${escHtml(t('ready.'+it.k))}</span>${it.msg?`<span class="msg">${escHtml(it.msg)}</span>`:''}</span>`;
+    li.addEventListener('click',()=>goToCard(it.card));
+    ul.appendChild(li);
+  });
+  const todo=items.filter(x=>x.ok===false).length;
+  const pill=$('readyPill');pill.className='pill '+(todo?'no':'ok');
+  pill.textContent=todo?t('ready.todo',{n:todo}):t('ready.ok');
+}
+function goToCard(id){
+  const c=$(id);if(!c||c.style.display==='none')return;
+  c.scrollIntoView({behavior:'smooth',block:'start'});
+  c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1200);
+}
+
+// ---- bulk turbine import ----
+const NUM_TOKEN=/^[-+]?(\d+([.,]\d*)?|[.,]\d+)([eE][-+]?\d+)?%?$/;
+const HEADER_WORDS=/sector|sektor|angle|winkel|freq|h[äa]uf|v_?free|v_?frei|v_?wake|nachlauf|wind.?speed|windgeschw|power|leistung|weibull/i;
+function splitRow(l){
+  if(!/[\s;\t]/.test(l)&&l.includes(',')&&l.includes('.'))return l.split(',');
+  return l.split(/[\s;\t]+/).filter(Boolean);
+}
+function parseBulk(text,defaultName){
+  const out=[];let cur=null,skipped=0;
+  const start=name=>{cur={name,sec:[],cur:[],skipped:0};out.push(cur);};
+  for(const raw of String(text).replace(/\r/g,'').split('\n')){
+    const l=raw.trim();if(!l)continue;
+    const tok=splitRow(l);
+    const nums=tok.filter(x=>NUM_TOKEN.test(x)).map(x=>num(x.replace('%','')));
+    // a line with letters and at most one number is a header or a name ("BN14", "WEA 1", "Anlage 3:")
+    if(nums.length<=1&&/[A-Za-zÄÖÜäöüß]/.test(l)){
+      if(HEADER_WORDS.test(l))continue;               // header line
+      start(l.replace(/[:;,\t]+$/,'').trim().slice(0,40));continue; // name line
+    }
+    if(nums.length===0)continue;
+    if(!cur)start(defaultName||('WEA '+(wts.length+out.length+1)));
+    if(nums.length!==tok.length){cur.skipped++;continue;}  // mixed text + numbers
+    if(nums.length>=7)cur.sec.push(nums.slice(0,7));
+    else if(nums.length===2||nums.length===3)cur.cur.push(nums.slice(0,2));
+    else cur.skipped++;
+  }
+  return out.filter(x=>x.sec.length||x.cur.length);
+}
+let IMP=[]; // parsed candidates
+let IMP_FILES=[]; // [{name,text}]
+function impTab(paste){
+  $('impTabP').classList.toggle('on',paste);$('impTabF').classList.toggle('on',!paste);
+  $('impPaneP').hidden=!paste;$('impPaneF').hidden=paste;impPreview();
+}
+function openImport(files){
+  $('impModal').classList.add('open');
+  if(files&&files.length){impTab(false);readImpFiles(files);}else impPreview();
+}
+function closeImport(){$('impModal').classList.remove('open');}
+async function readImpFiles(files){
+  IMP_FILES=[];
+  for(const f of files){try{IMP_FILES.push({name:f.name.replace(/\.[^.]+$/,''),text:await f.text()});}catch(e){}}
+  impPreview();
+}
+function impPreview(){
+  const paste=!$('impPaneP').hidden;
+  let cands=[];
+  if(paste)cands=parseBulk($('impText').value);
+  else IMP_FILES.forEach(f=>{const r=parseBulk(f.text,f.name);
+    // a file without its own name line keeps the file name
+    cands.push(...r);});
+  const shared=inspectCurve($('impCurve').value);
+  const sharedText=shared.n>=3?$('impCurve').value:'';
+  captureWts();
+  const replace=document.querySelector('input[name=impMode]:checked').value==='replace';
+  const used=new Set(replace?[]:wts.map(w=>(w.name||'').toLowerCase()));
+  IMP=cands.map(c=>{
+    const fsum=c.sec.reduce((a,r)=>a+r[2],0);
+    const issues=[],notes=[];
+    if(c.sec.length<2)issues.push(t('imp.needSec'));
+    let curve=c.cur.map(r=>r.join('\t')).join('\n');
+    if(c.cur.length<3){if(sharedText){curve=sharedText;notes.push(t('imp.sharedUsed'));}else issues.push(t('imp.needCurve'));}
+    if(c.sec.length>=2&&Math.abs(fsum-100)>1)notes.push(t('imp.freq'));
+    if(c.skipped)notes.push(t('imp.skipped',{n:c.skipped}));
+    if(used.has(c.name.toLowerCase()))notes.push(t('imp.dup'));
+    used.add(c.name.toLowerCase());
+    return{name:c.name,sectors:c.sec.map(r=>r.join('\t')).join('\n'),curve,nSec:c.sec.length,fsum,nCur:c.cur.length,ok:!issues.length,issues,notes};
+  });
+  const box=$('impPreview');
+  if(!IMP.length){
+    box.innerHTML=!paste&&IMP_FILES.length?`<p class="hint">${escHtml(t('imp.files',{n:IMP_FILES.length}))} — ${escHtml(t('imp.none'))}</p>`:'';
+  }else{
+    box.innerHTML=`<table class="imp"><thead><tr><th>${escHtml(t('imp.colName'))}</th><th style="text-align:right">${escHtml(t('imp.colSec'))}</th><th style="text-align:right">${escHtml(t('imp.colFreq'))}</th><th style="text-align:right">${escHtml(t('imp.colCurve'))}</th><th>${escHtml(t('imp.colStatus'))}</th></tr></thead><tbody>`+
+      IMP.map(c=>`<tr><td>${escHtml(c.name)}</td><td class="num">${c.nSec}</td><td class="num">${c.nSec?nf(c.fsum,1):'–'}</td><td class="num">${c.nCur}</td><td>${c.ok?'<span style="color:var(--success)">'+escHtml(t('imp.ok'))+'</span>':'<span class="bad">'+escHtml(c.issues.join(', '))+'</span>'}${c.notes.length?' <span class="wrn">· '+escHtml(c.notes.join(' · '))+'</span>':''}</td></tr>`).join('')+'</tbody></table>';
+  }
+  const n=IMP.filter(c=>c.ok).length;
+  const go=$('impGo');go.disabled=!n;go.textContent=n?t('imp.go',{n}):t('imp.none');
+}
+function doImport(){
+  const good=IMP.filter(c=>c.ok);if(!good.length)return;
+  const snap=snapshot();
+  const replace=document.querySelector('input[name=impMode]:checked').value==='replace';
+  captureWts();
+  if(replace){wts=[];nextId=1;$('wtList').innerHTML='';}
+  // drop an untouched empty default turbine
+  if(wts.length===1&&!wts[0].sectors.trim()&&!wts[0].curve.trim()){wts=[];$('wtList').innerHTML='';}
+  good.forEach(c=>wts.push({id:nextId++,name:c.name,ref:'',scale:'1.00',sectors:c.sectors,curve:c.curve}));
+  renderWts();saveState();closeImport();
+  $('impText').value='';IMP_FILES=[];$('impFiles').value='';
+  const skip=IMP.length-good.length;
+  toast(skip?t('toast.importedSkip',{n:good.length,k:skip}):t('toast.imported',{n:good.length}),snap);
+  goToCard('wtCard');
+}
+
+// ---- project files ----
+function projName(){
+  captureWts();
+  const first=(wts[0]&&wts[0].name||'').replace(/[^\w\-]+/g,'_');
+  const d=new Date().toISOString().slice(0,10);
+  return `Fledermaus_${first?first+(wts.length>1?'-'+wts.length+'WEA':'')+'_':''}${d}.boreas.json`;
+}
+function saveProject(){
+  const data={tool:'fledermaus',format:1,saved:new Date().toISOString(),state:buildState()};
+  const blob=new Blob([JSON.stringify(data,null,1)],{type:'application/json'});
+  const a=document.createElement('a');const f=projName();
+  a.href=URL.createObjectURL(blob);a.download=f;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+  toast(t('toast.saved',{f}));
+}
+async function openProjectFile(file){
+  let data;
+  try{data=JSON.parse(await file.text());}catch(e){toast(t('toast.openErr',{e:e.message||e}));return;}
+  if(!data||data.tool!=='fledermaus'||!data.state){toast(t('toast.openBad'));return;}
+  const snap=snapshot();
+  applyState(data.state);
+  afterStateApplied();
+  const m=data.state.meteoName;
+  const needMeteo=(data.state.method!=='weibull')||data.state.hoursSrc==='csv';
+  toast(m&&needMeteo&&(!METEO||METEO.name!==m)?t('toast.openedMeteo',{f:file.name,m}):t('toast.opened',{f:file.name}),snap,m?16000:null);
+}
+
+// ---- drag & drop ----
+function setInputFiles(input,files){
+  const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));input.files=dt.files;
+  input.dispatchEvent(new Event('change',{bubbles:true}));
+}
+function dropTarget(card,accept,handle){
+  let depth=0;
+  card.addEventListener('dragenter',e=>{if(!e.dataTransfer.types.includes('Files'))return;depth++;card.classList.add('drop-on');});
+  card.addEventListener('dragleave',()=>{if(--depth<=0){depth=0;card.classList.remove('drop-on');}});
+  card.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files'))e.preventDefault();});
+  card.addEventListener('drop',e=>{
+    depth=0;card.classList.remove('drop-on');
+    const files=[...(e.dataTransfer.files||[])];if(!files.length)return;
+    e.preventDefault();e.stopPropagation();
+    if(files.some(f=>/\.json$/i.test(f.name))){openProjectFile(files.find(f=>/\.json$/i.test(f.name)));return;}
+    const ok=files.filter(f=>accept.test(f.name));
+    if(!ok.length){toast(t('drop.where'),null,7000);return;}
+    handle(ok);
+  });
+}
+function initUx(){
+  // undo-able actions are wired in place; here: buttons, modal, drops
+  $('saveProj').addEventListener('click',saveProject);
+  $('openProj').addEventListener('click',()=>$('projFile').click());
+  $('projFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)openProjectFile(f);e.target.value='';});
+
+  $('importWt').addEventListener('click',()=>openImport());
+  $('impClose').addEventListener('click',closeImport);$('impCancel').addEventListener('click',closeImport);
+  $('impModal').addEventListener('click',e=>{if(e.target===$('impModal'))closeImport();});
+  $('impTabP').addEventListener('click',()=>impTab(true));$('impTabF').addEventListener('click',()=>impTab(false));
+  let impT=null;const later=()=>{clearTimeout(impT);impT=setTimeout(impPreview,200);};
+  $('impText').addEventListener('input',later);$('impCurve').addEventListener('input',later);
+  document.querySelectorAll('input[name=impMode]').forEach(el=>el.addEventListener('change',impPreview));
+  $('impFiles').addEventListener('change',e=>readImpFiles([...e.target.files]));
+  $('impGo').addEventListener('click',doImport);
+  dropTarget($('impDrop'),/\.(txt|csv|tsv|dat)$/i,files=>{impTab(false);readImpFiles(files);});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeImport();helpModal.classList.remove('open');}});
+
+  dropTarget($('meteoCard'),/\.(csv|txt)$/i,files=>{
+    setRadio('meteoSrc','csv');syncVisibility();saveState();
+    setInputFiles($('meteoFile'),[files[0]]);
+  });
+  dropTarget($('siteCard'),/\.(zip|shp|prj|dbf|shx|cpg)$/i,files=>{showTab(false);setInputFiles($('shpFile'),files);});
+  dropTarget($('wtCard'),/\.(txt|csv|tsv|dat)$/i,files=>openImport(files));
+  // anywhere else: open projects, otherwise explain where to drop (and stop the browser opening the file)
+  window.addEventListener('dragover',e=>{if(e.dataTransfer&&e.dataTransfer.types.includes('Files'))e.preventDefault();});
+  window.addEventListener('drop',e=>{
+    const files=[...((e.dataTransfer&&e.dataTransfer.files)||[])];if(!files.length)return;
+    e.preventDefault();
+    const j=files.find(f=>/\.json$/i.test(f.name));
+    if(j)openProjectFile(j);else toast(t('drop.where'),null,7000);
+  });
+
+  // keep the checklist current: any edit, radio change or language switch
+  document.addEventListener('input',scheduleReady);
+  document.addEventListener('change',scheduleReady);
+  document.querySelectorAll('#langSeg .langbtn').forEach(b=>b.addEventListener('click',()=>{checkAllWt();impPreview();scheduleReady();}));
+  updateReady();
+}
+
 const _applyI18n=applyI18n;
 applyI18n=function(){_applyI18n();labelParts();};
 loadState();
@@ -2417,6 +2933,7 @@ applyI18n();
 initMap();
 renderChips();renderGrids();
 generateNz(false);
+initUx();
 </script>
 </body>
 </html>
