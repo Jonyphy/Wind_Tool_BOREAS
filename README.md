@@ -10,14 +10,13 @@ Browser-based engineering tools for wind farm analysis. Every page is a single s
 | **Curtailment losses** | |
 | `fledermaus.html` | Bat (Fledermaus) curtailment losses — NZ windows, monthly thresholds, temperature filter; Weibull or time series; project files, bulk turbine import |
 | `turbulence.html` | Turbulence curtailment losses — sector overlap between full and curtailed datasets, several scenarios |
+| `wtg-generator.html` | WTG tools — one card on the start page, two tools in the page (switch in the header). **WTG generator:** WAsP / windPRO .wtg file from manufacturer power and ct tables for the chosen air densities |
+| `wtg-curtailment.html` | **Curtailment WTGs:** curtailed .wtg files per sector from a turbulence report's curtailment table, downloaded as ZIP |
 | **Yield & probability** | |
 | `pvalues.html` | Exceedance probabilities — P50 / P75 / P90 or any P-value from an annual energy sum and combined uncertainty |
 | **Site data** | |
 | `turbines.html` | Turbine table matcher — compare two turbine lists by name and position, copy types/hub heights/power across, 2 D spacing check |
 | `wind.html` | Wind rose & main wind direction — ERA5, CERRA, ERA5-Land, ECMWF IFS, Global Wind Atlas, DWD station check; coordinates or shapefile |
-| **Turbine files (.wtg)** — one card on the start page, both pages linked to each other | |
-| `wtg-generator.html` | WTG generator — WAsP / windPRO .wtg file from manufacturer power and ct tables for the chosen air densities |
-| `wtg-curtailment.html` | Curtailment WTGs — curtailed .wtg files per sector from a turbulence report's curtailment table, downloaded as ZIP |
 | **Reporting & coordination** | |
 | `bericht.html` | Report generator (Berichtsgenerator) — print-ready A3/A4 PDF with header data, site plans, Excel tables, sources and remarks |
 | `konto.html` | Account tracker — live status of the shared Wake2e accounts with usage log |
