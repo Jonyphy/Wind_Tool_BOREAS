@@ -111,6 +111,30 @@ td.dir{font-family:var(--mono);font-weight:600;color:var(--ink)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--text-2)}
 .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .note{font-size:12px;color:var(--text-3);margin-top:16px;line-height:1.5}
+.more{margin-top:8px;font-size:12px;color:var(--text-2)}
+.more summary{cursor:pointer;font-weight:600}
+.subbox{margin:8px 0 0 27px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--panel-2)}
+.subbox .l{margin-top:12px}
+/* agreement panel */
+.agp{margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.agp-head{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--panel-2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.agp-head h3{font-family:var(--disp);font-size:14px;color:var(--ink);font-weight:700}
+.verdict{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid currentColor}
+.v-good{color:var(--ok)}.v-mid{color:var(--warn)}.v-bad{color:var(--bad)}
+.agp-body{padding:12px 14px;font-size:13px;color:var(--text-2)}
+.agp-body p+p{margin-top:6px}
+.agp table td.c{font-family:var(--mono)}
+.agp table td:first-child{white-space:normal;min-width:190px}
+.wrap>*{min-width:0}
+.agp table tr.isck td{background:color-mix(in srgb,var(--warn) 6%,transparent)}
+.flag{display:inline-block;font-family:var(--mono);font-size:10.5px;color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 50%,transparent);border-radius:6px;padding:0 6px;margin:2px 4px 0 0;white-space:nowrap}
+.bar{display:inline-block;width:60px;height:6px;border-radius:3px;background:var(--border);vertical-align:middle;margin-left:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gust)}
+.gwa-help{text-align:left;font-size:12.5px;color:var(--text-2);padding:8px 2px;line-height:1.5}
+.gwa-help b{color:var(--ink)}
+.gwa-help ol{margin:6px 0 0 18px}
+.gwa-help li{margin-top:6px}
+.gwa-help code{font-family:var(--mono);font-size:11.5px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:4px 7px;display:block;margin-top:4px;white-space:pre-wrap;word-break:break-all;color:var(--ink)}
 .foot{border-top:1px solid var(--border);background:var(--panel)}
 .foot-in{max-width:var(--maxw);margin:0 auto;padding:16px 24px;font-size:12px;color:var(--text-3);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .foot-in .fb{font-family:var(--disp);font-weight:700;color:var(--text-2)}
@@ -189,9 +213,26 @@ td.dir{font-family:var(--mono);font-weight:600;color:var(--ink)}
     <label class="chk"><input type="checkbox" class="mdl" value="cerra" checked/><span><b>CERRA</b><small data-i18n="m_cerra">5 km, Europe only, 1985–June 2021</small></span></label>
     <label class="chk"><input type="checkbox" class="mdl" value="era5_land"/><span><b>ERA5-Land</b><small data-i18n="m_land">0.1° (~11 km), 10 m only</small></span></label>
     <label class="chk"><input type="checkbox" class="mdl" value="ecmwf_ifs"/><span><b>ECMWF IFS</b><small data-i18n="m_ifs">9 km, 2017–today</small></span></label>
-    <label class="chk"><input type="checkbox" class="mdl" value="gwa" id="gwaChk"/><span><b>Global Wind Atlas</b><small data-i18n="m_gwa">Wind climate (3 km), tries a direct download; otherwise load the .lib file below</small></span></label>
+    <label class="chk"><input type="checkbox" class="mdl" value="gwa" id="gwaChk"/><span><b>Global Wind Atlas</b><small data-i18n="m_gwa">Wind climate (3 km). Uses a loaded .lib, else the relay, else shows how to get the file.</small></span></label>
     <label class="file" style="padding:10px;margin-top:8px;font-size:12px"><span id="libLabel" data-i18n="lib_pick">GWA .lib file (optional)</span><input type="file" id="libFile" accept=".lib,.txt"/></label>
     <div class="hint" style="margin:6px 0 0" data-i18n="lib_help">How: open globalwindatlas.info, click your point, download the generalized wind climate (.lib), then choose it here.</div>
+    <details class="more"><summary data-i18n="relay_sum">GWA automatic download (relay)</summary>
+      <label class="l" for="relayUrl" style="margin-top:8px" data-i18n="relay_l">GWA relay URL (optional)</label>
+      <input type="text" id="relayUrl" placeholder="https://boreas-gwa.….workers.dev" spellcheck="false"/>
+      <div class="hint" style="margin:6px 0 0" data-i18n="relay_hint">With a relay the GWA rose downloads automatically. Setup: gwa-relay/README.md in this repo. Saved in your browser.</div>
+    </details>
+
+    <label class="chk"><input type="checkbox" class="mdl" value="dwd" id="dwdChk"/><span><b>DWD station</b><small data-i18n="m_dwd">Measured wind at a nearby German weather station (10 m). A check, not your site: shown with distance and height difference.</small></span></label>
+    <div id="dwdBox" class="subbox" hidden>
+      <div class="row">
+        <div><label class="l" for="dwdRad" style="margin-top:0" data-i18n="dwd_rad">Search radius</label>
+          <select id="dwdRad"><option value="25">25 km</option><option value="40">40 km</option><option value="60" selected>60 km</option><option value="100">100 km</option></select></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn btn-ghost" id="dwdFind" type="button" style="width:100%;padding:10px" data-i18n="dwd_find">Find stations</button></div>
+      </div>
+      <label class="l" for="dwdSel" data-i18n="dwd_pick">Station</label>
+      <select id="dwdSel"><option value="" data-i18n="dwd_auto">Nearest with wind data (automatic)</option></select>
+      <div class="msg" id="dwdMsg"></div>
+    </div>
 
     <label class="l" for="hsel" data-i18n="height">Height</label>
     <select id="hsel">
@@ -257,7 +298,7 @@ var T={
   m_land:"0.1° (~11 km), 10 m only",m_ifs:"9 km, 2017–today",
   height:"Height",y0:"From year",y1:"To year",sectors:"Sectors",go:"Draw wind roses",
   empty:"Choose a location and press “Draw wind roses”.",
-  attrib:'Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0), based on Copernicus ERA5, ERA5-Land and CERRA reanalysis. Free API for non-commercial use.',
+  attrib:'Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0), based on Copernicus ERA5, ERA5-Land and CERRA reanalysis. Free API for non-commercial use. Station data: Deutscher Wetterdienst via <a href="https://brightsky.dev/" target="_blank" rel="noopener">Bright Sky</a>.',
   shp_ok:"Centre: {lat}, {lon}  ({n} feature(s))",shp_bad:"Could not read the shapefile: {e}",
   shp_proj:"Coordinates are not lat/lon. Add the .prj file (or load a .zip that contains it).",
   shp_need:"Please select the .shp together with its .prj, or a .zip.",
@@ -266,11 +307,11 @@ var T={
   crs:"Coordinate system",crs_wgs:"Lat / Lon (WGS84)",east:"Easting (E)",north:"Northing (N)",zone_l:"Zone {z}",
   conv_ok:"= <b>{lat}° N, {lon}° E</b> (WGS84)",conv_bad:"Cannot convert — check system, zone and values.",
   conv_hint:"These look like projected coordinates — choose the coordinate system above.",
-  m_gwa:"Wind climate (3 km). Tries a direct download; otherwise load the .lib file below.",
+  m_gwa:"Wind climate (3 km). Uses a loaded .lib, else the relay, else shows how to get the file.",
   lib_pick:"GWA .lib file (optional)",lib_ok:"Loaded: {f}",lib_bad:"Not a valid .lib file",lib_far:"This .lib is for {lat}, {lon}, which is far from the chosen point.",
   h_hint:"The models give 10 m and 100 m. Other heights are estimated per hour from those two (power law; direction turned between them).",
   est_h:"height estimated from 10 m and 100 m",clim:"climatology",
-  gwa_blocked:"Direct download is blocked by the server. Load the .lib file instead (box on the left).",
+  gwa_blocked:"The Global Wind Atlas server does not allow direct download from a web page.",
   lib_help:"How: open globalwindatlas.info, click your point, download the generalized wind climate (.lib), then choose it here.",
   gwa_note:"generalized climate, z0 {z} m, {h} m",
   loading:"loading…",done:"{n} hours",fail:"failed: {e}",
@@ -283,6 +324,29 @@ var T={
   calm:"calm hours (0 m/s) excluded",
   note:"Direction is where the wind blows from, clockwise from north. Reanalysis is a model, not a measurement: 100 m values suit a first look at the wind direction at hub height, but they do not replace a mast or lidar. Speed colours: m/s.",
   clamp_end:"period shortened to {d}",clamp_start:"period starts {d}",
+  relay_sum:"GWA automatic download (relay)",relay_l:"GWA relay URL (optional)",
+  relay_hint:"With a relay the GWA rose downloads automatically. Setup: gwa-relay/README.md in this repo. Saved in your browser.",
+  m_dwd:"Measured wind at a nearby German weather station (10 m). A check, not your site: shown with distance and height difference.",
+  dwd_rad:"Search radius",dwd_find:"Find stations",dwd_pick:"Station",dwd_auto:"Nearest with wind data (automatic)",
+  dwd_searching:"Searching DWD stations…",dwd_found:"{n} DWD station(s) within {r} km.",dwd_none:"No DWD station with records within {r} km.",
+  dwd_fail:"Station search failed: {e}",dwd_from2010:"station data from 2010",dwd_loading:"{n}, year {y}…",
+  dwd_short:"{n}: too few wind records",
+  fl_far:"{d} km away",fl_h:"{d} m height difference",fl_short:"only {y} year(s)",fl_10m:"measured at 10 m, not hub height",
+  gwa_via_file:"from file {f}",gwa_file_far:"Loaded .lib is for {lat}, {lon} — not this point, so it was not used.",
+  gwa_via_relay:"via relay",gwa_relay_fail:"Relay failed: {e}",gwa_via_direct:"direct download",
+  gwa_why:"The Global Wind Atlas server does not let web pages download its data directly. Get the .lib file one of these ways:",
+  gwa_opt1:"In your windrsf folder, run:",
+  gwa_opt2:"Or open <a href=\"https://globalwindatlas.info\" target=\"_blank\" rel=\"noopener\">globalwindatlas.info</a>, click {lat}, {lon}, download the generalized wind climate (.lib).",
+  gwa_opt3:"Then load the file in “GWA .lib file” on the left and press “Draw wind roses” again. For automatic download, set up the relay (see “GWA automatic download”).",
+  copy_cmd:"Copy command",
+  ag_title:"Do the sources agree?",ag_good:"GOOD AGREEMENT",ag_mid:"MODERATE",ag_bad:"SOURCES DISAGREE",ag_one:"ONE MODEL ONLY",
+  ag_cons:"Combined main direction of the {n} model(s): <b>{d}° {c}</b> (most frequent), <b>{e}° {ce}</b> (most energy).",
+  ag_spread:"Models differ by up to <b>{d}°</b> in main direction; rose shapes match at least <b>{m} %</b>.",
+  ag_good_txt:"The main direction is reliable for a first layout. Use the combined direction.",
+  ag_mid_txt:"Direction is roughly clear, but the models disagree in detail. Prefer the higher-resolution model (CERRA) and treat ±30° as uncertainty.",
+  ag_bad_txt:"The models do not agree. The wind direction at this site is uncertain — local terrain likely matters. A measurement (mast or lidar) or a terrain-resolving model (windrsf) is needed.",
+  ag_one_txt:"Tick at least two models to see whether they agree.",
+  ag_dmain:"Δ main",ag_dener:"Δ energy",ag_match:"Shape match",ag_check:"check only",
   compass:["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"]
  },
  de:{
@@ -297,7 +361,7 @@ var T={
   m_land:"0,1° (~11 km), nur 10 m",m_ifs:"9 km, 2017–heute",
   height:"Höhe",y0:"Von Jahr",y1:"Bis Jahr",sectors:"Sektoren",go:"Windrosen zeichnen",
   empty:"Standort wählen und „Windrosen zeichnen“ drücken.",
-  attrib:'Wetterdaten: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0), basierend auf Copernicus ERA5, ERA5-Land und CERRA. Kostenlose API nur für nicht-kommerzielle Nutzung.',
+  attrib:'Wetterdaten: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0), basierend auf Copernicus ERA5, ERA5-Land und CERRA. Kostenlose API nur für nicht-kommerzielle Nutzung. Stationsdaten: Deutscher Wetterdienst über <a href="https://brightsky.dev/" target="_blank" rel="noopener">Bright Sky</a>.',
   shp_ok:"Mitte: {lat}, {lon}  ({n} Objekt(e))",shp_bad:"Shapefile konnte nicht gelesen werden: {e}",
   shp_proj:"Koordinaten sind nicht in Lat/Lon. Bitte die .prj-Datei mitgeben (oder eine .zip, die sie enthält).",
   shp_need:"Bitte die .shp zusammen mit der .prj oder eine .zip wählen.",
@@ -306,11 +370,11 @@ var T={
   crs:"Koordinatensystem",crs_wgs:"Lat / Lon (WGS84)",east:"Rechtswert (E)",north:"Hochwert (N)",zone_l:"Zone {z}",
   conv_ok:"= <b>{lat}° N, {lon}° O</b> (WGS84)",conv_bad:"Umrechnung nicht möglich — System, Zone und Werte prüfen.",
   conv_hint:"Das sieht nach projizierten Koordinaten aus — oben das Koordinatensystem wählen.",
-  m_gwa:"Windklima (3 km). Versucht direkten Download; sonst die .lib-Datei unten laden.",
+  m_gwa:"Windklima (3 km). Nutzt eine geladene .lib, sonst das Relay, sonst Anleitung zum Laden.",
   lib_pick:"GWA .lib-Datei (optional)",lib_ok:"Geladen: {f}",lib_bad:"Keine gültige .lib-Datei",lib_far:"Diese .lib gehört zu {lat}, {lon}, weit weg vom gewählten Punkt.",
   h_hint:"Die Modelle liefern 10 m und 100 m. Andere Höhen werden stündlich daraus geschätzt (Potenzgesetz; Richtung zwischen beiden gedreht).",
   est_h:"Höhe aus 10 m und 100 m geschätzt",clim:"Klimatologie",
-  gwa_blocked:"Direkter Download wird vom Server blockiert. Stattdessen die .lib-Datei laden (Feld links).",
+  gwa_blocked:"Der Global-Wind-Atlas-Server erlaubt keinen direkten Download aus einer Webseite.",
   lib_help:"So geht es: globalwindatlas.info öffnen, Punkt anklicken, das generalisierte Windklima (.lib) herunterladen und hier auswählen.",
   gwa_note:"generalisiertes Klima, z0 {z} m, {h} m",
   loading:"lädt…",done:"{n} Stunden",fail:"fehlgeschlagen: {e}",
@@ -323,6 +387,29 @@ var T={
   calm:"Windstille (0 m/s) ausgeschlossen",
   note:"Die Richtung gibt an, woher der Wind weht (Grad im Uhrzeigersinn ab Nord). Eine Reanalyse ist ein Modell, keine Messung: 100-m-Werte eignen sich für einen ersten Blick auf die Windrichtung in Nabenhöhe, ersetzen aber keinen Mast und kein Lidar. Farben: m/s.",
   clamp_end:"Zeitraum gekürzt bis {d}",clamp_start:"Zeitraum beginnt {d}",
+  relay_sum:"GWA automatischer Download (Relay)",relay_l:"GWA-Relay-URL (optional)",
+  relay_hint:"Mit einem Relay wird die GWA-Rose automatisch geladen. Einrichtung: gwa-relay/README.md in diesem Repo. Wird im Browser gespeichert.",
+  m_dwd:"Gemessener Wind an einer nahen DWD-Station (10 m). Nur zur Kontrolle, nicht dein Standort: mit Entfernung und Höhenunterschied angezeigt.",
+  dwd_rad:"Suchradius",dwd_find:"Stationen suchen",dwd_pick:"Station",dwd_auto:"Nächste mit Winddaten (automatisch)",
+  dwd_searching:"DWD-Stationen werden gesucht…",dwd_found:"{n} DWD-Station(en) im Umkreis von {r} km.",dwd_none:"Keine DWD-Station mit Daten im Umkreis von {r} km.",
+  dwd_fail:"Stationssuche fehlgeschlagen: {e}",dwd_from2010:"Stationsdaten ab 2010",dwd_loading:"{n}, Jahr {y}…",
+  dwd_short:"{n}: zu wenige Winddaten",
+  fl_far:"{d} km entfernt",fl_h:"{d} m Höhenunterschied",fl_short:"nur {y} Jahr(e)",fl_10m:"in 10 m gemessen, nicht Nabenhöhe",
+  gwa_via_file:"aus Datei {f}",gwa_file_far:"Die geladene .lib gehört zu {lat}, {lon} — nicht zu diesem Punkt, daher nicht verwendet.",
+  gwa_via_relay:"über Relay",gwa_relay_fail:"Relay fehlgeschlagen: {e}",gwa_via_direct:"direkter Download",
+  gwa_why:"Der Global-Wind-Atlas-Server erlaubt Webseiten keinen direkten Download. So bekommst du die .lib-Datei:",
+  gwa_opt1:"Im windrsf-Ordner ausführen:",
+  gwa_opt2:"Oder <a href=\"https://globalwindatlas.info\" target=\"_blank\" rel=\"noopener\">globalwindatlas.info</a> öffnen, {lat}, {lon} anklicken und das generalisierte Windklima (.lib) herunterladen.",
+  gwa_opt3:"Dann die Datei links unter „GWA .lib-Datei“ laden und erneut „Windrosen zeichnen“ drücken. Für den automatischen Download das Relay einrichten (siehe „GWA automatischer Download“).",
+  copy_cmd:"Befehl kopieren",
+  ag_title:"Stimmen die Quellen überein?",ag_good:"GUTE ÜBEREINSTIMMUNG",ag_mid:"MITTEL",ag_bad:"QUELLEN WEICHEN AB",ag_one:"NUR EIN MODELL",
+  ag_cons:"Gemeinsame Hauptrichtung der {n} Modell(e): <b>{d}° {c}</b> (häufigste), <b>{e}° {ce}</b> (meiste Energie).",
+  ag_spread:"Die Modelle weichen in der Hauptrichtung bis zu <b>{d}°</b> ab; die Rosenformen stimmen zu mindestens <b>{m} %</b> überein.",
+  ag_good_txt:"Die Hauptrichtung ist für ein erstes Layout belastbar. Die gemeinsame Richtung verwenden.",
+  ag_mid_txt:"Die Richtung ist grob klar, die Modelle weichen im Detail ab. Das höher aufgelöste Modell (CERRA) bevorzugen und ±30° als Unsicherheit ansetzen.",
+  ag_bad_txt:"Die Modelle stimmen nicht überein. Die Windrichtung an diesem Standort ist unsicher — vermutlich wirkt das lokale Gelände. Eine Messung (Mast oder Lidar) oder ein geländeauflösendes Modell (windrsf) ist nötig.",
+  ag_one_txt:"Mindestens zwei Modelle wählen, um die Übereinstimmung zu sehen.",
+  ag_dmain:"Δ Haupt",ag_dener:"Δ Energie",ag_match:"Formübereinst.",ag_check:"nur Kontrolle",
   compass:["N","NNO","NO","ONO","O","OSO","SO","SSO","S","SSW","SW","WSW","W","WNW","NW","NNW"]
  }
 };
@@ -496,7 +583,8 @@ var MODELS={
   cerra:    {name:'CERRA',     res:'5 km',   start:'1985-01-01',end:'2021-06-30'},
   era5_land:{name:'ERA5-Land', res:'0.1°',   start:'1950-01-01',end:'today',only10:true},
   ecmwf_ifs:{name:'ECMWF IFS', res:'9 km',   start:'2017-01-01',end:'today'},
-  gwa:      {name:'Global Wind Atlas',res:'3 km',gwa:true}
+  gwa:      {name:'Global Wind Atlas',res:'3 km',gwa:true},
+  dwd:      {name:'DWD station',res:'measured',dwd:true,fixedH:10}
 };
 function iso(d){return d.toISOString().slice(0,10)}
 function todayMinus(n){var d=new Date();d.setUTCDate(d.getUTCDate()-n);return iso(d)}
@@ -602,18 +690,208 @@ function roseFromLib(g,hgt){
   return {rose:{ns:ns,w:w,freq:freq,bySpeed:bySpeed,power:power,n:null,mean:mean,main:im*w,mainFreq:freq[im],energy:ie*w,energyShare:power[ie]},
           note:t('gwa_note',{z:g.rough[ir],h:g.heights[ih]})};
 }
+/* Order: a loaded .lib (if it is for this point) -> relay -> direct download.
+   The GWA server refuses requests from other web pages, so the direct try
+   normally fails; the card then shows exactly how to get the file. */
+var GWA_RELAY_DEFAULT='';  // e.g. 'https://boreas-gwa.<you>.workers.dev' — see gwa-relay/README.md
+function relayUrl(){return ($('relayUrl').value||'').trim()||GWA_RELAY_DEFAULT}
+function looksLikeLib(text){
+  var l=text.split(/\r?\n/).filter(function(x){return x.trim()!==''});
+  if(l.length<5)return false;var h=l[1].trim().split(/\s+/).map(Number);
+  return h[0]>=1&&h[0]<=20&&h[1]>=1&&h[1]<=20&&h[2]>=4&&h[2]<=36;
+}
+async function fetchLibText(url){
+  var r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);
+  var buf=await r.arrayBuffer(),text=new TextDecoder('latin1').decode(buf);
+  if(!looksLikeLib(text))throw new Error('not a .lib');
+  return text;
+}
 async function loadGWA(lat,lon,hgt){
-  var text=libText;
+  var text=null,via='',tried=[];
+  if(libText){
+    var g0=parseLib(libText);
+    var far=g0.lat!=null&&(Math.abs(g0.lat-lat)>0.05||Math.abs(g0.lon-lon)>0.05);
+    if(!far){text=libText;via=t('gwa_via_file',{f:libName})}
+    else tried.push(t('gwa_file_far',{lat:g0.lat.toFixed(3),lon:g0.lon.toFixed(3)}));
+  }
+  var q='?lat='+lat.toFixed(6)+'&long='+lon.toFixed(6);
+  if(!text&&relayUrl()){
+    try{text=await fetchLibText(relayUrl().replace(/\/+$/,'')+'/'+q);via=t('gwa_via_relay')}
+    catch(e){tried.push(t('gwa_relay_fail',{e:e.message||e}))}
+  }
   if(!text){
-    try{
-      var r=await fetch('https://globalwindatlas.info/api/gwa/custom/Lib/?lat='+lat.toFixed(6)+'&long='+lon.toFixed(6));
-      if(!r.ok)throw 0;text=await r.text();
-      if(text.split(/\r?\n/).length<5||isNaN(parseInt(text.split(/\r?\n/)[1],10)))throw 0;
-    }catch(e){throw new Error(t('gwa_blocked'))}
+    try{text=await fetchLibText('https://globalwindatlas.info/api/gwa/custom/Lib/'+q);via=t('gwa_via_direct')}
+    catch(e){var err=new Error(t('gwa_blocked'));err.gwaHelp={lat:lat,lon:lon,tried:tried};throw err}
   }
   var g=parseLib(text),r2=roseFromLib(g,hgt);
-  return {rose:r2.rose,notes:[r2.note],start:null,end:null};
+  return {rose:r2.rose,notes:[r2.note,via],start:null,end:null};
 }
+function gwaHelpHTML(h){
+  var cmd='python make_gwa_lib.py --lat '+h.lat.toFixed(5)+' --lon '+h.lon.toFixed(5);
+  var o='<div class="gwa-help"><b>'+t('gwa_why')+'</b>';
+  if(h.tried&&h.tried.length)o+='<div style="color:var(--warn);margin-top:4px">'+h.tried.join('<br/>')+'</div>';
+  o+='<ol><li>'+t('gwa_opt1')+'<code>'+cmd+'</code><button class="btn btn-ghost" style="margin-top:6px" onclick="copyText(this,\''+cmd+'\')">'+t('copy_cmd')+'</button></li>';
+  o+='<li>'+t('gwa_opt2',{lat:h.lat.toFixed(5),lon:h.lon.toFixed(5)})+'</li>';
+  o+='<li>'+t('gwa_opt3')+'</li></ol></div>';
+  return o;
+}
+function copyText(btn,txt){
+  var done=function(){var o=btn.textContent;btn.textContent=t('copied');setTimeout(function(){btn.textContent=o},1400)};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,function(){});else done();
+}
+$('relayUrl').value=lsGet('wt_gwa_relay')||'';
+$('relayUrl').addEventListener('change',function(){lsSet('wt_gwa_relay',this.value.trim())});
+
+/* ---------- DWD stations (via Bright Sky, api.brightsky.dev) ---------- */
+var BS='https://api.brightsky.dev';
+var DWD_STATIONS=null; // {key, list:[{id,name,lat,lon,height,dist,first,last}]}
+var SITE_ELEV={};      // 'lat,lon' -> metres
+async function siteElevation(lat,lon){
+  var k=lat.toFixed(4)+','+lon.toFixed(4);if(SITE_ELEV[k]!=null)return SITE_ELEV[k];
+  try{var j=await getJSON('https://api.open-meteo.com/v1/elevation?latitude='+lat.toFixed(5)+'&longitude='+lon.toFixed(5));
+    var e=j&&j.elevation&&j.elevation[0];if(isFinite(e)){SITE_ELEV[k]=e;return e}}catch(e){}
+  return null;
+}
+async function findStations(lat,lon,radKm){
+  var key=lat.toFixed(4)+','+lon.toFixed(4)+','+radKm;
+  if(DWD_STATIONS&&DWD_STATIONS.key===key)return DWD_STATIONS.list;
+  var j=await getJSON(BS+'/sources?lat='+lat.toFixed(5)+'&lon='+lon.toFixed(5)+'&max_dist='+(radKm*1000));
+  var by={};
+  (j.sources||[]).forEach(function(s){
+    if(!s.dwd_station_id)return;
+    var cur=by[s.dwd_station_id];
+    var hist=s.observation_type==='historical';
+    if(!cur)cur=by[s.dwd_station_id]={id:s.dwd_station_id,name:s.station_name||s.dwd_station_id,lat:s.lat,lon:s.lon,
+      height:s.height,dist:(s.distance||0)/1000,first:null,last:null,hist:false};
+    if(hist){cur.hist=true;
+      if(!cur.first||s.first_record<cur.first)cur.first=s.first_record;
+      if(!cur.last||s.last_record>cur.last)cur.last=s.last_record;}
+  });
+  var list=Object.keys(by).map(function(k){return by[k]}).filter(function(s){return s.hist})
+    .sort(function(a,b){return a.dist-b.dist});
+  DWD_STATIONS={key:key,list:list};
+  return list;
+}
+function stationLabel(s){
+  return s.name+' · '+fmt(s.dist,1)+' km · '+(s.height!=null?fmt(s.height)+' m':'')+
+    (s.first?' · '+s.first.slice(0,4)+'–'+(s.last||'').slice(0,4):'');
+}
+async function fillStationSelect(){
+  var msg=$('dwdMsg');msg.className='msg';msg.textContent=t('dwd_searching');
+  if(!readFields()){msg.className='msg bad';msg.textContent=t('bad_coord');return}
+  try{
+    var list=await findStations(cur.lat,cur.lon,+$('dwdRad').value);
+    var sel=$('dwdSel'),keep=sel.value;
+    sel.innerHTML='<option value="">'+t('dwd_auto')+'</option>'+list.slice(0,15).map(function(s){
+      return '<option value="'+s.id+'">'+stationLabel(s)+'</option>'}).join('');
+    if(keep&&list.some(function(s){return s.id===keep}))sel.value=keep;
+    msg.className=list.length?'msg ok':'msg bad';
+    msg.textContent=list.length?t('dwd_found',{n:list.length,r:$('dwdRad').value}):t('dwd_none',{r:$('dwdRad').value});
+  }catch(e){msg.className='msg bad';msg.textContent=t('dwd_fail',{e:e.message||e})}
+}
+$('dwdFind').addEventListener('click',fillStationSelect);
+$('dwdChk').addEventListener('change',function(){$('dwdBox').hidden=!this.checked;if(this.checked&&!DWD_STATIONS)fillStationSelect()});
+async function stationWind(st,y0,y1,onYear){
+  var spd=[],dir=[],firstY=null,lastY=null;
+  for(var y=y0;y<=y1;y++){
+    if(onYear)onYear(y);
+    var url=BS+'/weather?dwd_station_id='+st.id+'&date='+y+'-01-01T00:00:00%2B00:00&last_date='+(y+1)+'-01-01T00:00:00%2B00:00&units=si';
+    var j=await getJSON(url),w=j.weather||[],got=0;
+    for(var i=0;i<w.length;i++){
+      var s=w[i].wind_speed,d=w[i].wind_direction;
+      // calm or variable wind has no usable direction (DWD: 0 = calm)
+      if(s==null||d==null||!(s>0)||!(d>0)||d>360)continue;
+      spd.push(s);dir.push(d);got++;
+    }
+    if(got>0){if(firstY==null)firstY=y;lastY=y}
+  }
+  return {speed:spd,dir:dir,firstY:firstY,lastY:lastY};
+}
+async function loadDWD(lat,lon,y0,y1,progress){
+  var notes=[],now=new Date().getUTCFullYear();
+  if(y0<2010){y0=2010;notes.push(t('dwd_from2010'))}
+  if(y1>=now){y1=now-1}
+  var list=await findStations(lat,lon,+$('dwdRad').value);
+  if(!list.length)throw new Error(t('dwd_none',{r:$('dwdRad').value}));
+  var pick=$('dwdSel').value,cand=pick?list.filter(function(s){return s.id===pick}):list.slice(0,5);
+  if(!cand.length)cand=list.slice(0,5);
+  var lastErr='';
+  for(var c=0;c<cand.length;c++){
+    var st=cand[c];
+    try{
+      var w=await stationWind(st,y0,y1,function(y){progress&&progress(t('dwd_loading',{n:st.name,y:y}))});
+      if(w.speed.length<1000){lastErr=t('dwd_short',{n:st.name});continue}
+      var elev=await siteElevation(lat,lon);
+      return {speed:w.speed,dir:w.dir,start:w.firstY+'-01-01',end:w.lastY+'-12-31',notes:notes,
+        station:{id:st.id,name:st.name,dist:st.dist,height:st.height,siteElev:elev,years:w.lastY-w.firstY+1}};
+    }catch(e){lastErr=e.message||String(e)}
+  }
+  throw new Error(lastErr||t('dwd_none',{r:$('dwdRad').value}));
+}
+function stationFlags(st){
+  var f=[];
+  if(st.dist>30)f.push(t('fl_far',{d:fmt(st.dist)}));
+  if(st.siteElev!=null&&st.height!=null&&Math.abs(st.height-st.siteElev)>100)f.push(t('fl_h',{d:fmt(st.height-st.siteElev)}));
+  if(st.years<5)f.push(t('fl_short',{y:st.years}));
+  f.push(t('fl_10m'));
+  return f;
+}
+
+/* ---------- agreement between sources ---------- */
+// rebin any rose to 12 x 30 deg so roses with different sector counts compare
+function rebin12(r){
+  var out=new Array(12).fill(0),w=r.w;
+  for(var d=0;d<360;d+=0.5){
+    var k=Math.floor(((d+w/2)%360)/w),q=Math.floor(((d+15)%360)/30);
+    out[q]+=r.freq[k]*0.5/w;
+  }
+  var s=out.reduce(function(a,c){return a+c},0);return out.map(function(x){return 100*x/s});
+}
+function overlap(a,b){var s=0;for(var i=0;i<a.length;i++)s+=Math.min(a[i],b[i]);return s}
+function circMean(angles){
+  var x=0,y=0;angles.forEach(function(a){x+=Math.cos(a*Math.PI/180);y+=Math.sin(a*Math.PI/180)});
+  return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+function meanRose(list){
+  var m=new Array(12).fill(0);list.forEach(function(r){for(var i=0;i<12;i++)m[i]+=r[i]/list.length});return m;
+}
+function agreement(ok){
+  var models=ok.filter(function(x){return !MODELS[x.id].dwd}),checks=ok.filter(function(x){return MODELS[x.id].dwd});
+  if(!models.length)return null;
+  var bins={};ok.forEach(function(x){bins[x.id]=rebin12(x.rose)});
+  var cons=circMean(models.map(function(x){return x.rose.main}));
+  var consE=circMean(models.map(function(x){return x.rose.energy}));
+  var consRose=meanRose(models.map(function(x){return bins[x.id]}));
+  var rows=ok.map(function(x){
+    var isChk=!!MODELS[x.id].dwd;
+    // models: compare with the mean of the OTHER models; station: with all models
+    var ref=isChk||models.length<2?consRose:meanRose(models.filter(function(y){return y!==x}).map(function(y){return bins[y.id]}));
+    return {x:x,chk:isChk,dMain:angDiff(x.rose.main,cons),dEnergy:angDiff(x.rose.energy,consE),match:overlap(bins[x.id],ref)};
+  });
+  var spread=0;for(var i=0;i<models.length;i++)for(var j=i+1;j<models.length;j++)spread=Math.max(spread,angDiff(models[i].rose.main,models[j].rose.main));
+  var minMatch=Math.min.apply(null,rows.filter(function(r){return !r.chk}).map(function(r){return r.match}));
+  var level=models.length<2?'one':(spread<=22.5&&minMatch>=80)?'good':(spread<=45&&minMatch>=65)?'mid':'bad';
+  return {rows:rows,cons:cons,consE:consE,spread:spread,minMatch:minMatch,level:level,nModels:models.length,checks:checks};
+}
+function agreementHTML(A){
+  var cls={good:'v-good',mid:'v-mid',bad:'v-bad',one:'v-mid'}[A.level];
+  var h='<div class="agp"><div class="agp-head"><h3>'+t('ag_title')+'</h3><span class="verdict '+cls+'">'+t('ag_'+A.level)+'</span></div>';
+  h+='<div class="agp-body"><p>'+t('ag_cons',{d:fmt(A.cons),c:compass(A.cons),e:fmt(A.consE),ce:compass(A.consE),n:A.nModels})+'</p>';
+  if(A.nModels>1)h+='<p>'+t('ag_spread',{d:fmt(A.spread,A.spread%1?1:0),m:fmt(A.minMatch)})+'</p>';
+  h+='<p style="color:var(--text-3)">'+t('ag_'+A.level+'_txt')+'</p></div>';
+  h+='<div class="tbl-wrap" style="border:none;border-top:1px solid var(--border);border-radius:0;margin:0"><table><thead><tr><th>'+t('t_model')+'</th><th>'+t('t_main')+'</th><th>'+t('ag_dmain')+'</th><th>'+t('ag_dener')+'</th><th>'+t('ag_match')+'</th></tr></thead><tbody>';
+  A.rows.forEach(function(r){
+    var m=MODELS[r.x.id],nm=m.dwd&&r.x.station?m.name+' · '+r.x.station.name:m.name;
+    var fl=r.chk&&r.x.station?'<br/>'+stationFlags(r.x.station).map(function(f){return '<span class="flag">'+f+'</span>'}).join(''):'';
+    h+='<tr'+(r.chk?' class="isck"':'')+'><td>'+nm+(r.chk?' <span style="color:var(--text-3)">('+t('ag_check')+')</span>':'')+fl+'</td>'+
+      '<td class="c">'+fmt(r.x.rose.main)+'° '+compass(r.x.rose.main)+'</td>'+
+      '<td class="c">'+fmt(r.dMain)+'°</td><td class="c">'+fmt(r.dEnergy)+'°</td>'+
+      '<td class="c">'+fmt(r.match)+' %<span class="bar"><i style="width:'+Math.max(0,Math.min(100,r.match))+'%"></i></span></td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+  return h;
+}
+
 $('libFile').addEventListener('change',async function(ev){
   var f=ev.target.files&&ev.target.files[0],lab=$('libLabel');if(!f)return;
   try{
@@ -711,12 +989,14 @@ async function run(){
   for(var q=0;q<ids.length;q++){
     var id=ids[q];
     try{
-      var d=MODELS[id].gwa?await loadGWA(lat,lon,H):await loadModel(id,lat,lon,y0,y1,H);
+      var d=MODELS[id].gwa?await loadGWA(lat,lon,H)
+        :MODELS[id].dwd?await loadDWD(lat,lon,y0,y1,function(m){status[id]=['',m];showStatus()})
+        :await loadModel(id,lat,lon,y0,y1,H);
       var rose=d.rose||computeRose(d.speed,d.dir,ns);
-      out.push({id:id,rose:rose,start:d.start,end:d.end,notes:d.notes});
+      out.push({id:id,rose:rose,start:d.start,end:d.end,notes:(d.notes||[]).filter(Boolean),station:d.station});
       status[id]=['s-ok',rose.n?t('done',{n:rose.n.toLocaleString()}):'OK'];
     }catch(e){
-      out.push({id:id,error:e.message||String(e)});
+      out.push({id:id,error:e.message||String(e),gwaHelp:e.gwaHelp});
       status[id]=['s-bad',t('fail',{e:e.message||e})];
     }
     showStatus();
@@ -735,21 +1015,21 @@ function renderResults(){
   if(ok.length){
     h+='<div class="tbl-wrap"><table><thead><tr><th>'+t('t_model')+'</th><th>'+t('t_period')+'</th><th>'+t('t_hours')+'</th><th>'+t('t_mean')+'</th><th>'+t('t_main')+'</th><th>'+t('t_energy')+'</th></tr></thead><tbody>';
     ok.forEach(function(x){var r=x.rose;
-      h+='<tr><td>'+MODELS[x.id].name+' <span style="color:var(--text-3)">('+MODELS[x.id].res+')</span></td><td>'+per(x)+
+      var mres=MODELS[x.id].dwd&&x.station?x.station.name+', '+fmt(x.station.dist,1)+' km':MODELS[x.id].res;
+      h+='<tr><td>'+MODELS[x.id].name+' <span style="color:var(--text-3)">('+mres+')</span></td><td>'+per(x)+
         '</td><td>'+(r.n?r.n.toLocaleString():'—')+'</td><td>'+fmt(r.mean,1)+'</td><td class="dir">'+fmt(r.main)+'° '+compass(r.main)+' · '+fmt(r.mainFreq,1)+'%</td><td class="dir">'+fmt(r.energy)+'° '+compass(r.energy)+'</td></tr>'});
     h+='</tbody></table></div>';
-    if(ok.length>1){
-      var mx=0;for(var i=0;i<ok.length;i++)for(var j=i+1;j<ok.length;j++)mx=Math.max(mx,angDiff(ok[i].rose.main,ok[j].rose.main));
-      h+='<div class="agree">'+(mx<=30?t('agree_ok',{d:fmt(mx),n:ok.length}):t('agree_diff',{d:fmt(mx)}))+'</div>';
-    }
+    var A=agreement(ok);if(A)h+=agreementHTML(A);
   }
   h+='<div class="roses">';
   L0.out.forEach(function(x,idx){
     var m=MODELS[x.id];
     h+='<div class="rose"><h3>'+m.name+'</h3>';
-    if(x.error){h+='<div class="err">'+x.error+'</div></div>';return}
+    if(x.error){h+=(x.gwaHelp?gwaHelpHTML(x.gwaHelp):'<div class="err">'+x.error+'</div>')+'</div>';return}
     var r=x.rose;
-    h+='<div class="sub">'+m.res+' · '+(m.gwa?'':L0.h+' m · ')+per(x)+(x.notes.length?' · '+x.notes.join(', '):'')+'</div>';
+    var sres=m.dwd&&x.station?x.station.name+' · '+fmt(x.station.dist,1)+' km':m.res;
+    h+='<div class="sub">'+sres+' · '+(m.gwa?'':(m.fixedH||L0.h)+' m · ')+per(x)+(x.notes.length?' · '+x.notes.join(', '):'')+'</div>';
+    if(m.dwd&&x.station)h+='<div>'+stationFlags(x.station).map(function(f){return '<span class="flag">'+f+'</span>'}).join('')+'</div>';
     h+=roseSVG(r,m,m.name,pal);
     h+='<div class="sub" style="margin-top:6px">'+t('rose_main')+': '+fmt(r.main)+'° '+compass(r.main)+' · '+t('rose_energy')+': '+fmt(r.energy)+'° '+compass(r.energy)+'</div>';
     h+='<div class="tools"><button class="btn btn-ghost" onclick="dlPNG('+idx+')">'+t('dl_png')+'</button><button class="btn btn-ghost" onclick="copyCSV('+idx+',this)">'+t('dl_csv')+'</button></div></div>';
@@ -768,7 +1048,7 @@ function dlPNG(idx){
   var W=880,Hh=948,cv=document.createElement('canvas');cv.width=W;cv.height=Hh+90;
   var c=cv.getContext('2d');c.fillStyle=pal.bg;c.fillRect(0,0,cv.width,cv.height);
   c.fillStyle=pal.text;c.font='600 26px Inter,Arial,sans-serif';
-  c.fillText('BOREAS · '+m.name+' · '+L0.h+' m',30,40);
+  c.fillText('BOREAS · '+(m.dwd&&x.station?m.name+' '+x.station.name:m.name)+' · '+(m.fixedH||L0.h)+' m',30,40);
   c.fillStyle=pal.dim;c.font='18px Inter,Arial,sans-serif';
   c.fillText(fmt(L0.lat,4)+' N, '+fmt(L0.lon,4)+' E · '+per(x)+' · '+t('rose_main')+' '+fmt(x.rose.main)+'° '+compass(x.rose.main),30,68);
   var img=new Image();
