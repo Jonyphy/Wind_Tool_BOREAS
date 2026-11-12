@@ -240,7 +240,35 @@ td.close{color:var(--warn);font-weight:600}
 footer{border-top:1px solid var(--border);background:var(--panel)}
 .foot-in{max-width:var(--maxw);margin:0 auto;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--text-3)}
 .foot-in .fb{font-family:var(--disp);font-weight:700;color:var(--text-2);letter-spacing:.02em}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:9px;font-size:13px;z-index:50;box-shadow:var(--shadow)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:9px;font-size:13px;z-index:1200;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px)}
+.toast button{background:none;border:1px solid color-mix(in srgb,var(--bg) 45%,transparent);color:var(--bg);border-radius:7px;padding:3px 11px;font-size:12.5px;font-weight:600;cursor:pointer}
+.toast button:hover{background:color-mix(in srgb,var(--bg) 15%,transparent)}
+
+/* project bar + drag & drop */
+.projbar{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-self:center}
+.drop-on{outline:2px dashed var(--gust);outline-offset:3px;background:color-mix(in srgb,var(--gust) 6%,var(--panel))}
+.fmt .drophint{color:var(--text-3)}
+
+/* map */
+.mapcard{margin-top:20px;overflow:hidden}
+.mapcard .tbar .tools label{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-2);cursor:pointer}
+.mapcard select{background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:13px;max-width:330px}
+#map{height:470px;background:var(--panel-2)}
+.mapmsg{padding:30px 18px;text-align:center;color:var(--text-2);font-size:13.5px}
+.mapfoot{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;padding:10px 18px;border-top:1px solid var(--border);font-size:12.5px;color:var(--text-2)}
+.mapfoot .hintline{flex-basis:100%}
+.lg{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.lg i{width:11px;height:11px;border-radius:50%;display:inline-block;border:2px solid currentColor}
+.lg i.f{background:currentColor}
+.lg i.ring{width:15px;height:15px;border-style:dashed}
+.lg i.ln{width:18px;height:0;border-radius:0;border-width:2px 0 0 0}
+.leaflet-tooltip.tlab{background:color-mix(in srgb,var(--panel) 88%,transparent);border:0;box-shadow:none;padding:0 4px;font-family:var(--mono);font-size:10.5px;color:var(--ink)}
+.leaflet-tooltip.tlab::before{display:none}
+.leaflet-container{font-family:var(--sans)}
+td.nm[data-r]{cursor:pointer}
+td.nm[data-r]:hover{color:var(--gust);text-decoration:underline}
+.names span[data-n]{cursor:pointer}
+.names span[data-n]:hover{border-color:var(--gust)}
 [hidden]{display:none!important}
 
 @media(max-width:980px){.summary{grid-template-columns:repeat(3,1fr)}}
@@ -303,6 +331,10 @@ footer{border-top:1px solid var(--border);background:var(--panel)}
     <div class="step-head">
       <span class="step-no">1</span>
       <div><h2 id="h-s1" data-i18n="s1">Paste your tables</h2><p data-i18n="s1p">Copy the rows from Excel and paste them into the boxes. Every row needs a name, easting and northing. Turbine type, hub height and power are optional.</p></div>
+      <div class="projbar">
+        <button type="button" class="btn" id="projOpen" data-i18n="proj_open">Open project</button>
+        <button type="button" class="btn" id="projSave" data-i18n="proj_save">Save project</button>
+      </div>
     </div>
     <div class="two">
       <div class="card ptable p1">
@@ -313,7 +345,7 @@ footer{border-top:1px solid var(--border);background:var(--panel)}
           <button type="button" class="btn" data-act="upload" data-side="1" data-i18n="up">Upload file</button>
           <button type="button" class="btn" data-act="clear" data-side="1" data-i18n="clr">Clear</button>
         </div>
-        <div class="fmt" data-i18n="hint1">Typical columns: name, type, hub height, power, easting, northing.</div>
+        <div class="fmt"><span data-i18n="hint1">Typical columns: name, type, hub height, power, easting, northing.</span> <span class="drophint" data-i18n="drop_hint">You can also drop an Excel or CSV file here.</span></div>
         <textarea id="t1" spellcheck="false" aria-label="Table 1"></textarea>
         <div class="pfoot" id="f1"></div>
       </div>
@@ -325,12 +357,13 @@ footer{border-top:1px solid var(--border);background:var(--panel)}
           <button type="button" class="btn" data-act="upload" data-side="2" data-i18n="up">Upload file</button>
           <button type="button" class="btn" data-act="clear" data-side="2" data-i18n="clr">Clear</button>
         </div>
-        <div class="fmt" data-i18n="hint2">Typical columns: name, easting, northing.</div>
+        <div class="fmt"><span data-i18n="hint2">Typical columns: name, easting, northing.</span> <span class="drophint" data-i18n="drop_hint">You can also drop an Excel or CSV file here.</span></div>
         <textarea id="t2" spellcheck="false" aria-label="Table 2"></textarea>
         <div class="pfoot" id="f2"></div>
       </div>
     </div>
-    <input type="file" id="file" accept=".txt,.csv,.tsv,text/plain,text/csv" hidden>
+    <input type="file" id="file" accept=".txt,.csv,.tsv,.xlsx,.xls,.xlsm,.ods,text/plain,text/csv" hidden>
+    <input type="file" id="projFile" accept=".json,application/json" hidden>
   </section>
 
   <!-- STEP 2 -->
@@ -371,6 +404,23 @@ footer{border-top:1px solid var(--border);background:var(--panel)}
         <div class="mbox m2">
           <h3><span><span data-i18n="m2">Only in Table 2</span> <span id="c2"></span></span><button type="button" class="btn" id="cp2" data-i18n="copy_names">Copy names</button></h3>
           <div class="names" id="miss2"></div>
+        </div>
+      </div>
+
+      <div class="card mapcard" id="mapCard">
+        <div class="tbar">
+          <h3 data-i18n="map_h">Map</h3>
+          <div class="tools">
+            <label id="mapCrsWrap"><span data-i18n="map_crs">Coordinates</span> <select id="mapCrs" class="crs" aria-label="Coordinate system"></select></label>
+            <label><input type="checkbox" id="mapNames"> <span data-i18n="map_names">Show names</span></label>
+            <button type="button" class="btn" id="mapFit" data-i18n="map_fit">Fit all</button>
+            <button type="button" class="btn" id="mapKml" data-i18n="map_kml">Download KML</button>
+            <button type="button" class="btn" id="mapToggle"></button>
+          </div>
+        </div>
+        <div id="mapWrap">
+          <div id="map"></div>
+          <div class="mapfoot" id="mapFoot"></div>
         </div>
       </div>
 
@@ -511,6 +561,7 @@ $('themeBtn').addEventListener('click',function(){
   var d=root.dataset.theme==='dark';
   root.dataset.theme=d?'':'dark';
   lsSet('wt_theme',d?'light':'dark');
+  if(typeof scheduleMap==='function')scheduleMap();
 });
 
 /* ---------- translations ---------- */
@@ -584,7 +635,27 @@ en:{
   sh_plan:"Planned turbine", sh_other:"Other turbine", sh_kind:"Other is", sh_dist:"Distance (m)", sh_rdp:"RD planned (m)", sh_dp:"Distance / RD planned", sh_rdo:"RD other (m)", sh_do:"Distance / RD other", sh_note:"Note",
   k_plan:"planned", k_exist:"existing",
   n_both:"Too close for both rotors", n_p:"Too close for the planned rotor", n_o:"Too close for the other rotor",
-  sp_file:"spacing-check.csv"
+  sp_file:"spacing-check.csv",
+  proj_open:"Open project", proj_save:"Save project", drop_hint:"You can also drop an Excel or CSV file here.",
+  undo:"Undo", undone:"Undone",
+  cleared:function(s){return "Table "+s+" cleared"}, ex_loaded:function(s){return "Example loaded into Table "+s},
+  file_loaded:function(f,s){return f+" loaded into Table "+s}, file_sheet:function(f,sh,s){return f+" (sheet “"+sh+"”) loaded into Table "+s},
+  file_list:function(f){return f+" loaded as planned turbines"},
+  xlsx_err:"The Excel reader could not be loaded (no internet connection?). Save the sheet as CSV and try again.",
+  drop_where:"Drop table files onto Table 1 or Table 2, or a .boreas.json project anywhere on the page.",
+  proj_saved:function(f){return "Saved "+f}, proj_opened:function(f){return "Opened "+f},
+  proj_bad:"This is not a turbine matcher project file.", proj_err:"The project file could not be read.",
+  restored:"Your tables from last time were restored.",
+  map_h:"Map", map_crs:"Coordinates", map_names:"Show names", map_fit:"Fit all", map_kml:"Download KML",
+  map_show:"Show map", map_hide:"Hide map",
+  map_note:"The map shows the turbines of the table below, so the counts above filter it too. Click a name in the table to find it on the map.",
+  map_fail:"The map could not be loaded (no connection to the map library). Everything else on this page works.",
+  map_empty:"No turbines to show for this filter.",
+  map_osm:"Map", map_sat:"Satellite", map_l_match:"Matching", map_l_circ:"Spacing circles", map_l_pairs:"Spacing pairs",
+  lg_t1:"Table 1", lg_t2:"Table 2 (open)", lg_line:"Same name, position off",
+  lg_plan:"Planned turbine", lg_circ:function(l){return l+" D around planned"}, lg_red:function(l){return "Pair below "+l+" D"}, lg_amb:function(a,b){return "Pair between "+a+" and "+b+" D"},
+  tt_dist:function(d){return d+" m apart"}, tt_rd:function(r){return "Rotor "+r+" m"}, tt_circ:function(n,l,r){return n+": "+l+" D = "+r+" m"},
+  kml_name:"Turbine comparison"
 },
 de:{
   title:"Anlagenabgleich · BOREAS", brand_sub:"Windwerkzeuge", back:"Alle Werkzeuge",
@@ -655,7 +726,27 @@ de:{
   sh_plan:"Geplante Anlage", sh_other:"Andere Anlage", sh_kind:"Andere ist", sh_dist:"Abstand (m)", sh_rdp:"RD geplant (m)", sh_dp:"Abstand / RD geplant", sh_rdo:"RD andere (m)", sh_do:"Abstand / RD andere", sh_note:"Hinweis",
   k_plan:"geplant", k_exist:"Bestand",
   n_both:"Zu nah für beide Rotoren", n_p:"Zu nah für den geplanten Rotor", n_o:"Zu nah für den anderen Rotor",
-  sp_file:"abstandspruefung.csv"
+  sp_file:"abstandspruefung.csv",
+  proj_open:"Projekt öffnen", proj_save:"Projekt speichern", drop_hint:"Du kannst auch eine Excel- oder CSV-Datei hierher ziehen.",
+  undo:"Rückgängig", undone:"Rückgängig gemacht",
+  cleared:function(s){return "Tabelle "+s+" geleert"}, ex_loaded:function(s){return "Beispiel in Tabelle "+s+" geladen"},
+  file_loaded:function(f,s){return f+" in Tabelle "+s+" geladen"}, file_sheet:function(f,sh,s){return f+" (Blatt „"+sh+"“) in Tabelle "+s+" geladen"},
+  file_list:function(f){return f+" als geplante Anlagen geladen"},
+  xlsx_err:"Der Excel-Leser konnte nicht geladen werden (keine Internetverbindung?). Speichere das Blatt als CSV und versuche es erneut.",
+  drop_where:"Tabellendateien auf Tabelle 1 oder Tabelle 2 ziehen, ein .boreas.json-Projekt irgendwo auf die Seite.",
+  proj_saved:function(f){return f+" gespeichert"}, proj_opened:function(f){return f+" geöffnet"},
+  proj_bad:"Das ist keine Projektdatei des Anlagenabgleichs.", proj_err:"Die Projektdatei konnte nicht gelesen werden.",
+  restored:"Deine Tabellen vom letzten Mal wurden wiederhergestellt.",
+  map_h:"Karte", map_crs:"Koordinaten", map_names:"Namen zeigen", map_fit:"Alles zeigen", map_kml:"KML herunterladen",
+  map_show:"Karte zeigen", map_hide:"Karte ausblenden",
+  map_note:"Die Karte zeigt die Anlagen der Tabelle unten, die Zählfelder oben filtern also auch die Karte. Ein Klick auf einen Namen in der Tabelle zeigt die Anlage auf der Karte.",
+  map_fail:"Die Karte konnte nicht geladen werden (keine Verbindung zur Kartenbibliothek). Alles andere auf dieser Seite funktioniert.",
+  map_empty:"Für diesen Filter gibt es keine Anlagen.",
+  map_osm:"Karte", map_sat:"Satellit", map_l_match:"Abgleich", map_l_circ:"Abstandskreise", map_l_pairs:"Abstandspaare",
+  lg_t1:"Tabelle 1", lg_t2:"Tabelle 2 (offen)", lg_line:"Gleicher Name, Position weicht ab",
+  lg_plan:"Geplante Anlage", lg_circ:function(l){return l+" D um geplante"}, lg_red:function(l){return "Paar unter "+l+" D"}, lg_amb:function(a,b){return "Paar zwischen "+a+" und "+b+" D"},
+  tt_dist:function(d){return d+" m Abstand"}, tt_rd:function(r){return "Rotor "+r+" m"}, tt_circ:function(n,l,r){return n+": "+l+" D = "+r+" m"},
+  kml_name:"Anlagenabgleich"
 }};
 var lang='en';
 function t(k){var v=(T[lang]&&T[lang][k]!=null)?T[lang][k]:T.en[k];if(typeof v==='function')return v.apply(null,[].slice.call(arguments,1));return v}
@@ -783,7 +874,16 @@ var EX1=['AS 01|ENERCON E-82|138|2000|615152|5655403','AS 28 V199|Vestas V172-7.
 var EX2=['WH 07|613798|5654111','HH 47|616516|5654553','HH 48|616658|5654139','HH 49|616897|5654870','HH 50|616948|5654521','HH 51|617249|5654332','HH 52|617274|5655327','HH 53|617416|5654862','BS 12|618024|5655640','BS 13|618419|5655882','BS 14|618307|5655326','BS 15|618823|5656175','BS 16|618756|5655468','WN 07|617860|5655257','WN 08|617941|5654963','WH 23|613295|5654874','WH 24|613158|5655235','HH 54|616102|5655095','HH 46|615973|5655775','WN 10|617955|5654426','BS 19|618415|5655038','HH 55.1|616423|5655752','HH 56|616568|5655480','HH 57|615292|5655116','HH 58|616140|5654669','WN 13|617603|5654589','HH 07|616633|5655123','HH 08|615417|5655308','HH 09|615626|5654923','HH 11|615917|5654387','HH 14.1|615656|5654192','HH 18|616207|5655552','HH 20|616337|5654913','WH 14|613049|5655026','AS 32|618428|5656211','AS 28|616950|5656017','AS 29|617261|5655724','AS 30|617717|5655636','AS 31|618044|5656039','WL 16|615512|5655576'].join('\n').replace(/\|/g,'\t');
 
 /* ---------- helpers ---------- */
-function toast(msg){var el=$('toast');el.textContent=msg;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(function(){el.hidden=true},2400)}
+function toast(msg,undoSnap,ms){
+  var el=$('toast');el.innerHTML='';
+  var sp=document.createElement('span');sp.textContent=msg;el.appendChild(sp);
+  if(undoSnap){
+    var b=document.createElement('button');b.type='button';b.textContent=t('undo');
+    b.addEventListener('click',function(){el.hidden=true;clearTimeout(toast._t);applyState(undoSnap);toast(t('undone'))});
+    el.appendChild(b);
+  }
+  el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(function(){el.hidden=true},ms||(undoSnap?10000:2600));
+}
 function copyText(text){
   var fail=function(){toast(t('copy_blocked'))};
   try{
@@ -822,7 +922,8 @@ function update(){
   footer($('f2'),p2,dupNames(p2.rows,sfx));
   var any=p1.rows.length+p2.rows.length>0;
   $('placeholder').hidden=any;$('out').hidden=!any;$('s4').hidden=!any;$('s5').hidden=!any;
-  if(!any){visibleRows=[];exportRows=[];return}
+  saveState();
+  if(!any){visibleRows=[];exportRows=[];MAPCTX=null;return}
 
   var res=compare(p1.rows,p2.rows,tol,sfx,hubc);
   res.sort(function(x,y){
@@ -844,7 +945,7 @@ function update(){
 
   function names(el,kind,cEl){
     var list=res.filter(function(r){return r.kind===kind}).map(function(r){return (r.a||r.b).name});
-    el.innerHTML=list.length?list.map(function(n){return '<span>'+esc(n)+'</span>'}).join(''):'<span class="none">'+esc(t('none_missing'))+'</span>';
+    el.innerHTML=list.length?list.map(function(n){return '<span data-n="'+esc(n)+'" title="'+esc(t('map_h'))+'">'+esc(n)+'</span>'}).join(''):'<span class="none">'+esc(t('none_missing'))+'</span>';
     cEl.textContent='('+list.length+')';
     return list;
   }
@@ -866,7 +967,7 @@ function update(){
   if(hubc)h+='<th class="num">'+esc(t('th_hub'))+'</th>';
   h+='<th>'+esc(t('th_note'))+'</th></tr></thead><tbody>';
   if(!vis.length)h+='<tr><td colspan="'+cols+'" class="empty">'+esc(t('nothing_here'))+'</td></tr>';
-  vis.forEach(function(r){
+  vis.forEach(function(r,ri){
     var note='';
     if(r.kind==='far')note=t('note_far',fmt(r.d,1),tol);
     else if(r.kind==='coord')note=t('note_coord');
@@ -876,8 +977,8 @@ function update(){
     var de='',dn='',dd='';
     if(r.a&&r.b){de=sgn(r.b.e-r.a.e);dn=sgn(r.b.n-r.a.n);dd=fmt(r.d,1)}
     h+='<tr><td><span class="pill '+r.kind+'">'+esc(t('st_'+r.kind))+'</span></td>'+
-      '<td class="nm'+(r.a?'':' dim')+'">'+(r.a?esc(r.a.name):'–')+'</td>'+
-      '<td class="nm'+(r.b?'':' dim')+'">'+(r.b?esc(r.b.name):'–')+'</td>'+
+      '<td class="nm'+(r.a?'':' dim')+'"'+(r.a?' data-r="'+ri+'"':'')+'>'+(r.a?esc(r.a.name):'–')+'</td>'+
+      '<td class="nm'+(r.b?'':' dim')+'"'+(r.b?' data-r="'+ri+'" data-s="2"':'')+'>'+(r.b?esc(r.b.name):'–')+'</td>'+
       '<td class="num mono">'+de+'</td><td class="num mono">'+dn+'</td><td class="num mono">'+dd+'</td>'+
       '<td class="wrap mono">'+esc((r.a&&r.a.model)||(r.b&&r.b.model)||'')+'</td>';
     if(hubc)h+='<td class="num mono">'+(r.a&&r.a.hub!=null?r.a.hub:'–')+' / '+(r.b&&r.b.hub!=null?r.b.hub:'–')+'</td>';
@@ -887,6 +988,8 @@ function update(){
   buildExport(res,p1,p2);
   $('s5').hidden=false;
   spUpdate(res,p1,p2,tol,sfx);
+  MAPCTX={rows:vis,all:p1.rows.concat(p2.rows)};
+  scheduleMap();
 }
 
 /* ---------- table with turbine types ---------- */
@@ -1131,6 +1234,8 @@ function crsHint(el,rows,code,bad,target){
 
 function spRenderResults(){
   var out=$('spOut');
+  if(spCtx)spCtx.mapData=null;
+  scheduleMap();
   if(!SP.on||!spCtx){out.hidden=true;out.innerHTML='';return}
   out.hidden=false;
   var c=spCtx,planned=[],existing=[],l1=+SP.l1||0,l2=+SP.l2||0;
@@ -1149,6 +1254,7 @@ function spRenderResults(){
   if(SP.mode==='list')crsHint($('spListCrsHint'),c.list?c.list.rows:[],SP.listCrs,badL,'list');
   if(pts.length){lon0/=pts.length;pts.forEach(function(it){var p=tmFwd(it.g.lat,it.g.lon,lon0,1,ELL.grs80);it.x=p.x;it.y=p.y})}
 
+  c.mapData={planned:planned,pairs:[],l1:l1,l2:l2};
   if(!planned.length){out.innerHTML='<div class="warnline">'+esc(t(SP.mode==='list'?'sp_need_list':'sp_need'))+'</div>';return}
 
   var pairs=[],same=[],miss={};
@@ -1170,6 +1276,7 @@ function spRenderResults(){
   });
   pairs.sort(function(a,b){return a.w-b.w});
   var red=pairs.filter(function(x){return x.cls==='red'}),amb=pairs.filter(function(x){return x.cls==='amb'});
+  c.mapData.pairs=red.concat(amb);
   var nfmt=function(v){return String(v).replace('.',lang==='de'?',':'.')};
 
   var h='<div class="sp-sum">'+t('sp_sum',planned.length,existing.length,pairs.length)+'</div>';
@@ -1251,6 +1358,192 @@ $('s5').addEventListener('click',function(ev){
 });
 (function(){var v=lsGet('wt_sp_list');if(v)$('spList').value=v})();
 
+/* ---------- map (Leaflet, loaded only when the map is shown) ---------- */
+var MAPOPT={show:true,names:false,base:'osm'};
+var MAPCTX=null,LMAP=null,LL={},MARK=[],mapSig='',mapRaf=0,pendingFocus=null;
+var LEAF_CSS='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',LEAF_JS='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+var leafP=null;
+function needLeaflet(){
+  if(window.L&&L.map)return Promise.resolve();
+  if(!leafP){
+    var l=document.createElement('link');l.rel='stylesheet';l.href=LEAF_CSS;document.head.appendChild(l);
+    leafP=loadScript(LEAF_JS).catch(function(e){leafP=null;throw e});
+  }
+  return leafP;
+}
+function scheduleMap(){cancelAnimationFrame(mapRaf);mapRaf=requestAnimationFrame(mapRender)}
+function cssVar(n){return getComputedStyle(root).getPropertyValue(n).trim()}
+function mapOptUi(){
+  $('mapNames').checked=!!MAPOPT.names;
+  $('mapWrap').hidden=!MAPOPT.show;
+  $('mapToggle').textContent=t(MAPOPT.show?'map_hide':'map_show');
+  [$('mapCrsWrap'),$('mapNames').closest('label'),$('mapFit')].forEach(function(el){el.hidden=!MAPOPT.show});
+}
+function mapRender(){
+  if(!MAPCTX||$('out').hidden)return;
+  mapOptUi();
+  fillCrs($('mapCrs'),SP.crs['1']);
+  if(!MAPOPT.show)return;
+  needLeaflet().then(drawMap,function(){
+    if(LMAP)return;
+    $('map').innerHTML='<div class="mapmsg">'+esc(t('map_fail'))+'</div>';$('map').style.height='auto';
+    $('mapFoot').hidden=true;
+  });
+}
+function rowGeo(x,code){var g=toGeo(x.e,x.n,code);return {ll:[g.lat,g.lon],out:!inGermany(g)}}
+function popHtml(r){
+  var h='';
+  if(r.a)h+='<b>'+esc(r.a.name)+'</b> <span style="opacity:.7">('+esc(t('tbl1'))+')</span>';
+  if(r.a&&r.b)h+='<br>';
+  if(r.b)h+='<b>'+esc(r.b.name)+'</b> <span style="opacity:.7">('+esc(t('tbl2'))+')</span>';
+  h+='<br>'+esc(t('st_'+r.kind));
+  if(r.a&&r.b&&r.d>0)h+=' · '+esc(t('tt_dist',fmt(r.d,1)));
+  else if(r.near)h+=' · '+esc(t('note_near',r.kind==='only1'?'2':'1',r.near.r.name,fmt(r.near.d,0)));
+  var m=(r.a&&r.a.model)||(r.b&&r.b.model);
+  if(m)h+='<br><span style="font-family:var(--mono);font-size:12px">'+esc(m)+'</span>';
+  var hub=(r.a&&r.a.hub!=null)?r.a.hub:(r.b&&r.b.hub!=null?r.b.hub:null);
+  if(hub!=null)h+=' · '+hub+' m';
+  return h;
+}
+function drawMap(){
+  var host=$('map');
+  if(!LMAP){
+    host.innerHTML='';host.style.height='';$('mapFoot').hidden=false;
+    LMAP=L.map(host,{scrollWheelZoom:false,zoomSnap:.5});
+    /* wheel zoom only after the user clicks into the map, so scrolling the page is not caught by the map */
+    LMAP.on('click focus',function(){LMAP.scrollWheelZoom.enable()});
+    LMAP.on('mouseout blur',function(){LMAP.scrollWheelZoom.disable()});
+    LL.osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
+    LL.sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Esri World Imagery'});
+    (MAPOPT.base==='sat'?LL.sat:LL.osm).addTo(LMAP);
+    LL.circ=L.featureGroup().addTo(LMAP);LL.pairs=L.featureGroup().addTo(LMAP);LL.match=L.featureGroup().addTo(LMAP);
+    LMAP.on('baselayerchange',function(e){MAPOPT.base=e.layer===LL.sat?'sat':'osm';saveState()});
+    LMAP.setView([51.1,10.4],6);
+  }
+  if(LL.ctlLang!==lang){
+    if(LL.ctl)LL.ctl.remove();
+    var b={},o={};b[t('map_osm')]=LL.osm;b[t('map_sat')]=LL.sat;
+    o[t('map_l_match')]=LL.match;o[t('map_l_circ')]=LL.circ;o[t('map_l_pairs')]=LL.pairs;
+    LL.ctl=L.control.layers(b,o,{collapsed:true}).addTo(LMAP);LL.ctlLang=lang;
+  }
+  LMAP.invalidateSize();
+  LL.match.clearLayers();LL.circ.clearLayers();LL.pairs.clearLayers();MARK=[];
+  var col={ok:cssVar('--ok'),far:cssVar('--warn'),coord:cssVar('--info'),only1:cssVar('--t1'),only2:cssVar('--t2'),bad:cssVar('--bad'),warn:cssVar('--warn'),gust:cssVar('--gust'),ink:cssVar('--ink')};
+  var c1=SP.crs['1'],c2=SP.crs['2'],out=0,lls=[],names=!!MAPOPT.names;
+  function marker(ll,cl,filled,label,r){
+    var m=L.circleMarker(ll,{radius:6,color:cl,weight:2,fillColor:cl,fillOpacity:filled?.85:.12});
+    m.bindPopup(popHtml(r));
+    if(names)m.bindTooltip(esc(label),{permanent:true,direction:'right',offset:[7,0],className:'tlab'});
+    else m.bindTooltip(esc(label)+' · '+esc(t('st_'+r.kind)),{direction:'top',offset:[0,-6]});
+    m.addTo(LL.match);lls.push(ll);return m;
+  }
+  MAPCTX.rows.forEach(function(r,ri){
+    var cl=col[r.kind],ga=r.a?rowGeo(r.a,c1):null,gb=r.b?rowGeo(r.b,c2):null,e={r:r};
+    if(ga&&ga.out)out++;if(gb&&gb.out)out++;
+    if(r.kind==='ok'||r.kind==='coord'){
+      e.m=marker(ga.ll,cl,true,r.a.name===r.b.name?r.a.name:r.a.name+' / '+r.b.name,r);e.m2=e.m;
+    }else if(r.kind==='far'){
+      L.polyline([ga.ll,gb.ll],{color:cl,weight:2,dashArray:'4 4'}).addTo(LL.match);
+      e.m=marker(ga.ll,cl,true,r.a.name,r);e.m2=marker(gb.ll,cl,false,r.b.name,r);
+    }else if(r.kind==='only1'){e.m=marker(ga.ll,cl,true,r.a.name,r)}
+    else{e.m2=e.m=marker(gb.ll,cl,false,r.b.name,r)}
+    MARK[ri]=e;
+  });
+
+  /* spacing check: circles of l1 D / l2 D around planned turbines and the pairs that are too close */
+  var md=SP.on&&spCtx&&spCtx.mapData;
+  if(md){
+    md.planned.forEach(function(p){
+      if(!p.g)return;var ll=[p.g.lat,p.g.lon],rd=rdOf(p);
+      if(rd){
+        L.circle(ll,{radius:md.l2*rd,color:col.warn,weight:1,dashArray:'2 5',fill:false,interactive:false}).addTo(LL.circ);
+        L.circle(ll,{radius:md.l1*rd,color:col.bad,weight:1.6,dashArray:'6 5',fillColor:col.bad,fillOpacity:.05})
+          .bindTooltip(esc(t('tt_circ',p.name,String(md.l1),fmt(md.l1*rd,0)))).addTo(LL.circ);
+      }
+      var pm=L.circleMarker(ll,{radius:10,color:col.gust,weight:2.5,fill:false});
+      pm.bindTooltip(esc(p.name)+' · '+esc(t('k_plan'))+(rd?' · '+esc(t('tt_rd',rd)):''),names&&p.isList?{permanent:true,direction:'right',offset:[11,0],className:'tlab'}:{direction:'top',offset:[0,-10]});
+      pm.addTo(LL.circ);lls.push(ll);
+    });
+    md.pairs.forEach(function(x){
+      if(!x.p.g||!x.o.g)return;
+      L.polyline([[x.p.g.lat,x.p.g.lon],[x.o.g.lat,x.o.g.lon]],{color:x.cls==='red'?col.bad:col.warn,weight:3.5,opacity:.85})
+        .bindTooltip(esc(x.p.name+' ↔ '+x.o.name)+' · '+fmt(x.d,0)+' m · '+fmtR(x.w)+' D',{sticky:true}).addTo(LL.pairs);
+    });
+  }
+  LL.circ.bringToBack&&LL.circ.bringToBack();
+
+  /* zoom to the turbines when the set of turbines changes (new data, filter, search, coordinate system) */
+  var sig=lls.length+'|'+c1+'|'+c2+'|'+(lls.length?lls[0].join()+lls[lls.length-1].join():'');
+  if(sig!==mapSig){mapSig=sig;if(lls.length)LMAP.fitBounds(L.latLngBounds(lls).pad(.12),{maxZoom:15})}
+
+  /* legend + coordinate check */
+  var lg=function(c,cls,txt){return '<span class="lg" style="color:'+c+'"><i class="'+cls+'"></i><span style="color:var(--text-2)">'+esc(txt)+'</span></span>'};
+  var f=lg(col.ok,'f',t('st_ok'))+lg(col.far,'f',t('st_far'))+lg(col.coord,'f',t('st_coord'))+lg(col.only1,'f',t('st_only1'))+lg(col.only2,'',t('st_only2'))+
+    lg(col.ink,'f',t('lg_t1'))+lg(col.ink,'',t('lg_t2'))+lg(col.far,'ln',t('lg_line'));
+  if(md){
+    f+=lg(col.gust,'',t('lg_plan'))+lg(col.bad,'ring',t('lg_circ',String(md.l1)))+lg(col.bad,'ln',t('lg_red',String(md.l1)))+lg(col.warn,'ln',t('lg_amb',String(md.l1),String(md.l2)));
+  }
+  f+='<div class="hintline" id="mapHint"></div><div class="hintline">'+esc(lls.length?t('map_note'):t('map_empty'))+'</div>';
+  $('mapFoot').innerHTML=f;
+  crsHint($('mapHint'),MAPCTX.all,SP.crs['1'],out,'map');
+
+  if(pendingFocus){var pf=pendingFocus;pendingFocus=null;mapFocus(pf)}
+}
+function mapFocus(pf){
+  var ix=-1;
+  MAPCTX.rows.forEach(function(r,i){if(ix<0&&((pf.side!=='2'&&r.a&&r.a.name===pf.name)||(pf.side!=='1'&&r.b&&r.b.name===pf.name)))ix=i});
+  if(ix<0||!MARK[ix])return;
+  var e=MARK[ix],m=pf.side==='2'?e.m2:e.m;
+  LMAP.setView(m.getLatLng(),Math.max(LMAP.getZoom(),15));m.openPopup();
+  $('mapCard').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function showOnMap(name,side){
+  pendingFocus={name:name,side:side};
+  var inRows=MAPCTX&&MAPCTX.rows.some(function(r){return (side!=='2'&&r.a&&r.a.name===name)||(side!=='1'&&r.b&&r.b.name===name)});
+  if(!MAPOPT.show){MAPOPT.show=true;saveState()}
+  if(!inRows){filter='all';query='';$('q').value='';update()}else scheduleMap();
+}
+$('tbl').addEventListener('click',function(ev){
+  var td=ev.target.closest('td[data-r]');if(!td)return;
+  var r=visibleRows[+td.dataset.r];if(!r)return;
+  var two=td.dataset.s==='2';showOnMap(two?r.b.name:r.a.name,two?'2':'1');
+});
+$('miss1').addEventListener('click',function(ev){var s=ev.target.closest('[data-n]');if(s)showOnMap(s.dataset.n,'1')});
+$('miss2').addEventListener('click',function(ev){var s=ev.target.closest('[data-n]');if(s)showOnMap(s.dataset.n,'2')});
+$('mapToggle').addEventListener('click',function(){MAPOPT.show=!MAPOPT.show;saveState();mapOptUi();scheduleMap()});
+$('mapNames').addEventListener('change',function(){MAPOPT.names=this.checked;saveState();scheduleMap()});
+$('mapFit').addEventListener('click',function(){mapSig='';scheduleMap()});
+$('mapCrs').addEventListener('change',function(){SP.crs['1']=SP.crs['2']=this.value;spSave();update();if(spCtx)spRenderConfig()});
+$('mapCard').addEventListener('click',function(ev){
+  var u=ev.target.closest('[data-usecrs]');if(!u)return;
+  SP.crs['1']=SP.crs['2']=u.dataset.usecrs;spSave();update();if(spCtx)spRenderConfig();
+});
+
+/* KML for Google Earth: the turbines of the table, one folder per status */
+function kmlEsc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function kmlColor(hex){var h=hex.replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');return 'ff'+h.slice(4,6)+h.slice(2,4)+h.slice(0,2)}
+$('mapKml').addEventListener('click',function(){
+  if(!MAPCTX)return;
+  var light={ok:'#0f7a4f',far:'#a9690a',coord:'#0a7c8a',only1:'#be185d',only2:'#2563eb'};
+  var c1=SP.crs['1'],c2=SP.crs['2'],folders={};
+  function pm(x,code,r,tbl){
+    var g=toGeo(x.e,x.n,code),m=x.model||'';
+    return '<Placemark><name>'+kmlEsc(x.name)+'</name><styleUrl>#'+r.kind+'</styleUrl><description>'+kmlEsc(t(tbl)+' · '+t('st_'+r.kind)+(m?' · '+m:'')+(x.hub!=null?' · '+x.hub+' m':'')+(r.a&&r.b&&r.d>0?' · '+t('tt_dist',fmt(r.d,1)):''))+'</description><Point><coordinates>'+g.lon.toFixed(7)+','+g.lat.toFixed(7)+',0</coordinates></Point></Placemark>';
+  }
+  MAPCTX.rows.forEach(function(r){
+    var f=folders[r.kind]=folders[r.kind]||[];
+    if(r.a)f.push(pm(r.a,c1,r,'tbl1'));
+    if(r.b&&(r.kind==='far'||!r.a))f.push(pm(r.b,c2,r,'tbl2'));
+  });
+  var x='<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>'+kmlEsc(t('kml_name'))+'</name>';
+  Object.keys(light).forEach(function(k){x+='<Style id="'+k+'"><IconStyle><color>'+kmlColor(light[k])+'</color><scale>0.9</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle></Style>'});
+  ['only1','only2','coord','far','ok'].forEach(function(k){if(folders[k])x+='<Folder><name>'+kmlEsc(t('st_'+k))+' ('+folders[k].length+')</name>'+folders[k].join('')+'</Folder>'});
+  x+='</Document></kml>';
+  var blob=new Blob([x],{type:'application/vnd.google-earth.kml+xml'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='turbine-comparison.kml';document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(a.href)},1500);
+});
+
 /* ---------- wiring ---------- */
 ['t1','t2','tol','sfx','sfxl','hubc','xt','xa','xh','xk','xn','xs'].forEach(function(id){
   $(id).addEventListener('input',update);$(id).addEventListener('change',update);
@@ -1260,18 +1553,133 @@ var uploadSide='1';
 document.querySelectorAll('[data-act]').forEach(function(b){
   b.addEventListener('click',function(){
     var side=b.dataset.side,ta=$('t'+side),act=b.dataset.act;
-    if(act==='clear'){ta.value='';update();ta.focus()}
-    else if(act==='example'){ta.value=side==='1'?EX1:EX2;update()}
+    if(act==='clear'){
+      if(!ta.value.trim()){ta.focus();return}
+      var snap=buildState();ta.value='';update();ta.focus();toast(t('cleared',side),snap);
+    }else if(act==='example'){
+      var snap2=ta.value.trim()?buildState():null;
+      ta.value=side==='1'?EX1:EX2;update();toast(t('ex_loaded',side),snap2);
+    }
     else if(act==='upload'){uploadSide=side;$('file').value='';$('file').click()}
   });
 });
 $('file').addEventListener('change',function(){
   var f=this.files&&this.files[0];if(!f)return;
-  var rd=new FileReader();
-  rd.onload=function(){$('t'+uploadSide).value=String(rd.result);update()};
-  rd.onerror=function(){toast(t('file_err'))};
-  rd.readAsText(f);
+  loadTableFile(f,uploadSide);
 });
+
+/* ---------- reading files (text, CSV, Excel) ---------- */
+var XLSX_URL='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+function loadScript(src){
+  return new Promise(function(ok,bad){var s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=function(){s.remove();bad(new Error('load '+src))};document.head.appendChild(s)});
+}
+var xlsxP=null;
+function needXlsx(){if(window.XLSX)return Promise.resolve();if(!xlsxP)xlsxP=loadScript(XLSX_URL).catch(function(e){xlsxP=null;throw e});return xlsxP}
+function isExcel(f){return /\.(xlsx|xlsm|xls|ods)$/i.test(f.name)}
+/* returns {text, sheet} : for workbooks the first sheet that holds turbines (name + coordinates) */
+function fileToText(f){
+  if(!isExcel(f))return f.text().then(function(x){return {text:x,sheet:null}});
+  return needXlsx().then(function(){return f.arrayBuffer()}).then(function(buf){
+    var wb=XLSX.read(buf,{type:'array'}),pick=null,first=null;
+    wb.SheetNames.forEach(function(nm){
+      var txt=XLSX.utils.sheet_to_csv(wb.Sheets[nm],{FS:'\t',rawNumbers:true,blankrows:false}).replace(/\t+$/gm,'');
+      if(first==null)first={text:txt,sheet:nm};
+      if(!pick&&parseTable(txt).rows.length)pick={text:txt,sheet:nm};
+    });
+    var r=pick||first||{text:'',sheet:null};
+    if(wb.SheetNames.length<2)r.sheet=null;
+    return r;
+  });
+}
+function loadTableFile(f,side){
+  fileToText(f).then(function(r){
+    var snap=$('t'+side).value.trim()?buildState():null;
+    $('t'+side).value=r.text;update();
+    toast(r.sheet?t('file_sheet',f.name,r.sheet,side):t('file_loaded',f.name,side),snap);
+  },function(e){toast(isExcel(f)&&!window.XLSX?t('xlsx_err'):t('file_err'),null,7000)});
+}
+
+/* ---------- drag & drop ---------- */
+function dropTarget(el,handle){
+  var depth=0;
+  el.addEventListener('dragenter',function(e){if(!e.dataTransfer||e.dataTransfer.types.indexOf('Files')<0)return;depth++;el.classList.add('drop-on')});
+  el.addEventListener('dragleave',function(){if(--depth<=0){depth=0;el.classList.remove('drop-on')}});
+  el.addEventListener('dragover',function(e){if(e.dataTransfer&&e.dataTransfer.types.indexOf('Files')>=0)e.preventDefault()});
+  el.addEventListener('drop',function(e){
+    depth=0;el.classList.remove('drop-on');
+    var files=[].slice.call((e.dataTransfer&&e.dataTransfer.files)||[]);if(!files.length)return;
+    e.preventDefault();e.stopPropagation();
+    var pj=files.filter(function(f){return /\.json$/i.test(f.name)})[0];
+    if(pj){openProjectFile(pj);return}
+    handle(files[0]);
+  });
+}
+dropTarget(document.querySelector('.p1'),function(f){loadTableFile(f,'1')});
+dropTarget(document.querySelector('.p2'),function(f){loadTableFile(f,'2')});
+dropTarget($('spListPanel'),function(f){
+  fileToText(f).then(function(r){var snap=buildState();$('spList').value=r.text;lsSet('wt_sp_list',r.text);update();toast(t('file_list',f.name),snap)},
+    function(){toast(isExcel(f)&&!window.XLSX?t('xlsx_err'):t('file_err'),null,7000)});
+});
+/* anywhere else: a project file opens, anything else gets a hint instead of the browser opening the file */
+window.addEventListener('dragover',function(e){if(e.dataTransfer&&e.dataTransfer.types.indexOf('Files')>=0)e.preventDefault()});
+window.addEventListener('drop',function(e){
+  var files=[].slice.call((e.dataTransfer&&e.dataTransfer.files)||[]);if(!files.length)return;
+  e.preventDefault();
+  var pj=files.filter(function(f){return /\.json$/i.test(f.name)})[0];
+  if(pj)openProjectFile(pj);else toast(t('drop_where'),null,6000);
+});
+
+/* ---------- state: autosave, undo, project files ---------- */
+var STATE_KEY='wt_match';
+function buildState(){
+  return {t1:$('t1').value,t2:$('t2').value,tol:$('tol').value,hubc:$('hubc').checked,sfx:$('sfx').checked,sfxl:$('sfxl').value,
+    x:{xt:$('xt').value,xa:$('xa').checked,xh:$('xh').checked,xk:$('xk').checked,xn:$('xn').checked,xs:$('xs').checked},
+    spacing:JSON.parse(JSON.stringify(SP)),spList:$('spList').value,
+    map:{show:MAPOPT.show,names:MAPOPT.names,base:MAPOPT.base}};
+}
+var stateReady=false;
+function saveState(){
+  if(!stateReady)return;
+  var st=buildState();delete st.spacing;delete st.spList;delete st.sfxl; /* these keep their own keys */
+  lsSet(STATE_KEY,JSON.stringify(st));
+}
+function applyState(st,noUpdate){
+  if(!st||typeof st!=='object')return;
+  if(st.t1!=null)$('t1').value=st.t1;
+  if(st.t2!=null)$('t2').value=st.t2;
+  if(st.tol!=null)$('tol').value=st.tol;
+  if(st.hubc!=null)$('hubc').checked=!!st.hubc;
+  if(st.sfx!=null)$('sfx').checked=!!st.sfx;
+  if(st.sfxl!=null){$('sfxl').value=st.sfxl;lsSet('wt_suffixes',st.sfxl)}
+  if(st.x){['xa','xh','xk','xn','xs'].forEach(function(k){if(st.x[k]!=null)$(k).checked=!!st.x[k]});if(st.x.xt)$('xt').value=st.x.xt}
+  if(st.spacing&&typeof st.spacing==='object'){for(var k in SP)if(st.spacing[k]!=null)SP[k]=st.spacing[k];spSave()}
+  if(st.spList!=null){$('spList').value=st.spList;lsSet('wt_sp_list',st.spList)}
+  if(st.map){if(st.map.show!=null)MAPOPT.show=!!st.map.show;if(st.map.names!=null)MAPOPT.names=!!st.map.names;if(st.map.base)MAPOPT.base=st.map.base;mapOptUi()}
+  if(!noUpdate){update();if(spCtx)spRenderConfig()}
+}
+function projName(){
+  var d=new Date(),p=function(n){return (n<10?'0':'')+n};
+  return (lang==='de'?'anlagenabgleich_':'turbine-matcher_')+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'.boreas.json';
+}
+function saveProject(){
+  var data={tool:'turbines',format:1,saved:new Date().toISOString(),state:buildState()};
+  var blob=new Blob([JSON.stringify(data,null,1)],{type:'application/json'}),f=projName();
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=f;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(a.href)},1500);
+  toast(t('proj_saved',f));
+}
+function openProjectFile(f){
+  f.text().then(function(txt){
+    var data;try{data=JSON.parse(txt)}catch(e){toast(t('proj_err'),null,6000);return}
+    if(!data||data.tool!=='turbines'||!data.state){toast(t('proj_bad'),null,6000);return}
+    var snap=buildState();applyState(data.state);toast(t('proj_opened',f.name),snap);
+  },function(){toast(t('proj_err'),null,6000)});
+}
+$('projSave').addEventListener('click',saveProject);
+$('projOpen').addEventListener('click',function(){$('projFile').value='';$('projFile').click()});
+$('projFile').addEventListener('change',function(){var f=this.files&&this.files[0];if(f)openProjectFile(f)});
+
 $('cpall').addEventListener('click',function(){
   var rows=[[t('th_status'),t('th_t1'),t('th_t2'),'dE','dN',t('th_dist'),t('th_type'),t('th_note')]];
   visibleRows.forEach(function(r){
@@ -1292,7 +1700,11 @@ $('cpx').addEventListener('click',function(){copyText(tsv(exportRows))});
 $('dlx').addEventListener('click',function(){downloadCsv(exportRows,'turbines-table'+$('xt').value+'.csv')});
 
 (function(){var sv=lsGet('wt_suffixes');if(sv!==null)$('sfxl').value=sv})();
+var restored=false;
+(function(){try{var st=JSON.parse(lsGet(STATE_KEY)||'null');if(st){applyState(st,true);restored=!!((st.t1||'').trim()||(st.t2||'').trim())}}catch(e){}})();
+stateReady=true;mapOptUi();
 applyLang(lsGet('wt_lang')||((navigator.language||'en').toLowerCase().indexOf('de')===0?'de':'en'));
+if(restored)toast(t('restored'),null,3500);
 </script>
 </body>
 </html>

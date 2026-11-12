@@ -15,7 +15,7 @@ Browser-based engineering tools for wind farm analysis. Every page is a single s
 | **Yield & probability** | |
 | `pvalues.html` | Exceedance probabilities — P50 / P75 / P90 or any P-value from an annual energy sum and combined uncertainty |
 | **Site data** | |
-| `turbines.html` | Turbine table matcher — compare two turbine lists by name and position, copy types/hub heights/power across, 2 D spacing check |
+| `turbines.html` | Turbine table matcher — compare two turbine lists by name and position, copy types/hub heights/power across, 2 D spacing check; map with match status and 2 D circles, KML export, Excel/CSV drop, project files |
 | `wind.html` | Wind rose & main wind direction — ERA5, CERRA, ERA5-Land, ECMWF IFS, Global Wind Atlas, DWD station check; coordinates or shapefile |
 | **Reporting & coordination** | |
 | `bericht.html` | Report generator (Berichtsgenerator) — print-ready A3/A4 PDF with header data, site plans, Excel tables, sources and remarks |
