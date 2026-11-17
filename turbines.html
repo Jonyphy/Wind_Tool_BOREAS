@@ -668,7 +668,7 @@ en:{
   sp_pick_only:function(s){return "Only in Table "+s}, sp_pick_all:"All", sp_pick_none:"None", sp_pick_inv:"Invert",
   sp_pick_info:function(p,e){return p+" planned · "+e+" existing"},
   sp_pick_hint:"Click a name to mark it as planned. A status column marks the rows for you (shown with a dot): “Planung”, “beantragt”, “geplant” = planned; “Betrieb”, “Bestand” = existing. Rückbau turbines are crossed out and left out.",
-  sp_lock:"Set by the status column in the table",
+  sp_lock:"Set by the status column – click to change it",
   sp_list_ph:"Planned turbines: name, type, hub height, easting, northing", sp_list_crs:"Coordinate system of this list",
   sp_lim:"Limits", sp_lim1:"Too close below", sp_lim2:"Close below", sp_pp:"Also check planned ↔ planned",
   sp_rd:"Rotor diameters", sp_rd_s:"Read from the type name. Change any value, or fill in the missing ones.",
@@ -772,7 +772,7 @@ de:{
   sp_pick_only:function(s){return "Nur in Tabelle "+s}, sp_pick_all:"Alle", sp_pick_none:"Keine", sp_pick_inv:"Umkehren",
   sp_pick_info:function(p,e){return p+" geplant · "+e+" Bestand"},
   sp_pick_hint:"Klicke auf einen Namen, um ihn als geplant zu markieren. Eine Statusspalte markiert die Zeilen automatisch (mit Punkt): „Planung“, „beantragt“, „geplant“ = geplant; „Betrieb“, „Bestand“ = Bestand. Rückbau-Anlagen sind durchgestrichen und werden ausgelassen.",
-  sp_lock:"Durch die Statusspalte in der Tabelle festgelegt",
+  sp_lock:"Durch die Statusspalte gesetzt – Klick zum Ändern",
   sp_list_ph:"Geplante Anlagen: Name, Typ, Nabenhöhe, Rechtswert, Hochwert", sp_list_crs:"Koordinatensystem dieser Liste",
   sp_lim:"Grenzwerte", sp_lim1:"Zu nah unter", sp_lim2:"Knapp unter", sp_pp:"Auch geplant ↔ geplant prüfen",
   sp_rd:"Rotordurchmesser", sp_rd_s:"Aus dem Typnamen gelesen. Werte können geändert, fehlende ergänzt werden.",
@@ -1369,7 +1369,7 @@ function rdFromModel(m){
 
 /* ---------- spacing check (2 D) ---------- */
 var SP=(function(){
-  var d={on:false,side:'1',crs:{'1':'25832','2':'25832'},listCrs:'25832',mode:'mark',l1:2,l2:2.3,pp:true,planned:{'1':[],'2':[]},rd:{}};
+  var d={on:false,side:'1',crs:{'1':'25832','2':'25832'},listCrs:'25832',mode:'mark',l1:2,l2:2.3,pp:true,planned:{'1':[],'2':[]},planOff:{'1':[],'2':[]},rd:{}};
   try{var s=JSON.parse(lsGet('wt_spacing')||'null');if(s&&typeof s==='object')for(var k in d)if(s[k]!=null)d[k]=s[k]}catch(e){}
   return d;
 })();
@@ -1380,9 +1380,10 @@ function rdKey(x){return x.model?'T:'+nameKey(x.model):'N:'+nameKey(x.name)}
 function rdOf(x){var v=SP.rd[rdKey(x)];if(v!=null&&v!==''&&+v>0)return +v;return rdFromModel(x.model)}
 function isPlanned(it){
   if(it.rb)return false;
-  if(it.status==='plan')return true;
-  if(it.status==='exist')return false;
-  return SP.planned[spCtx.side].indexOf(nameKey(it.name))>=0;
+  var k=nameKey(it.name),sd=spCtx.side;
+  if(SP.planned[sd].indexOf(k)>=0)return true;
+  if((SP.planOff[sd]||[]).indexOf(k)>=0)return false;
+  return it.status==='plan';
 }
 function fillCrs(sel,val){
   sel.innerHTML=CRS_GROUPS.map(function(g){return '<optgroup label="'+esc(t(g[0]))+'">'+g[1].map(function(c){return '<option value="'+c+'">'+esc(t('crs_'+c))+'</option>'}).join('')+'</optgroup>'}).join('');
@@ -1432,7 +1433,7 @@ function spRenderConfig(){
   var box=$('spPicks'),st=box.scrollTop;
   box.innerHTML=c.items.map(function(it,i){
     if(it.rb)return '<button type="button" data-i="'+i+'" class="rb" disabled title="'+esc(t('sp_rb_lock'))+'">'+esc(it.name)+'</button>';
-    var lock=it.status!=null,on=isPlanned(it);
+    var k=nameKey(it.name),man=SP.planned[c.side].indexOf(k)>=0||(SP.planOff[c.side]||[]).indexOf(k)>=0,lock=it.status!=null&&!man,on=isPlanned(it);
     return '<button type="button" data-i="'+i+'" class="'+(on?'on':'')+(lock?' lock':'')+'"'+(lock?' title="'+esc(t('sp_lock'))+'"':'')+' aria-pressed="'+on+'">'+esc(it.name)+'</button>';
   }).join('');
   box.scrollTop=st;
@@ -1579,15 +1580,18 @@ $('spL2').addEventListener('input',function(){SP.l2=num(this.value)||0;spSave();
 $('spPP').addEventListener('change',function(){SP.pp=this.checked;spSave();spRenderResults()});
 $('spPicks').addEventListener('click',function(ev){
   var b=ev.target.closest('button[data-i]');if(!b)return;
-  var it=spCtx.items[+b.dataset.i];if(!it||it.status!=null)return;
-  var arr=SP.planned[spCtx.side],k=nameKey(it.name),ix=arr.indexOf(k);
-  if(ix>=0)arr.splice(ix,1);else arr.push(k);
-  b.classList.toggle('on',ix<0);b.setAttribute('aria-pressed',ix<0);
-  spSave();spPickInfo();spRenderResults();
+  var it=spCtx.items[+b.dataset.i];if(!it||it.rb)return;
+  var sd=spCtx.side,k=nameKey(it.name),now=isPlanned(it);
+  SP.planned[sd]=SP.planned[sd].filter(function(v){return v!==k});
+  SP.planOff[sd]=(SP.planOff[sd]||[]).filter(function(v){return v!==k});
+  if(now)SP.planOff[sd].push(k);else SP.planned[sd].push(k);
+  spSave();spRenderConfig();spRenderResults();
 });
 document.querySelectorAll('[data-pick]').forEach(function(b){b.addEventListener('click',function(){
-  var all=spCtx.items.map(function(it){return nameKey(it.name)}),cur=SP.planned[spCtx.side],a=b.dataset.pick;
-  SP.planned[spCtx.side]=a==='all'?all:a==='none'?[]:a==='only'?spCtx.only.slice():all.filter(function(k){return cur.indexOf(k)<0});
+  var live=spCtx.items.filter(function(it){return !it.rb}),all=live.map(function(it){return nameKey(it.name)}),a=b.dataset.pick;
+  var cur=live.filter(isPlanned).map(function(it){return nameKey(it.name)});
+  var want=a==='all'?all:a==='none'?[]:a==='only'?spCtx.only.filter(function(k){return all.indexOf(k)>=0}):all.filter(function(k){return cur.indexOf(k)<0});
+  SP.planned[spCtx.side]=want;SP.planOff[spCtx.side]=all.filter(function(k){return want.indexOf(k)<0});
   spSave();spRenderConfig();spRenderResults();
 })});
 $('spRd').addEventListener('input',function(ev){
