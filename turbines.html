@@ -126,7 +126,7 @@ input[type=checkbox]{accent-color:var(--gust);width:16px;height:16px;cursor:poin
 .rules code,.mono{font-family:var(--mono);font-size:.92em}
 
 /* summary */
-.summary{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:18px}
 .chip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--panel);cursor:pointer;text-align:left;transition:border-color .15s,box-shadow .15s}
 .chip:hover{border-color:var(--border-strong)}
 .chip[aria-pressed=true]{border-color:var(--gust);box-shadow:inset 0 0 0 1px var(--gust)}
@@ -269,6 +269,49 @@ td.nm[data-r]{cursor:pointer}
 td.nm[data-r]:hover{color:var(--gust);text-decoration:underline}
 .names span[data-n]{cursor:pointer}
 .names span[data-n]:hover{border-color:var(--gust)}
+/* Rückbau */
+.rbcard{margin-top:14px;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.rbhead{display:flex;gap:12px;align-items:flex-start}
+.rbhead .rbx{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--bad-bg);color:var(--bad);font-weight:700;font-size:15px}
+.rbhead h3{font-size:14.5px;font-weight:600;color:var(--ink)}
+.rbhead p{font-size:13px;color:var(--text-2)}
+.rbrow1{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:14px}
+.rbrow1 input{flex:1;min-width:200px;max-width:460px;font-family:var(--mono);font-size:13px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+.rbrow1 input:focus{border-color:var(--gust)}
+.rbrow1 .hint{flex-basis:100%;font-size:12.5px;color:var(--text-3)}
+.rbrow2{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border);padding-top:12px}
+.rbrow2 .lab{font-size:13.5px;color:var(--text)}
+.rbrow2 .picktools .btn:disabled{opacity:.45;cursor:default;border-color:var(--border);color:var(--text-3)}
+#rbPick{display:flex;flex-direction:column;gap:8px;max-height:230px;overflow:auto}
+.rbgrp{display:flex;gap:10px;align-items:flex-start}
+.rbgrp .badge{flex:none;margin-top:3px}
+.rbgrp .badge.b1{color:var(--t1);background:var(--t1-bg);border-color:var(--t1-bd)}
+.rbgrp .badge.b2{color:var(--t2);background:var(--t2-bg);border-color:var(--t2-bd)}
+.rbgrp .picks{max-height:none}
+#rbPick .picks button.on{background:var(--bad-bg);border-color:var(--bad);color:var(--bad);text-decoration:line-through}
+#rbPick .picks button.on::before{content:"✕ ";text-decoration:none;display:inline-block;margin-right:3px}
+#rbPick .picks button.auto::after{content:" ●";font-size:9px;vertical-align:middle;opacity:.7}
+.pill.rb{color:var(--bad);background:var(--bad-bg)}
+.pill.rb::before{display:none}
+tr.rbrow td.nm{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--bad) 70%,transparent)}
+.chip[data-k=rb] .n{color:var(--bad)}
+.picks button.rb{text-decoration:line-through;opacity:.55;cursor:not-allowed}
+.rbline{padding:10px 16px;border-radius:12px;background:var(--panel);border:1px dashed var(--border-strong);color:var(--text-2);font-size:13px}
+.rbx-ic{background:none;border:0}
+.leaflet-tooltip.tlab.rbl{text-decoration:line-through}
+.poprb{color:var(--bad);font-weight:600;font-size:12.5px}
+.popdet{font-size:12px;color:var(--text-2);margin:4px 0 2px;line-height:1.45}
+.lgx{font-size:14px;line-height:1}
+
+/* full-screen map */
+#mapFull{display:inline-flex;align-items:center;gap:6px}
+#mapFull svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#mapFull[aria-pressed=true]{background:var(--gust);border-color:var(--gust);color:#fff}
+.mapcard.full{position:fixed;inset:0;z-index:1100;margin:0;border-radius:0;border:0;display:flex;flex-direction:column}
+.mapcard.full #mapWrap{flex:1;display:flex;flex-direction:column;min-height:0}
+.mapcard.full #map{flex:1;height:auto;min-height:0}
+.mapcard.full .mapfoot{max-height:24vh;overflow:auto}
+body.mapfull{overflow:hidden}
 [hidden]{display:none!important}
 
 @media(max-width:980px){.summary{grid-template-columns:repeat(3,1fr)}}
@@ -382,6 +425,21 @@ td.nm[data-r]:hover{color:var(--gust);text-decoration:underline}
       </div>
       <div class="note" data-i18n="rules_note">Coordinates are read as easting then northing in metres (UTM). Two turbines are the same when their names agree, or when they stand within the tolerance of each other.</div>
     </div>
+    <div class="card rbcard" id="rbCard">
+      <div class="rbhead">
+        <span class="rbx" aria-hidden="true">✕</span>
+        <div><h3 data-i18n="rb_h">Rückbau (turbines to be removed)</h3><p data-i18n="rb_p">These turbines stay on the map with a ✕, but they are left out of the 2 D spacing check.</p></div>
+      </div>
+      <div class="rbrow1">
+        <label for="rbWords" data-i18n="rb_words">Status words that mean Rückbau</label>
+        <input id="rbWords" type="text" spellcheck="false">
+        <span class="hint" data-i18n="rb_words_hint">Separate with commas. A status cell that contains one of these words counts as Rückbau, so “Rückbau” also covers “Planung Rückbau”.</span>
+      </div>
+      <div class="rbrow2">
+        <div class="picktools"><span class="lab" data-i18n="rb_pick">Or click turbines to mark or unmark them yourself:</span><span style="flex:1"></span><span class="hintline" id="rbInfo"></span><button type="button" class="btn" id="rbReset" data-i18n="rb_reset">Reset to status column</button></div>
+        <div id="rbPick"></div>
+      </div>
+    </div>
   </section>
 
   <!-- STEP 3 -->
@@ -415,6 +473,7 @@ td.nm[data-r]:hover{color:var(--gust);text-decoration:underline}
             <label><input type="checkbox" id="mapNames"> <span data-i18n="map_names">Show names</span></label>
             <button type="button" class="btn" id="mapFit" data-i18n="map_fit">Fit all</button>
             <button type="button" class="btn" id="mapKml" data-i18n="map_kml">Download KML</button>
+            <button type="button" class="btn" id="mapFull" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="mapFullTxt"></span></button>
             <button type="button" class="btn" id="mapToggle"></button>
           </div>
         </div>
@@ -453,6 +512,7 @@ td.nm[data-r]:hover{color:var(--gust);text-decoration:underline}
         <label for="xk"><input id="xk" type="checkbox" checked> <span data-i18n="x_kw">Power (kW)</span></label>
         <label for="xn"><input id="xn" type="checkbox"> <span data-i18n="x_other">Name in other table</span></label>
         <label for="xs"><input id="xs" type="checkbox"> <span data-i18n="x_status">Status</span></label>
+        <label for="xw"><input id="xw" type="checkbox"> <span data-i18n="x_wea">WEA status (Rückbau)</span></label>
         <span class="info" id="xinfo"></span>
         <span style="flex:1"></span>
         <button type="button" class="btn" id="cpx" data-i18n="copy_table">Copy table</button>
@@ -572,7 +632,7 @@ en:{
   hero_p:"Compare two turbine lists by name and position, find turbines that exist in only one list, and copy turbine types from one table to the other.",
   s1:"Paste your tables", s1p:"Copy the rows from Excel and paste them into the boxes. Every row needs a name, easting and northing. Turbine type, hub height and power are optional.",
   tbl1:"Table 1", tbl2:"Table 2", ex:"Load example", up:"Upload file", clr:"Clear",
-  hint1:"Typical columns: name, type, hub height, power, easting, northing.", hint2:"Typical columns: name, easting, northing.",
+  hint1:"Typical columns: name, type, hub height, power, easting, northing. With a header row (e.g. WEA-Bezeichnung, WEA-Typ, Rechtswert, Hochwert, WEA-Status) columns are found by their title.", hint2:"Typical columns: name, easting, northing.",
   s2:"Set the matching rules", s2p:"The defaults suit most wind-farm lists. Results update as you change them.",
   tol:"Position tolerance", sfx:"Ignore name suffixes", sfx_aria:"Suffix list", sfx_hint:"Separate with commas. # stands for any digit, so V### covers V172 and V199.", hubc:"Flag hub height differences",
   rules_note:"Coordinates are read as easting then northing in metres (UTM). Two turbines are the same when their names agree, or when they stand within the tolerance of each other.",
@@ -607,7 +667,7 @@ en:{
   sp_plan:"Planned turbines", sp_mode_mark:function(s){return "Mark them in Table "+s}, sp_mode_list:"Paste a separate list",
   sp_pick_only:function(s){return "Only in Table "+s}, sp_pick_all:"All", sp_pick_none:"None", sp_pick_inv:"Invert",
   sp_pick_info:function(p,e){return p+" planned · "+e+" existing"},
-  sp_pick_hint:"Click a name to mark it as planned. Tip: a column with “geplant” / “planned” or “Bestand” / “existing” in your Excel table marks the rows for you (shown with a dot).",
+  sp_pick_hint:"Click a name to mark it as planned. A status column marks the rows for you (shown with a dot): “Planung”, “beantragt”, “geplant” = planned; “Betrieb”, “Bestand” = existing. Rückbau turbines are crossed out and left out.",
   sp_lock:"Set by the status column in the table",
   sp_list_ph:"Planned turbines: name, type, hub height, easting, northing", sp_list_crs:"Coordinate system of this list",
   sp_lim:"Limits", sp_lim1:"Too close below", sp_lim2:"Close below", sp_pp:"Also check planned ↔ planned",
@@ -655,6 +715,19 @@ en:{
   lg_t1:"Table 1", lg_t2:"Table 2 (open)", lg_line:"Same name, position off",
   lg_plan:"Planned turbine", lg_circ:function(l){return l+" D around planned"}, lg_red:function(l){return "Pair below "+l+" D"}, lg_amb:function(a,b){return "Pair between "+a+" and "+b+" D"},
   tt_dist:function(d){return d+" m apart"}, tt_rd:function(r){return "Rotor "+r+" m"}, tt_circ:function(n,l,r){return n+": "+l+" D = "+r+" m"},
+  th_wea:"WEA status", note_rb:"Rückbau – not in the 2 D check.", rb_tag:"Rückbau", rb_manual:"set by hand", rb_kept:"kept by hand",
+  rb_nostat:"no status", rb_empty:"Paste a table above to pick turbines here.",
+  rb_info:function(n){return n+(n===1?" turbine":" turbines")+" marked as Rückbau"}, rb_man_n:function(n){return n+" changed by hand"},
+  rb_reset_done:"Rückbau marks reset to the status column",
+  rb_h:"Rückbau (turbines to be removed)", rb_p:"These turbines stay on the map with a ✕, but they are left out of the 2 D spacing check.",
+  rb_words:"Status words that mean Rückbau", rb_words_hint:"Separate with commas. A status cell that contains one of these words counts as Rückbau, so “Rückbau” also covers “Planung Rückbau”.",
+  rb_pick:"Or click turbines to mark or unmark them yourself (● = set by the status column):", rb_reset:"Reset to status column",
+  rb_pop:"not in the 2 D check", chip_rb:"Rückbau (✕ on map)",
+  sp_rb_lock:"Rückbau – left out of the check", sp_pick_rb:function(n){return n+" Rückbau (left out)"},
+  sp_rb_out:function(n,l){return "Left out as Rückbau ("+n+"): "+l},
+  pd_cat:"Category", pd_proj:"Project",
+  map_full:"Full screen", map_full_off:"Exit full screen (Esc)", lg_rb:"Rückbau (not in 2 D check)",
+  x_wea:"WEA status (Rückbau)",
   kml_name:"Turbine comparison"
 },
 de:{
@@ -663,7 +736,7 @@ de:{
   hero_p:"Vergleiche zwei Anlagenlisten nach Name und Position, finde Anlagen, die nur in einer Liste vorkommen, und übertrage Anlagentypen von einer Tabelle in die andere.",
   s1:"Tabellen einfügen", s1p:"Kopiere die Zeilen aus Excel und füge sie in die Felder ein. Jede Zeile braucht Name, Rechtswert und Hochwert. Anlagentyp, Nabenhöhe und Leistung sind optional.",
   tbl1:"Tabelle 1", tbl2:"Tabelle 2", ex:"Beispiel laden", up:"Datei hochladen", clr:"Leeren",
-  hint1:"Typische Spalten: Name, Typ, Nabenhöhe, Leistung, Rechtswert, Hochwert.", hint2:"Typische Spalten: Name, Rechtswert, Hochwert.",
+  hint1:"Typische Spalten: Name, Typ, Nabenhöhe, Leistung, Rechtswert, Hochwert. Mit Kopfzeile (z. B. WEA-Bezeichnung, WEA-Typ, Rechtswert, Hochwert, WEA-Status) werden die Spalten am Titel erkannt.", hint2:"Typische Spalten: Name, Rechtswert, Hochwert.",
   s2:"Abgleichregeln festlegen", s2p:"Die Voreinstellungen passen für die meisten Windparklisten. Die Ergebnisse aktualisieren sich sofort.",
   tol:"Positionstoleranz", sfx:"Namenszusätze ignorieren", sfx_aria:"Liste der Zusätze", sfx_hint:"Mit Komma trennen. # steht für eine beliebige Ziffer, V### deckt also V172 und V199 ab.", hubc:"Abweichende Nabenhöhen markieren",
   rules_note:"Koordinaten werden als Rechtswert, dann Hochwert in Metern gelesen (UTM). Zwei Anlagen gelten als gleich, wenn die Namen übereinstimmen oder sie innerhalb der Toleranz beieinander stehen.",
@@ -698,7 +771,7 @@ de:{
   sp_plan:"Geplante Anlagen", sp_mode_mark:function(s){return "In Tabelle "+s+" markieren"}, sp_mode_list:"Separate Liste einfügen",
   sp_pick_only:function(s){return "Nur in Tabelle "+s}, sp_pick_all:"Alle", sp_pick_none:"Keine", sp_pick_inv:"Umkehren",
   sp_pick_info:function(p,e){return p+" geplant · "+e+" Bestand"},
-  sp_pick_hint:"Klicke auf einen Namen, um ihn als geplant zu markieren. Tipp: Eine Spalte mit „geplant“ / „planned“ oder „Bestand“ / „existing“ in der Excel-Tabelle markiert die Zeilen automatisch (mit Punkt angezeigt).",
+  sp_pick_hint:"Klicke auf einen Namen, um ihn als geplant zu markieren. Eine Statusspalte markiert die Zeilen automatisch (mit Punkt): „Planung“, „beantragt“, „geplant“ = geplant; „Betrieb“, „Bestand“ = Bestand. Rückbau-Anlagen sind durchgestrichen und werden ausgelassen.",
   sp_lock:"Durch die Statusspalte in der Tabelle festgelegt",
   sp_list_ph:"Geplante Anlagen: Name, Typ, Nabenhöhe, Rechtswert, Hochwert", sp_list_crs:"Koordinatensystem dieser Liste",
   sp_lim:"Grenzwerte", sp_lim1:"Zu nah unter", sp_lim2:"Knapp unter", sp_pp:"Auch geplant ↔ geplant prüfen",
@@ -746,6 +819,19 @@ de:{
   lg_t1:"Tabelle 1", lg_t2:"Tabelle 2 (offen)", lg_line:"Gleicher Name, Position weicht ab",
   lg_plan:"Geplante Anlage", lg_circ:function(l){return l+" D um geplante"}, lg_red:function(l){return "Paar unter "+l+" D"}, lg_amb:function(a,b){return "Paar zwischen "+a+" und "+b+" D"},
   tt_dist:function(d){return d+" m Abstand"}, tt_rd:function(r){return "Rotor "+r+" m"}, tt_circ:function(n,l,r){return n+": "+l+" D = "+r+" m"},
+  th_wea:"WEA-Status", note_rb:"Rückbau – nicht in der 2-D-Prüfung.", rb_tag:"Rückbau", rb_manual:"manuell", rb_kept:"manuell behalten",
+  rb_nostat:"kein Status", rb_empty:"Füge oben eine Tabelle ein, um hier Anlagen auszuwählen.",
+  rb_info:function(n){return n+(n===1?" Anlage":" Anlagen")+" als Rückbau markiert"}, rb_man_n:function(n){return n+" manuell geändert"},
+  rb_reset_done:"Rückbau-Markierungen auf die Statusspalte zurückgesetzt",
+  rb_h:"Rückbau (Anlagen, die abgebaut werden)", rb_p:"Diese Anlagen bleiben mit einem ✕ auf der Karte, werden aber bei der 2-D-Abstandsprüfung nicht berücksichtigt.",
+  rb_words:"Statuswörter für Rückbau", rb_words_hint:"Mit Komma trennen. Eine Statuszelle, die eines dieser Wörter enthält, gilt als Rückbau – „Rückbau“ deckt also auch „Planung Rückbau“ ab.",
+  rb_pick:"Oder Anlagen anklicken, um sie selbst zu markieren oder freizugeben (● = durch Statusspalte gesetzt):", rb_reset:"Auf Statusspalte zurücksetzen",
+  rb_pop:"nicht in der 2-D-Prüfung", chip_rb:"Rückbau (✕ auf Karte)",
+  sp_rb_lock:"Rückbau – nicht geprüft", sp_pick_rb:function(n){return n+" Rückbau (nicht geprüft)"},
+  sp_rb_out:function(n,l){return "Als Rückbau ausgelassen ("+n+"): "+l},
+  pd_cat:"Kategorie", pd_proj:"Projekt",
+  map_full:"Vollbild", map_full_off:"Vollbild beenden (Esc)", lg_rb:"Rückbau (nicht in 2-D-Prüfung)",
+  x_wea:"WEA-Status (Rückbau)",
   kml_name:"Anlagenabgleich"
 }};
 var lang='en';
@@ -766,31 +852,136 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp
 function num(s){return parseFloat(String(s).replace(',','.'))}
 var MAKER=/^(vestas|enercon|nordex|ge|siemens|senvion|gamesa|repower|suzlon|fuhrl|fuhrländer|bonus|eno|adwen|lagerwey|goldwind|envision|mingyang)$/i;
 function isNum(s){return /^\d+([.,]\d+)?$/.test(s)}
-var PLAN_FIELD=/^(geplant|planned|plan|planung|in planung|zubau|neu|new)$/i,EXIST_FIELD=/^(bestand|existing|vorhanden|in betrieb|alt|old)$/i;
-var PLAN_WORD=/^(geplant|planned|planung|zubau)$/i,EXIST_WORD=/^(bestand|existing|vorhanden)$/i;
+/* ---------- turbine status: planned / existing / Rückbau ---------- */
+function normTxt(s){return String(s==null?'':s).toLowerCase().replace(/ü/g,'u').replace(/ä/g,'a').replace(/ö/g,'o').replace(/ß/g,'ss').replace(/ue/g,'u').replace(/ae/g,'a').replace(/oe/g,'o').replace(/\s+/g,' ').trim()}
+var ST_PLAN=/(^|[^a-z])(geplant|planned|plan|planung|zubau|neu|new|beantragt|genehmigt|applied|permitted|projektiert)([^a-z]|$)/,
+    ST_EXIST=/(^|[^a-z])(bestand|existing|vorhanden|betrieb|operating|operation|errichtet|alt|old)([^a-z]|$)/;
+/* words that may form a whole status cell when the table has no header row */
+var ST_VOCAB=/^(geplant|planned|plan|planung|in|zubau|neu|new|beantragt|genehmigt|bestand|existing|vorhanden|betrieb|alt|old|operating|ruckbau|abgebaut|stillgelegt|decommissioned|dismantled)$/;
+var ST_WORD=/^(geplant|planned|planung|zubau|beantragt|bestand|existing|vorhanden|betrieb|ruckbau|abgebaut|stillgelegt)$/;
+var RB=(function(){
+  var d={words:'Rückbau, abgebaut, stillgelegt, decommissioned',on:{'1':[],'2':[]},off:{'1':[],'2':[]}};
+  try{var s=JSON.parse(lsGet('wt_rb')||'null');if(s&&typeof s==='object')for(var k in d)if(s[k]!=null)d[k]=s[k]}catch(e){}
+  return d;
+})();
+function rbSave(){lsSet('wt_rb',JSON.stringify(RB))}
+var RBW=[];
+function rbWordsUpdate(){RBW=String(RB.words||'').split(/[,;\n]/).map(normTxt).filter(Boolean)}
+rbWordsUpdate();
+function rbText(s){if(!s)return false;var n=normTxt(s);return RBW.some(function(w){return n.indexOf(w)>=0})}
+function rbAuto(x){return rbText(x.statusText)}
+function isRb(x,side){
+  var k=nameKey(x.name);
+  if((RB.off[side]||[]).indexOf(k)>=0)return false;
+  if((RB.on[side]||[]).indexOf(k)>=0)return true;
+  return rbAuto(x);
+}
+function statusKind(s){
+  var n=normTxt(s);if(!n)return null;
+  if(ST_PLAN.test(n))return 'plan';
+  if(ST_EXIST.test(n))return 'exist';
+  return null;
+}
+function isStatusField(s){
+  var w=normTxt(s);if(!w||w.length>40||/\d/.test(w))return false;
+  return w.split(/[ ,\/\-]+/).filter(Boolean).every(function(x){return ST_VOCAB.test(x)||RBW.some(function(r){return x.indexOf(r)>=0})});
+}
+
+/* ---------- reading a pasted table ---------- */
+/* cells of a tab / ; separated text; Excel quotes cells that hold line breaks ("Nenn-↵leistung") */
+function splitCells(s,delim){
+  var rows=[],row=[],cell='',i=0,n=s.length,inQ=false;
+  while(i<n){
+    var c=s[i];
+    if(inQ){
+      if(c==='"'){if(s[i+1]==='"'){cell+='"';i+=2;continue}inQ=false;i++;continue}
+      cell+=c;i++;continue;
+    }
+    if(c==='"'&&cell.trim()===''){inQ=true;cell='';i++;continue}
+    if(c===delim){row.push(cell);cell='';i++;continue}
+    if(c==='\r'){i++;continue}
+    if(c==='\n'){row.push(cell);rows.push(row);row=[];cell='';i++;continue}
+    cell+=c;i++;
+  }
+  if(inQ)return null; /* unbalanced quote: not a quoted table */
+  if(cell!==''||row.length){row.push(cell);rows.push(row)}
+  return rows;
+}
+/* column titles → field; first matching rule wins, every field is used once */
+var HDR=[
+  ['skip',/genehmigung|permit|quelle|source|^lfd|^nr\.?$/],
+  ['noise',/schall|pegel|db\(a\)|\bdb\b|sound|lwa/],
+  ['note',/vermerk|bemerkung|hinweis|notiz|note|remark|kommentar|comment|einschr/],
+  ['status',/status|zustand/],
+  ['cat',/kategorie|category|betreiber|operator|owner|eigent/],
+  ['proj',/projekt|project/],
+  ['hub',/naben|hub/],
+  ['kw',/leistung|power|\bkw\b|\bmw\b|rated/],
+  ['e',/rechtswert|easting|^ost|^east|^x\b|^rw\b|utm.?e\b|^e\b/],
+  ['n',/hochwert|northing|^nord|^north|^y\b|^hw\b|utm.?n\b|^n\b/],
+  ['model',/typ|type|modell|model|^anlage$|^wea$/],
+  ['name',/bezeichnung|name|^wea|anlage|turbine|^id$|kennung|^nr|nummer/]
+];
+function mapHeader(cells){
+  var m={},hits=0;
+  cells.forEach(function(c,i){
+    var h=String(c||'').toLowerCase().replace(/-\s*\n\s*/g,'').replace(/\s+/g,' ').trim();
+    if(!h||/^-?\d+([.,]\d+)?$/.test(h))return;
+    for(var j=0;j<HDR.length;j++){
+      if(m[HDR[j][0]]==null&&HDR[j][1].test(h)){m[HDR[j][0]]=i;if(HDR[j][0]==='kw'&&/\bmw\b/.test(h))m.kwMW=true;hits++;return}
+    }
+  });
+  return m.e!=null&&m.n!=null&&hits>=3?m:null;
+}
+function numCell(s){
+  s=String(s==null?'':s).trim().replace(/\s/g,'');
+  if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s))s=s.replace(/\./g,'');
+  s=s.replace(',','.');
+  return /^-?\d+(\.\d+)?$/.test(s)?parseFloat(s):NaN;
+}
+function parseWithHeader(s,delim){
+  var rows=splitCells(s,delim);if(!rows)return null;
+  var hi=-1,m=null;
+  for(var i=0;i<rows.length&&i<15;i++){m=mapHeader(rows[i]);if(m){hi=i;break}}
+  if(hi<0)return null;
+  var out=[],skipped=0,cell=function(r,k){return m[k]!=null&&r[m[k]]!=null?String(r[m[k]]).replace(/\s+/g,' ').trim():''};
+  rows.slice(hi+1).forEach(function(r){
+    if(!r.some(function(c){return String(c).trim()}))return;
+    if(mapHeader(r))return; /* a second header row */
+    var e=numCell(r[m.e]),n=numCell(r[m.n]);
+    if(!isFinite(e)||!isFinite(n)||e<1000||n<1000){skipped++;return}
+    var hub=numCell(cell(r,'hub')),kw=numCell(cell(r,'kw'));
+    if(m.kwMW&&kw>0&&kw<30)kw*=1000;
+    var st=cell(r,'status');
+    out.push({name:cell(r,'name')||('#'+(out.length+1)),e:e,n:n,model:cell(r,'model'),
+      hub:hub>=20&&hub<=350?hub:null,kw:kw>=100&&kw<100000?kw:null,
+      status:statusKind(st),statusText:st,cat:cell(r,'cat'),proj:cell(r,'proj'),note:cell(r,'note')});
+  });
+  return {rows:out,skipped:skipped,header:true};
+}
 function parseTable(text){
-  var rows=[],skipped=0,lines=String(text||'').split(/\r?\n/);
+  var src=String(text||''),delim=src.indexOf('\t')>=0?'\t':(src.indexOf(';')>=0?';':null);
+  if(delim){var hp=parseWithHeader(src,delim);if(hp)return hp}
+  var rows=[],skipped=0,lines=src.split(/\r?\n/);
   lines.forEach(function(raw){
     var line=raw.trim();
     if(!line)return;
     /* header rows and CSV with ; are tolerated: turn ; into tabs */
     if(line.indexOf('\t')<0&&line.indexOf(';')>=0)line=line.split(';').join('\t');
-    /* optional status column: geplant / planned … or Bestand / existing … */
-    var status=null;
+    /* optional status column: geplant / planned / Bestand / Betrieb / Rückbau … */
+    var stx=[];
     if(line.indexOf('\t')>=0){
       line=line.split('\t').filter(function(f){
-        var s=f.trim();
-        if(PLAN_FIELD.test(s)){status='plan';return false}
-        if(EXIST_FIELD.test(s)){status='exist';return false}
+        if(isStatusField(f)){stx.push(f.trim());return false}
         return true;
       }).join('\t');
     }else{
       line=line.split(/\s+/).filter(function(w){
-        if(PLAN_WORD.test(w)){status='plan';return false}
-        if(EXIST_WORD.test(w)){status='exist';return false}
+        if(ST_WORD.test(normTxt(w))){stx.push(w);return false}
         return true;
       }).join(' ');
     }
+    var statusText=stx.join(' '),status=statusKind(statusText);
     var tokens=line.split(/\s+/),ei=-1;
     /* easting: 6 digits (UTM), 7 (Gauss-Krüger) or 8 (UTM with zone prefix); northing: 7 digits */
     for(var i=0;i<tokens.length-1;i++){
@@ -816,7 +1007,7 @@ function parseTable(text){
     for(var j=0;j<rest.length;j++){
       if(isNum(rest[j])){var v=num(rest[j]);if(hub==null&&v>=20&&v<=350)hub=v;else if(kw==null&&v>=400&&v<100000)kw=v}
     }
-    rows.push({name:name,e:num(tokens[ei]),n:num(tokens[ei+1]),hub:hub,model:model,kw:kw,status:status});
+    rows.push({name:name,e:num(tokens[ei]),n:num(tokens[ei+1]),hub:hub,model:model,kw:kw,status:status,statusText:statusText});
   });
   return {rows:rows,skipped:skipped};
 }
@@ -923,18 +1114,24 @@ function update(){
   var any=p1.rows.length+p2.rows.length>0;
   $('placeholder').hidden=any;$('out').hidden=!any;$('s4').hidden=!any;$('s5').hidden=!any;
   saveState();
+  p1.rows.forEach(function(x){x.rb=isRb(x,'1')});
+  p2.rows.forEach(function(x){x.rb=isRb(x,'2')});
+  rbRender(p1,p2);
   if(!any){visibleRows=[];exportRows=[];MAPCTX=null;return}
 
   var res=compare(p1.rows,p2.rows,tol,sfx,hubc);
+  res.forEach(function(r){r.rb=!!((r.a&&r.a.rb)||(r.b&&r.b.rb))});
   res.sort(function(x,y){
     if(ORDER[x.kind]!==ORDER[y.kind])return ORDER[x.kind]-ORDER[y.kind];
     return (x.a||x.b).name.localeCompare((y.a||y.b).name,undefined,{numeric:true});
   });
-  var counts={all:res.length,ok:0,far:0,coord:0,only1:0,only2:0};
-  res.forEach(function(r){counts[r.kind]++});
+  var counts={all:res.length,ok:0,far:0,coord:0,only1:0,only2:0,rb:0};
+  res.forEach(function(r){counts[r.kind]++;if(r.rb)counts.rb++});
+  if(filter==='rb'&&!counts.rb)filter='all';
+  var hasWea=res.some(function(r){return r.rb||(r.a&&r.a.statusText)||(r.b&&r.b.statusText)});
 
   var sm=$('summary');sm.innerHTML='';
-  CHIPS.forEach(function(k){
+  CHIPS.concat(counts.rb?['rb']:[]).forEach(function(k){
     var b=document.createElement('button');
     b.type='button';b.className='chip';b.dataset.k=k;
     b.setAttribute('aria-pressed',filter===k?'true':'false');
@@ -955,16 +1152,18 @@ function update(){
 
   var q=query.trim().toUpperCase();
   var vis=res.filter(function(r){
-    if(filter!=='all'&&r.kind!==filter)return false;
+    if(filter==='rb'){if(!r.rb)return false}
+    else if(filter!=='all'&&r.kind!==filter)return false;
     if(!q)return true;
     return ((r.a?r.a.name:'')+' '+(r.b?r.b.name:'')).toUpperCase().indexOf(q)>=0;
   });
   visibleRows=vis;
   $('rtitle').textContent=t('res_title',t('chip_'+filter),vis.length);
 
-  var cols=hubc?10:9;
+  var cols=9+(hubc?1:0)+(hasWea?1:0);
   var h='<thead><tr><th>'+esc(t('th_status'))+'</th><th>'+esc(t('th_t1'))+'</th><th>'+esc(t('th_t2'))+'</th><th class="num">'+esc(t('th_de'))+'</th><th class="num">'+esc(t('th_dn'))+'</th><th class="num">'+esc(t('th_dist'))+'</th><th>'+esc(t('th_type'))+'</th>';
   if(hubc)h+='<th class="num">'+esc(t('th_hub'))+'</th>';
+  if(hasWea)h+='<th>'+esc(t('th_wea'))+'</th>';
   h+='<th>'+esc(t('th_note'))+'</th></tr></thead><tbody>';
   if(!vis.length)h+='<tr><td colspan="'+cols+'" class="empty">'+esc(t('nothing_here'))+'</td></tr>';
   vis.forEach(function(r,ri){
@@ -976,12 +1175,14 @@ function update(){
     if(r.hubDiff)note+=(note?' ':'')+t('note_hub');
     var de='',dn='',dd='';
     if(r.a&&r.b){de=sgn(r.b.e-r.a.e);dn=sgn(r.b.n-r.a.n);dd=fmt(r.d,1)}
-    h+='<tr><td><span class="pill '+r.kind+'">'+esc(t('st_'+r.kind))+'</span></td>'+
+    if(r.rb)note=t('note_rb')+(note?' '+note:'');
+    h+='<tr'+(r.rb?' class="rbrow"':'')+'><td><span class="pill '+r.kind+'">'+esc(t('st_'+r.kind))+'</span>'+(r.rb?' <span class="pill rb">'+esc(t('rb_tag'))+'</span>':'')+'</td>'+
       '<td class="nm'+(r.a?'':' dim')+'"'+(r.a?' data-r="'+ri+'"':'')+'>'+(r.a?esc(r.a.name):'–')+'</td>'+
       '<td class="nm'+(r.b?'':' dim')+'"'+(r.b?' data-r="'+ri+'" data-s="2"':'')+'>'+(r.b?esc(r.b.name):'–')+'</td>'+
       '<td class="num mono">'+de+'</td><td class="num mono">'+dn+'</td><td class="num mono">'+dd+'</td>'+
       '<td class="wrap mono">'+esc((r.a&&r.a.model)||(r.b&&r.b.model)||'')+'</td>';
     if(hubc)h+='<td class="num mono">'+(r.a&&r.a.hub!=null?r.a.hub:'–')+' / '+(r.b&&r.b.hub!=null?r.b.hub:'–')+'</td>';
+    if(hasWea){var w=weaTxt(r);h+='<td class="wrap'+(w?'':' dim')+'">'+(w?esc(w):'–')+'</td>'}
     h+='<td class="note">'+esc(note)+'</td></tr>';
   });
   $('tbl').innerHTML=h+'</tbody>';
@@ -991,6 +1192,52 @@ function update(){
   MAPCTX={rows:vis,all:p1.rows.concat(p2.rows)};
   scheduleMap();
 }
+/* WEA status text of a result row (status column, or Rückbau set by hand) */
+function weaTxt(r){
+  var s=(r.a&&r.a.statusText)||(r.b&&r.b.statusText)||'';
+  if(r.rb&&!rbText(s))return s?s+' → '+t('rb_tag')+' ('+t('rb_manual')+')':t('rb_tag')+' ('+t('rb_manual')+')';
+  if(!r.rb&&rbText(s))return s+' ('+t('rb_kept')+')';
+  return s;
+}
+function weaOf(x,o){
+  var s=x.statusText||(o&&o.statusText)||'',rb=x.rb||(o&&o.rb);
+  return weaTxt({a:{statusText:s},rb:rb});
+}
+
+/* ---------- Rückbau: settings card ---------- */
+var rbCtx={'1':[],'2':[]};
+function rbRender(p1,p2){
+  rbCtx={'1':p1.rows,'2':p2.rows};
+  if($('rbWords')!==document.activeElement)$('rbWords').value=RB.words;
+  var h='',n=0,man=0,box=$('rbPick'),st=box.scrollTop;
+  ['1','2'].forEach(function(side){
+    var rows=rbCtx[side];if(!rows.length)return;
+    h+='<div class="rbgrp"><span class="badge b'+side+'">'+esc(t('tbl'+side))+'</span><div class="picks">';
+    rows.forEach(function(x,i){
+      var on=x.rb,auto=rbAuto(x);if(on)n++;if(on!==auto)man++;
+      var tip=(x.statusText?x.statusText:t('rb_nostat'))+(on!==auto?' · '+t('rb_manual'):'');
+      h+='<button type="button" data-s="'+side+'" data-i="'+i+'" class="'+(on?'on':'')+(auto?' auto':'')+'" aria-pressed="'+on+'" title="'+esc(tip)+'">'+esc(x.name)+'</button>';
+    });
+    h+='</div></div>';
+  });
+  box.innerHTML=h||'<span class="hintline">'+esc(t('rb_empty'))+'</span>';
+  box.scrollTop=st;
+  $('rbInfo').innerHTML=(p1.rows.length||p2.rows.length)?esc(t('rb_info',n))+(man?' · '+esc(t('rb_man_n',man)):''):'';
+  $('rbReset').disabled=!man;
+}
+$('rbWords').addEventListener('input',function(){RB.words=this.value;rbWordsUpdate();rbSave();update()});
+$('rbPick').addEventListener('click',function(ev){
+  var b=ev.target.closest('button[data-i]');if(!b)return;
+  var side=b.dataset.s,x=rbCtx[side][+b.dataset.i];if(!x)return;
+  var k=nameKey(x.name),auto=rbAuto(x),cur=x.rb;
+  RB.on[side]=(RB.on[side]||[]).filter(function(v){return v!==k});
+  RB.off[side]=(RB.off[side]||[]).filter(function(v){return v!==k});
+  if(cur){if(auto)RB.off[side].push(k)}else{if(!auto)RB.on[side].push(k)}
+  rbSave();update();
+});
+$('rbReset').addEventListener('click',function(){
+  var snap=buildState();RB.on={'1':[],'2':[]};RB.off={'1':[],'2':[]};rbSave();update();toast(t('rb_reset_done'),snap);
+});
 
 /* ---------- table with turbine types ---------- */
 function buildExport(res,p1,p2){
@@ -1002,13 +1249,14 @@ function buildExport(res,p1,p2){
       else{partner.set(r.b,r.a);status.set(r.b,r.kind)}
     }
   });
-  var useA=$('xa').checked,useH=$('xh').checked,useK=$('xk').checked,useN=$('xn').checked,useS=$('xs').checked;
+  var useA=$('xa').checked,useH=$('xh').checked,useK=$('xk').checked,useN=$('xn').checked,useS=$('xs').checked,useW=$('xw').checked;
   var head=[t('c_name'),t('c_e'),t('c_n')];
   if(useA)head.push(t('c_type'));
   if(useH)head.push(t('c_hub'));
   if(useK)head.push(t('c_kw'));
   if(useN)head.push(t('c_other',other));
   if(useS)head.push(t('c_status'));
+  if(useW)head.push(t('th_wea'));
   var filled=0,body=[];
   own.forEach(function(x){
     var o=partner.get(x),row=[x.name,x.e,x.n];
@@ -1019,6 +1267,7 @@ function buildExport(res,p1,p2){
     if(useK)row.push(x.kw!=null?x.kw:(o&&o.kw!=null?o.kw:''));
     if(useN)row.push(o?o.name:'');
     if(useS)row.push(t('st_'+(status.get(x)||('only'+side))));
+    if(useW)row.push(weaOf(x,o));
     body.push(row);
   });
   exportRows=[head].concat(body);
@@ -1130,6 +1379,7 @@ function nameKey(n){return String(n).toUpperCase().replace(/\s+/g,' ').trim()}
 function rdKey(x){return x.model?'T:'+nameKey(x.model):'N:'+nameKey(x.name)}
 function rdOf(x){var v=SP.rd[rdKey(x)];if(v!=null&&v!==''&&+v>0)return +v;return rdFromModel(x.model)}
 function isPlanned(it){
+  if(it.rb)return false;
   if(it.status==='plan')return true;
   if(it.status==='exist')return false;
   return SP.planned[spCtx.side].indexOf(nameKey(it.name))>=0;
@@ -1149,7 +1399,7 @@ function spUpdate(res,p1,p2,tol){
   });
   var items=rows.map(function(x){
     var o=partner.get(x),m=x.model||(o&&o.model)||'';
-    return {name:x.name,e:x.e,n:x.n,model:m,fromPartner:!x.model&&!!m,status:x.status};
+    return {name:x.name,e:x.e,n:x.n,model:m,fromPartner:!x.model&&!!m,status:x.status||(o&&o.status)||null,rb:!!(x.rb||(o&&o.rb))};
   });
   var list=null;
   if(SP.mode==='list'){
@@ -1181,6 +1431,7 @@ function spRenderConfig(){
   /* planned picker */
   var box=$('spPicks'),st=box.scrollTop;
   box.innerHTML=c.items.map(function(it,i){
+    if(it.rb)return '<button type="button" data-i="'+i+'" class="rb" disabled title="'+esc(t('sp_rb_lock'))+'">'+esc(it.name)+'</button>';
     var lock=it.status!=null,on=isPlanned(it);
     return '<button type="button" data-i="'+i+'" class="'+(on?'on':'')+(lock?' lock':'')+'"'+(lock?' title="'+esc(t('sp_lock'))+'"':'')+' aria-pressed="'+on+'">'+esc(it.name)+'</button>';
   }).join('');
@@ -1191,7 +1442,7 @@ function spRenderConfig(){
 
   /* rotor diameter table */
   var groups=[],gm={};
-  var all=c.items.concat(SP.mode==='list'&&c.list?c.list.rows:[]);
+  var all=c.items.filter(function(x){return !x.rb}).concat(SP.mode==='list'&&c.list?c.list.rows:[]);
   all.forEach(function(x){
     var k=rdKey(x);
     if(!gm[k]){gm[k]={k:k,model:x.model,names:[],auto:rdFromModel(x.model),partner:true};groups.push(gm[k])}
@@ -1217,8 +1468,8 @@ function rdSrc(g,has,val){
   return t('rd_auto')+(g.partner&&g.model?' · '+t('rd_partner',spCtx.other):'');
 }
 function spPickInfo(){
-  var p=0;spCtx.items.forEach(function(it){if(isPlanned(it))p++});
-  $('spPickInfo').textContent=t('sp_pick_info',p,spCtx.items.length-p);
+  var p=0,r=0;spCtx.items.forEach(function(it){if(it.rb)r++;else if(isPlanned(it))p++});
+  $('spPickInfo').textContent=t('sp_pick_info',p,spCtx.items.length-p-r)+(r?' · '+t('sp_pick_rb',r):'');
 }
 
 function crsHint(el,rows,code,bad,target){
@@ -1240,8 +1491,10 @@ function spRenderResults(){
   out.hidden=false;
   var c=spCtx,planned=[],existing=[],l1=+SP.l1||0,l2=+SP.l2||0;
   if(l2<l1)l2=l1;
-  if(SP.mode==='mark')c.items.forEach(function(it){(isPlanned(it)?planned:existing).push(it)});
-  else{existing=c.items.slice();planned=c.list?c.list.rows.slice():[]}
+  var live=c.items.filter(function(it){return !it.rb}),gone=c.items.filter(function(it){return it.rb}).map(function(it){return it.name});
+  if(SP.mode==='mark')live.forEach(function(it){(isPlanned(it)?planned:existing).push(it)});
+  else{existing=live.slice();planned=c.list?c.list.rows.slice():[]}
+  var rbLine=gone.length?'<div class="rbline">'+esc(t('sp_rb_out',gone.length,gone.join(', ')))+'</div>':'';
 
   /* coordinates → geographic → one local plane (true ground distances) */
   var bad=0,badL=0,pts=existing.concat(planned),lon0=0;
@@ -1255,7 +1508,7 @@ function spRenderResults(){
   if(pts.length){lon0/=pts.length;pts.forEach(function(it){var p=tmFwd(it.g.lat,it.g.lon,lon0,1,ELL.grs80);it.x=p.x;it.y=p.y})}
 
   c.mapData={planned:planned,pairs:[],l1:l1,l2:l2};
-  if(!planned.length){out.innerHTML='<div class="warnline">'+esc(t(SP.mode==='list'?'sp_need_list':'sp_need'))+'</div>';return}
+  if(!planned.length){out.innerHTML='<div class="warnline">'+esc(t(SP.mode==='list'?'sp_need_list':'sp_need'))+'</div>'+rbLine;return}
 
   var pairs=[],same=[],miss={};
   function mk(p,o,d,kind){
@@ -1279,7 +1532,7 @@ function spRenderResults(){
   c.mapData.pairs=red.concat(amb);
   var nfmt=function(v){return String(v).replace('.',lang==='de'?',':'.')};
 
-  var h='<div class="sp-sum">'+t('sp_sum',planned.length,existing.length,pairs.length)+'</div>';
+  var h='<div class="sp-sum">'+t('sp_sum',planned.length,existing.length,pairs.length)+'</div>'+rbLine;
   if(!red.length&&!amb.length){
     h+='<div class="okline">✓ '+esc(t('sp_none',nfmt(l2)))+(pairs.length&&isFinite(pairs[0].w)?'<br><span style="font-weight:400">'+esc(t('sp_min',pairs[0].p.name,pairs[0].o.name,fmt(pairs[0].d,0),fmtR(pairs[0].w)))+'</span>':'')+'</div>';
   }else{
@@ -1377,6 +1630,7 @@ function mapOptUi(){
   $('mapNames').checked=!!MAPOPT.names;
   $('mapWrap').hidden=!MAPOPT.show;
   $('mapToggle').textContent=t(MAPOPT.show?'map_hide':'map_show');
+  $('mapFullTxt').textContent=t(mapFull?'map_full_off':'map_full');
   [$('mapCrsWrap'),$('mapNames').closest('label'),$('mapFit')].forEach(function(el){el.hidden=!MAPOPT.show});
 }
 function mapRender(){
@@ -1396,15 +1650,45 @@ function popHtml(r){
   if(r.a)h+='<b>'+esc(r.a.name)+'</b> <span style="opacity:.7">('+esc(t('tbl1'))+')</span>';
   if(r.a&&r.b)h+='<br>';
   if(r.b)h+='<b>'+esc(r.b.name)+'</b> <span style="opacity:.7">('+esc(t('tbl2'))+')</span>';
-  h+='<br>'+esc(t('st_'+r.kind));
+  if(r.rb)h+='<br><span class="poprb">✕ '+esc(t('rb_tag'))+' · '+esc(t('rb_pop'))+'</span>';
+  var w=weaTxt(r),x=r.a||r.b,o=r.a&&r.b?r.b:null,det=[];
+  if(w)det.push(esc(t('th_wea'))+': '+esc(w));
+  [['cat','pd_cat'],['proj','pd_proj']].forEach(function(f){var v=x[f[0]]||(o&&o[f[0]]);if(v)det.push(esc(t(f[1]))+': '+esc(v))});
+  var nt=x.note||(o&&o.note);if(nt)det.push('<i>'+esc(nt)+'</i>');
+  if(det.length)h+='<div class="popdet">'+det.join('<br>')+'</div>';
+  h+=esc(t('st_'+r.kind));
   if(r.a&&r.b&&r.d>0)h+=' · '+esc(t('tt_dist',fmt(r.d,1)));
   else if(r.near)h+=' · '+esc(t('note_near',r.kind==='only1'?'2':'1',r.near.r.name,fmt(r.near.d,0)));
   var m=(r.a&&r.a.model)||(r.b&&r.b.model);
   if(m)h+='<br><span style="font-family:var(--mono);font-size:12px">'+esc(m)+'</span>';
   var hub=(r.a&&r.a.hub!=null)?r.a.hub:(r.b&&r.b.hub!=null?r.b.hub:null);
   if(hub!=null)h+=' · '+hub+' m';
+  var kw=(r.a&&r.a.kw!=null)?r.a.kw:(r.b&&r.b.kw!=null?r.b.kw:null);
+  if(kw!=null)h+=' · '+kw+' kW';
   return h;
 }
+/* ✕ marker for Rückbau turbines */
+function crossIcon(cl,halo){
+  var p='M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5';
+  return L.divIcon({className:'rbx-ic',iconSize:[16,16],iconAnchor:[8,8],popupAnchor:[0,-8],tooltipAnchor:[8,0],
+    html:'<svg viewBox="0 0 16 16" width="16" height="16"><path d="'+p+'" stroke="'+halo+'" stroke-width="5.5" stroke-linecap="round"/><path d="'+p+'" stroke="'+cl+'" stroke-width="2.8" stroke-linecap="round"/></svg>'});
+}
+
+/* full-screen map */
+var mapFull=false;
+function setMapFull(on){
+  mapFull=!!on;
+  if(mapFull&&!MAPOPT.show){MAPOPT.show=true;saveState();mapOptUi()}
+  $('mapCard').classList.toggle('full',mapFull);
+  document.body.classList.toggle('mapfull',mapFull);
+  $('mapFullTxt').textContent=t(mapFull?'map_full_off':'map_full');
+  $('mapFull').setAttribute('aria-pressed',mapFull);
+  if(LMAP){if(mapFull)LMAP.scrollWheelZoom.enable();else LMAP.scrollWheelZoom.disable()}
+  mapSig='';
+  setTimeout(function(){if(LMAP)LMAP.invalidateSize();scheduleMap()},60);
+}
+$('mapFull').addEventListener('click',function(){setMapFull(!mapFull)});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&mapFull)setMapFull(false)});
 function drawMap(){
   var host=$('map');
   if(!LMAP){
@@ -1412,7 +1696,8 @@ function drawMap(){
     LMAP=L.map(host,{scrollWheelZoom:false,zoomSnap:.5});
     /* wheel zoom only after the user clicks into the map, so scrolling the page is not caught by the map */
     LMAP.on('click focus',function(){LMAP.scrollWheelZoom.enable()});
-    LMAP.on('mouseout blur',function(){LMAP.scrollWheelZoom.disable()});
+    LMAP.on('mouseout blur',function(){if(!mapFull)LMAP.scrollWheelZoom.disable()});
+    L.control.scale({imperial:false,position:'bottomleft'}).addTo(LMAP);
     LL.osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
     LL.sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Esri World Imagery'});
     (MAPOPT.base==='sat'?LL.sat:LL.osm).addTo(LMAP);
@@ -1430,11 +1715,12 @@ function drawMap(){
   LL.match.clearLayers();LL.circ.clearLayers();LL.pairs.clearLayers();MARK=[];
   var col={ok:cssVar('--ok'),far:cssVar('--warn'),coord:cssVar('--info'),only1:cssVar('--t1'),only2:cssVar('--t2'),bad:cssVar('--bad'),warn:cssVar('--warn'),gust:cssVar('--gust'),ink:cssVar('--ink')};
   var c1=SP.crs['1'],c2=SP.crs['2'],out=0,lls=[],names=!!MAPOPT.names;
+  var halo=cssVar('--panel')||'#fff';
   function marker(ll,cl,filled,label,r){
-    var m=L.circleMarker(ll,{radius:6,color:cl,weight:2,fillColor:cl,fillOpacity:filled?.85:.12});
+    var m=r.rb?L.marker(ll,{icon:crossIcon(cl,halo),keyboard:false}):L.circleMarker(ll,{radius:6,color:cl,weight:2,fillColor:cl,fillOpacity:filled?.85:.12});
     m.bindPopup(popHtml(r));
-    if(names)m.bindTooltip(esc(label),{permanent:true,direction:'right',offset:[7,0],className:'tlab'});
-    else m.bindTooltip(esc(label)+' · '+esc(t('st_'+r.kind)),{direction:'top',offset:[0,-6]});
+    if(names)m.bindTooltip(esc(label),{permanent:true,direction:'right',offset:[r.rb?2:7,0],className:'tlab'+(r.rb?' rbl':'')});
+    else m.bindTooltip(esc(label)+' · '+esc(t('st_'+r.kind))+(r.rb?' · ✕ '+esc(t('rb_tag')):''),{direction:'top',offset:[0,r.rb?-2:-6]});
     m.addTo(LL.match);lls.push(ll);return m;
   }
   MAPCTX.rows.forEach(function(r,ri){
@@ -1480,6 +1766,7 @@ function drawMap(){
   var lg=function(c,cls,txt){return '<span class="lg" style="color:'+c+'"><i class="'+cls+'"></i><span style="color:var(--text-2)">'+esc(txt)+'</span></span>'};
   var f=lg(col.ok,'f',t('st_ok'))+lg(col.far,'f',t('st_far'))+lg(col.coord,'f',t('st_coord'))+lg(col.only1,'f',t('st_only1'))+lg(col.only2,'',t('st_only2'))+
     lg(col.ink,'f',t('lg_t1'))+lg(col.ink,'',t('lg_t2'))+lg(col.far,'ln',t('lg_line'));
+  if(MAPCTX.rows.some(function(r){return r.rb}))f+='<span class="lg" style="color:'+col.ink+'"><b class="lgx">✕</b><span style="color:var(--text-2)">'+esc(t('lg_rb'))+'</span></span>';
   if(md){
     f+=lg(col.gust,'',t('lg_plan'))+lg(col.bad,'ring',t('lg_circ',String(md.l1)))+lg(col.bad,'ln',t('lg_red',String(md.l1)))+lg(col.warn,'ln',t('lg_amb',String(md.l1),String(md.l2)));
   }
@@ -1495,7 +1782,7 @@ function mapFocus(pf){
   if(ix<0||!MARK[ix])return;
   var e=MARK[ix],m=pf.side==='2'?e.m2:e.m;
   LMAP.setView(m.getLatLng(),Math.max(LMAP.getZoom(),15));m.openPopup();
-  $('mapCard').scrollIntoView({behavior:'smooth',block:'center'});
+  if(!mapFull)$('mapCard').scrollIntoView({behavior:'smooth',block:'center'});
 }
 function showOnMap(name,side){
   pendingFocus={name:name,side:side};
@@ -1510,7 +1797,7 @@ $('tbl').addEventListener('click',function(ev){
 });
 $('miss1').addEventListener('click',function(ev){var s=ev.target.closest('[data-n]');if(s)showOnMap(s.dataset.n,'1')});
 $('miss2').addEventListener('click',function(ev){var s=ev.target.closest('[data-n]');if(s)showOnMap(s.dataset.n,'2')});
-$('mapToggle').addEventListener('click',function(){MAPOPT.show=!MAPOPT.show;saveState();mapOptUi();scheduleMap()});
+$('mapToggle').addEventListener('click',function(){if(mapFull)setMapFull(false);MAPOPT.show=!MAPOPT.show;saveState();mapOptUi();scheduleMap()});
 $('mapNames').addEventListener('change',function(){MAPOPT.names=this.checked;saveState();scheduleMap()});
 $('mapFit').addEventListener('click',function(){mapSig='';scheduleMap()});
 $('mapCrs').addEventListener('change',function(){SP.crs['1']=SP.crs['2']=this.value;spSave();update();if(spCtx)spRenderConfig()});
@@ -1524,20 +1811,20 @@ function kmlEsc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&
 function kmlColor(hex){var h=hex.replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');return 'ff'+h.slice(4,6)+h.slice(2,4)+h.slice(0,2)}
 $('mapKml').addEventListener('click',function(){
   if(!MAPCTX)return;
-  var light={ok:'#0f7a4f',far:'#a9690a',coord:'#0a7c8a',only1:'#be185d',only2:'#2563eb'};
+  var light={ok:'#0f7a4f',far:'#a9690a',coord:'#0a7c8a',only1:'#be185d',only2:'#2563eb',rb:'#c0262d'};
   var c1=SP.crs['1'],c2=SP.crs['2'],folders={};
   function pm(x,code,r,tbl){
-    var g=toGeo(x.e,x.n,code),m=x.model||'';
-    return '<Placemark><name>'+kmlEsc(x.name)+'</name><styleUrl>#'+r.kind+'</styleUrl><description>'+kmlEsc(t(tbl)+' · '+t('st_'+r.kind)+(m?' · '+m:'')+(x.hub!=null?' · '+x.hub+' m':'')+(r.a&&r.b&&r.d>0?' · '+t('tt_dist',fmt(r.d,1)):''))+'</description><Point><coordinates>'+g.lon.toFixed(7)+','+g.lat.toFixed(7)+',0</coordinates></Point></Placemark>';
+    var g=toGeo(x.e,x.n,code),m=x.model||'',w=weaTxt(r);
+    return '<Placemark><name>'+kmlEsc(x.name)+'</name><styleUrl>#'+(r.rb?'rb':r.kind)+'</styleUrl><description>'+kmlEsc(t(tbl)+' · '+t('st_'+r.kind)+(w?' · '+w:'')+(m?' · '+m:'')+(x.hub!=null?' · '+x.hub+' m':'')+(r.a&&r.b&&r.d>0?' · '+t('tt_dist',fmt(r.d,1)):''))+'</description><Point><coordinates>'+g.lon.toFixed(7)+','+g.lat.toFixed(7)+',0</coordinates></Point></Placemark>';
   }
   MAPCTX.rows.forEach(function(r){
-    var f=folders[r.kind]=folders[r.kind]||[];
+    var k=r.rb?'rb':r.kind,f=folders[k]=folders[k]||[];
     if(r.a)f.push(pm(r.a,c1,r,'tbl1'));
     if(r.b&&(r.kind==='far'||!r.a))f.push(pm(r.b,c2,r,'tbl2'));
   });
   var x='<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>'+kmlEsc(t('kml_name'))+'</name>';
-  Object.keys(light).forEach(function(k){x+='<Style id="'+k+'"><IconStyle><color>'+kmlColor(light[k])+'</color><scale>0.9</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle></Style>'});
-  ['only1','only2','coord','far','ok'].forEach(function(k){if(folders[k])x+='<Folder><name>'+kmlEsc(t('st_'+k))+' ('+folders[k].length+')</name>'+folders[k].join('')+'</Folder>'});
+  Object.keys(light).forEach(function(k){x+='<Style id="'+k+'"><IconStyle><color>'+kmlColor(light[k])+'</color><scale>0.9</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/'+(k==='rb'?'forbidden':'placemark_circle')+'.png</href></Icon></IconStyle></Style>'});
+  ['only1','only2','coord','far','ok','rb'].forEach(function(k){if(folders[k])x+='<Folder><name>'+kmlEsc(k==='rb'?t('rb_tag'):t('st_'+k))+' ('+folders[k].length+')</name>'+folders[k].join('')+'</Folder>'});
   x+='</Document></kml>';
   var blob=new Blob([x],{type:'application/vnd.google-earth.kml+xml'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='turbine-comparison.kml';document.body.appendChild(a);a.click();document.body.removeChild(a);
@@ -1545,7 +1832,7 @@ $('mapKml').addEventListener('click',function(){
 });
 
 /* ---------- wiring ---------- */
-['t1','t2','tol','sfx','sfxl','hubc','xt','xa','xh','xk','xn','xs'].forEach(function(id){
+['t1','t2','tol','sfx','sfxl','hubc','xt','xa','xh','xk','xn','xs','xw'].forEach(function(id){
   $(id).addEventListener('input',update);$(id).addEventListener('change',update);
 });
 $('q').addEventListener('input',function(){query=this.value;update()});
@@ -1633,14 +1920,14 @@ window.addEventListener('drop',function(e){
 var STATE_KEY='wt_match';
 function buildState(){
   return {t1:$('t1').value,t2:$('t2').value,tol:$('tol').value,hubc:$('hubc').checked,sfx:$('sfx').checked,sfxl:$('sfxl').value,
-    x:{xt:$('xt').value,xa:$('xa').checked,xh:$('xh').checked,xk:$('xk').checked,xn:$('xn').checked,xs:$('xs').checked},
-    spacing:JSON.parse(JSON.stringify(SP)),spList:$('spList').value,
+    x:{xt:$('xt').value,xa:$('xa').checked,xh:$('xh').checked,xk:$('xk').checked,xn:$('xn').checked,xs:$('xs').checked,xw:$('xw').checked},
+    spacing:JSON.parse(JSON.stringify(SP)),spList:$('spList').value,rb:JSON.parse(JSON.stringify(RB)),
     map:{show:MAPOPT.show,names:MAPOPT.names,base:MAPOPT.base}};
 }
 var stateReady=false;
 function saveState(){
   if(!stateReady)return;
-  var st=buildState();delete st.spacing;delete st.spList;delete st.sfxl; /* these keep their own keys */
+  var st=buildState();delete st.spacing;delete st.spList;delete st.sfxl;delete st.rb; /* these keep their own keys */
   lsSet(STATE_KEY,JSON.stringify(st));
 }
 function applyState(st,noUpdate){
@@ -1651,7 +1938,8 @@ function applyState(st,noUpdate){
   if(st.hubc!=null)$('hubc').checked=!!st.hubc;
   if(st.sfx!=null)$('sfx').checked=!!st.sfx;
   if(st.sfxl!=null){$('sfxl').value=st.sfxl;lsSet('wt_suffixes',st.sfxl)}
-  if(st.x){['xa','xh','xk','xn','xs'].forEach(function(k){if(st.x[k]!=null)$(k).checked=!!st.x[k]});if(st.x.xt)$('xt').value=st.x.xt}
+  if(st.rb&&typeof st.rb==='object'){for(var rk in RB)if(st.rb[rk]!=null)RB[rk]=st.rb[rk];rbWordsUpdate();rbSave();$('rbWords').value=RB.words}
+  if(st.x){['xa','xh','xk','xn','xs','xw'].forEach(function(k){if(st.x[k]!=null)$(k).checked=!!st.x[k]});if(st.x.xt)$('xt').value=st.x.xt}
   if(st.spacing&&typeof st.spacing==='object'){for(var k in SP)if(st.spacing[k]!=null)SP[k]=st.spacing[k];spSave()}
   if(st.spList!=null){$('spList').value=st.spList;lsSet('wt_sp_list',st.spList)}
   if(st.map){if(st.map.show!=null)MAPOPT.show=!!st.map.show;if(st.map.names!=null)MAPOPT.names=!!st.map.names;if(st.map.base)MAPOPT.base=st.map.base;mapOptUi()}
@@ -1680,20 +1968,20 @@ $('projSave').addEventListener('click',saveProject);
 $('projOpen').addEventListener('click',function(){$('projFile').value='';$('projFile').click()});
 $('projFile').addEventListener('change',function(){var f=this.files&&this.files[0];if(f)openProjectFile(f)});
 
-$('cpall').addEventListener('click',function(){
-  var rows=[[t('th_status'),t('th_t1'),t('th_t2'),'dE','dN',t('th_dist'),t('th_type'),t('th_note')]];
+function resultRows(){
+  var rows=[[t('th_status'),t('th_t1'),t('th_t2'),'dE','dN',t('th_dist'),t('th_type'),t('th_wea'),t('th_note')]];
   visibleRows.forEach(function(r){
     var de=r.a&&r.b?(r.b.e-r.a.e):'',dn=r.a&&r.b?(r.b.n-r.a.n):'',dd=r.a&&r.b?r.d.toFixed(1):'';
-    rows.push([t('st_'+r.kind),r.a?r.a.name:'',r.b?r.b.name:'',de,dn,dd,(r.a&&r.a.model)||(r.b&&r.b.model)||'',r.near?(r.near.r.name+' ('+r.near.d.toFixed(0)+' m)'):'']);
+    rows.push([t('st_'+r.kind),r.a?r.a.name:'',r.b?r.b.name:'',de,dn,dd,(r.a&&r.a.model)||(r.b&&r.b.model)||'',weaTxt(r),r.near?(r.near.r.name+' ('+r.near.d.toFixed(0)+' m)'):'']);
   });
+  return rows;
+}
+$('cpall').addEventListener('click',function(){
+  var rows=resultRows();
   window._resultsRows=rows;copyText(tsv(rows));
 });
 $('dlall').addEventListener('click',function(){
-  var rows=[[t('th_status'),t('th_t1'),t('th_t2'),'dE','dN',t('th_dist'),t('th_type'),t('th_note')]];
-  visibleRows.forEach(function(r){
-    var de=r.a&&r.b?(r.b.e-r.a.e):'',dn=r.a&&r.b?(r.b.n-r.a.n):'',dd=r.a&&r.b?r.d.toFixed(1):'';
-    rows.push([t('st_'+r.kind),r.a?r.a.name:'',r.b?r.b.name:'',de,dn,dd,(r.a&&r.a.model)||(r.b&&r.b.model)||'',r.near?(r.near.r.name+' ('+r.near.d.toFixed(0)+' m)'):'']);
-  });
+  var rows=resultRows();
   downloadCsv(rows,'turbine-comparison.csv');
 });
 $('cpx').addEventListener('click',function(){copyText(tsv(exportRows))});
