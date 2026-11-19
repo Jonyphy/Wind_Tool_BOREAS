@@ -256,6 +256,8 @@
   .calc-table{border-collapse:collapse;width:auto;}
   .calc-table td,.calc-table th{border:1px solid #9aa7b2;padding:var(--cpad,1px) 4px;vertical-align:middle;white-space:nowrap;line-height:1.2;}
   .calc-table th{background:#e4e9ee;font-weight:700;}
+  /* column-split parts: long header texts may wrap so the columns stay narrow */
+  .calc-table.hw th{white-space:normal;max-width:10em;min-width:3.2em;}
 
   /* summary rows (Mittelwert / Summe / …): values stay in their own columns,
      empty cells lose their borders and a rule marks the start of the block */
@@ -282,7 +284,21 @@
   .page.calc-full .calc-body{margin-top:9px;}
 
   /* console: document rows */
-  .doc-row{display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;margin-bottom:8px;align-items:center;}
+  .doc-row{display:grid;grid-template-columns:auto 1fr 1fr auto auto;gap:8px;margin-bottom:8px;align-items:center;border-radius:9px;}
+  .doc-row .grip{cursor:grab;color:var(--muted);font-size:17px;line-height:1;padding:6px 4px;user-select:none;touch-action:none;}
+  .doc-row .grip:hover{color:var(--gust-deep);}
+  .ord-list{padding:4px 0 8px;}
+  .ord-row{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1.5px solid var(--line);border-radius:9px;margin:6px 11px;background:#fff;}
+  .ord-row.var{background:linear-gradient(90deg,rgba(14,165,183,.10),#fff 60%);border-color:#bfe3e8;}
+  .ord-row .grip{cursor:grab;color:var(--muted);font-size:17px;line-height:1;padding:4px 3px;user-select:none;touch-action:none;}
+  .ord-row .ord-ic{color:var(--gust-deep);font-size:14px;width:16px;text-align:center;}
+  .ord-row .ord-txt{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .ord-row .ord-txt b{font-size:12.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ord-row .ord-txt small{font-size:11px;color:var(--muted);}
+  .ord-row.dragging{opacity:.4;} .ord-row.over-top{box-shadow:0 -3px 0 var(--gust);} .ord-row.over-bot{box-shadow:0 3px 0 var(--gust);}
+  .doc-row.dragging{opacity:.4;}
+  .doc-row.over-top{box-shadow:0 -3px 0 var(--gust);}
+  .doc-row.over-bot{box-shadow:0 3px 0 var(--gust);}
   .doc-row input{font-size:13px;padding:8px 10px;}
   .doc-row .icon-btn{width:32px;height:34px;}
 
@@ -430,6 +446,8 @@
         <div class="body">
           <p class="hint" style="margin-top:0;" data-i18n="h_calc_intro">Pro Tabelle eine Karte: aus <b>Excel kopieren</b> und in eine Karte einfügen (Strg + V). <b>Farben &amp; Formatierung bleiben erhalten.</b> Für eine weitere Tabelle unten auf <b>＋ Weitere Tabelle</b>. Mehrere auf einmal kopierte Tabellen werden automatisch auf eigene Karten verteilt. <b>Name, Farbe, Schriftgröße und alle weiteren Einstellungen einer Karte bleiben beim erneuten Einfügen erhalten</b> — sie verschwinden nur, wenn die Karte mit ✕ gelöscht wird.</p>
 
+          <div id="orderBox" class="tcard"></div>
+          <div id="yieldBox" class="tcard"></div>
           <div id="cards"></div>
           <button class="btn btn-accent block" type="button" style="margin-top:8px;" onclick="addCard()" data-i18n="b_add_table">＋ Weitere Tabelle</button>
 
@@ -438,7 +456,7 @@
             <input id="fontPt" type="number" min="8" max="16" step="0.5" value="8">
             <span class="unit">pt</span>
           </div>
-          <p class="hint" data-i18n="h_fontsize">Gilt für alle Tabellen <b>ohne eigene Schriftgröße</b>. Jede Tabellenkarte hat ein eigenes pt-Feld — leer lassen heißt „Standard“. <b>Alle Spalten bleiben immer sichtbar</b> — ist eine Tabelle breiter als die Seite, wird sie auf Seitenbreite eingepasst (die Schrift wird dabei automatisch kleiner). Sehr breite Tabellen (viele Spalten) erreichen so ca. 6–7 pt; größer geht nur mit weniger Spalten.</p>
+          <p class="hint" data-i18n="h_fontsize">Gilt für alle Tabellen <b>ohne eigene Schriftgröße</b>. Jede Tabellenkarte hat ein eigenes pt-Feld — leer lassen heißt „Standard“. <b>Alle Spalten bleiben immer sichtbar</b> — ist eine Tabelle breiter als die Seite, wird sie auf Seitenbreite eingepasst (die Schrift wird dabei automatisch kleiner). Sehr breite Tabellen (viele Spalten) erreichen so ca. 6–7 pt — für größere Schrift in der Tabellenkarte <b>Spaltenaufteilung</b> wählen (Tabelle wird in Teile geteilt, die erste Spalte wiederholt sich).</p>
 
           <label style="margin-top:18px;" for="sumWordInput" data-i18n="l_sumwords">Stichwörter für Summenzeilen</label>
           <div class="combo">
@@ -564,7 +582,7 @@ const EN = {
   l_layout_mode:"Arrangement", opt_layout_each:"Each site plan on its own page", opt_layout_combined:"All site plans on one page",
   h_calc_intro:'One card per table: <b>copy from Excel</b> and paste into a card (Ctrl + V). <b>Colours &amp; formatting are kept.</b> For another table, use <b>＋ Add table</b> below. Several tables copied at once are split onto their own cards automatically. <b>Name, colour, font size and all other settings of a card survive a re-paste</b> — they are only cleared when the card is deleted with ✕.',
   b_add_table:"＋ Add table", l_fontsize:"Font size — default for new tables",
-  h_fontsize:'Applies to every table <b>without its own font size</b>. Each table card has its own pt field — leave it empty for “default”. <b>All columns always stay visible</b> — if a table is wider than the page it is fitted to the page width (the font then shrinks automatically). Very wide tables (many columns) reach about 6–7 pt this way; larger is only possible with fewer columns.',
+  h_fontsize:'Applies to every table <b>without its own font size</b>. Each table card has its own pt field — leave it empty for “default”. <b>All columns always stay visible</b> — if a table is wider than the page it is fitted to the page width (the font then shrinks automatically). Very wide tables (many columns) reach about 6–7 pt this way — for larger text choose <b>Column split</b> in the table card (the table is broken into parts, the first column repeats).',
   l_sumwords:"Keywords for summary rows", b_save_sumword:"＋ Save",
   h_sumwords:'Rows containing one of these words (e.g. <b>Mittelwert</b>, <b>Summe</b>) are detected as summary rows: values stay in their own column, empty cells lose their borders and a rule marks the start of the block. The word only has to appear <b>once</b> in the row. Column headers such as “Summe Ertragsverluste” are not matched.',
   t_calcfull:"Calculation full-page<small>Margins &amp; header shrink — the table gets maximum space.</small>",
@@ -609,7 +627,7 @@ const DYN = {
   confirm_reset:{de:"Alle Eingaben zurücksetzen?", en:"Reset all entries?"},
   page:{de:"Seite", en:"page"}, pages:{de:"Seiten", en:"pages"},
   chip_tables:{de:"Tabellen ≈ {pt} pt · alle Spalten", en:"Tables ≈ {pt} pt · all columns"},
-  chip_tables_title:{de:"Die Tabelle wird auf Seitenbreite eingepasst, damit alle Spalten sichtbar bleiben. Größer ist nur mit Spaltenaufteilung oder weniger Spalten möglich.", en:"The table is fitted to the page width so all columns stay visible. Larger is only possible by splitting columns or showing fewer columns."},
+  chip_tables_title:{de:"Die Tabelle wird auf Seitenbreite eingepasst, damit alle Spalten sichtbar bleiben. Tipp: In der Tabellenkarte „Spaltenaufteilung“ wählen — dann wird die Tabelle in lesbare Teile geteilt.", en:"The table is fitted to the page width so all columns stay visible. Tip: choose “Column split” in the table card to break the table into readable parts."},
   v_page:{de:"Seite {i} von {n}", en:"Page {i} of {n}"},
   saved:{de:"Gespeichert:", en:"Saved:"},
   save_failed:{de:"Speichern fehlgeschlagen (evtl. zu große Bilder).", en:"Save failed (images may be too large)."},
@@ -635,6 +653,55 @@ const DYN = {
   sum_style:{de:"Darstellung:", en:"Style:"},
   sum_style_pro:{de:"Professionell (ohne Gitter)", en:"Professional (no grid)"},
   sum_style_excel:{de:"Wie Excel (Farben behalten)", en:"Like Excel (keep colours)"},
+  col_split:{de:"Spaltenaufteilung:", en:"Column split:"},
+  cs_off:{de:"Aus (alle Spalten auf einer Breite)", en:"Off (all columns in one block)"},
+  cs_auto:{de:"Automatisch (volle Schriftgröße)", en:"Automatic (full font size)"},
+  cs_n:{de:"In {n} Teile teilen", en:"Split into {n} parts"},
+  col_fixed:{de:"Feste Spalten (in jedem Teil wiederholt):", en:"Fixed columns (repeated in every part):"},
+  y_title:{de:"Ertragsberechnung · 3 Tabellen je Variante (Best / Worst Case)", en:"Yield calculation · 3 tables per variant (best / worst case)"},
+  y_hint:{de:"Komplette Ergebnistabelle aus Excel einfügen. Daraus entstehen automatisch: <b>Anlagendaten &amp; Parkertrag</b> · <b>Ertragsverluste</b> (je WEA eine Spalte) · <b>Nettoertrag &amp; Standortgüte</b>. Mit einer zweiten Tabelle als <b>Worst Case</b> werden nur abweichende Werte getrennt ausgewiesen. Weitere Varianten mit <b>＋ Weitere Variante</b>; die Position im Bericht legst du oben in <b>Reihenfolge im Bericht</b> fest.",
+         en:"Paste the complete result table from Excel. It is split automatically into: <b>Plant data &amp; park yield</b> · <b>Yield losses</b> (one column per turbine) · <b>Net yield &amp; site quality</b>. A second table as <b>Worst case</b> shows only the differing values separately. Add more variants with <b>＋ Add variant</b>; set the position in the report in <b>Order in the report</b> above."},
+  y_loaded:{de:"✓ {total} Zeilen × {cols} Spalten", en:"✓ {total} rows × {cols} columns"},
+  y_best:{de:"Best Case (bzw. einzige Berechnung)", en:"Best case (or the only calculation)"},
+  y_worst:{de:"Worst Case (optional)", en:"Worst case (optional)"},
+  y_remove:{de:"entfernen", en:"remove"},
+  y_up:{de:"nach oben", en:"move up"}, y_down:{de:"nach unten", en:"move down"},
+  y_delvar:{de:"Variante entfernen", en:"Remove variant"},
+  y_variant_n:{de:"Variante {n}", en:"Variant {n}"},
+  y_heading:{de:"Überschrift:", en:"Heading:"},
+  y_heading_ph:{de:"optional, z. B. Variante 1 – 6 WEA", en:"optional, e.g. Variant 1 – 6 WTG"},
+  y_color:{de:"Farbe", en:"Colour"}, y_bold:{de:"Fett", en:"Bold"}, y_italic:{de:"Kursiv", en:"Italic"}, y_size:{de:"Größe", en:"Size"},
+  y_newpage:{de:"Variante auf neuer Seite beginnen", en:"Start variant on a new page"},
+  y_gap_unit:{de:"(1 ≈ eine Leerzeile)", en:"(1 ≈ one blank line)"},
+  y_gap0:{de:"Abstand vor der Variante:", en:"Space before the variant:"},
+  y_gap1:{de:"Abstand Tabelle 1 → 2:", en:"Space table 1 → 2:"},
+  y_gap2:{de:"Abstand Tabelle 2 → 3:", en:"Space table 2 → 3:"},
+  y_add:{de:"＋ Weitere Variante", en:"＋ Add variant"},
+  y_font:{de:"Schriftgröße:", en:"Font size:"}, y_rowh:{de:"Zeilenhöhe:", en:"Row height:"},
+  y_confirm_del:{de:"Diese Variante entfernen?", en:"Remove this variant?"},
+  y_made:{de:"✓ 3 Tabellen erzeugt · {n} WEA", en:"✓ 3 tables created · {n} turbines"},
+  y_diffs:{de:" · abweichend (Best ≠ Worst): {list}", en:" · differing (best ≠ worst): {list}"},
+  y_nodiffs:{de:" · keine Abweichungen zwischen Best und Worst Case", en:" · no differences between best and worst case"},
+  y_err_best:{de:"Best Case: ", en:"Best case: "}, y_err_worst:{de:"Worst Case: ", en:"Worst case: "},
+  y_err_nobest:{de:"Best Case fehlt — bitte auch einfügen (oder den Worst Case entfernen, wenn es nur eine Berechnung gibt).", en:"Best case is missing — paste it too (or remove the worst case if there is only one calculation)."},
+  y_err_nodata:{de:"Keine Datenzeilen erkannt.", en:"No data rows detected."},
+  y_err_nosum:{de:"Spalte „Summe Ertragsverluste“ nicht gefunden.", en:"Column “Summe Ertragsverluste” not found."},
+  y_err_nowea:{de:"Keine WEA-Zeilen erkannt.", en:"No turbine rows detected."},
+  y_warn_miss:{de:"In der Worst-Case-Tabelle fehlen: {list}", en:"Missing in the worst-case table: {list}"},
+  y_warn_cols:{de:"Best und Worst Case haben unterschiedlich viele Spalten.", en:"Best and worst case have a different number of columns."},
+  ord_title:{de:"Reihenfolge im Bericht", en:"Order in the report"},
+  ord_hint:{de:"Alle Blöcke in einer Liste: normale Tabellen und Varianten (mit ihren 3 Tabellen). Mit <b>⠿</b> ziehen oder ▲ ▼ — z. B. Zusammenfassung ganz nach oben, danach Variante 1, 2, 3 …", en:"All blocks in one list: regular tables and variants (with their 3 tables). Drag with <b>⠿</b> or use ▲ ▼ — e.g. summary table at the top, then variant 1, 2, 3 …"},
+  ord_variant_sub:{de:"Variante · 3 Tabellen (Anlagendaten, Verluste, Ergebnis)", en:"Variant · 3 tables (plant data, losses, result)"},
+  ord_variant_empty:{de:"Variante · noch keine Daten", en:"Variant · no data yet"},
+  ord_table_sub:{de:"Tabelle · {rows} Zeilen × {cols} Spalten", en:"Table · {rows} rows × {cols} columns"},
+  doc_drag:{de:"Zeile ziehen, um die Reihenfolge zu ändern", en:"Drag the row to change the order"},
+  place:{de:"Platzierung:", en:"Placement:"},
+  place_end:{de:"Am Ende (nach allen Varianten)", en:"At the end (after all variants)"},
+  place_start:{de:"Ganz am Anfang (vor allen Varianten)", en:"At the very start (before all variants)"},
+  place_pre:{de:"vor der Variante (vor der Überschrift)", en:"before the variant (before its heading)"},
+  place_top:{de:"nach der Überschrift, oberhalb der 3 Tabellen", en:"after the heading, above the 3 tables"},
+  place_bot:{de:"unterhalb der 3 Tabellen", en:"below the 3 tables"},
+  gap_before:{de:"Abstand davor:", en:"Space before:"},
   copy_link:{de:"Link kopieren", en:"Copy link"},
   copied:{de:"Link kopiert", en:"Link copied"}
 };
@@ -650,7 +717,7 @@ function applyLang(){
   document.querySelectorAll("[data-i18n-title]").forEach(el=>{const k=el.getAttribute("data-i18n-title"); el.setAttribute("title", LANG==="en"?(EN_TT[k]!=null?EN_TT[k]:I18N_BASE_TT[k]):I18N_BASE_TT[k]);});
   document.querySelectorAll(".lang-switch button").forEach(b=>b.classList.toggle("on", b.dataset.lang===LANG));
   document.documentElement.lang = LANG;
-  renderCards(); renderImages(); renderLayouts(); renderDocRows(); renderStatusList(); renderSumWords(); render();
+  renderCards(); renderYield(); renderImages(); renderLayouts(); renderDocRows(); renderStatusList(); renderSumWords(); render();
 }
 function setLang(l){ LANG=l; try{localStorage.setItem("boreas_lang",l);}catch(e){} applyLang(); }
 
@@ -872,7 +939,9 @@ function blockFromTable(el){
     // starting settings for a NEW table — changeable per card afterwards
     rowPad: 3,           // Zeilenhöhe: Weit
     sumMode: "auto",     // Summenzeilen: automatisch erkennen
-    sumStyle: "excel"    // Darstellung: wie Excel (Farben behalten)
+    sumStyle: "excel",   // Darstellung: wie Excel (Farben behalten)
+    colSplit: "off",     // Spaltenaufteilung: aus
+    colFixed: 1          // feste Spalten (links), in jedem Teil wiederholt
   };
 }
 // ensure older saved blocks (with thead/rows) get the new shape
@@ -981,7 +1050,8 @@ function applySumStyle(tableEl, headerRowCount, sumStartInBody, style){
 /* ============ table cards (one card = one table; ＋ adds another) ============ */
 const PASTE_PH='<div class="ph">📋 Klicken &amp; <b>Strg + V</b><br>Excel-Tabelle hier einfügen</div>';
 function ensureOneCard(){ if(!state.tables.length) state.tables.push({id:blockSeq++}); }
-function renderCards(){
+function renderCards(){ renderCardsCore(); renderOrder(); }
+function renderCardsCore(){
   ensureOneCard();
   const wrap=$("cards"); if(!wrap) return; wrap.innerHTML="";
   state.tables.forEach((t,i)=>{
@@ -991,6 +1061,9 @@ function renderCards(){
     const sumStyle=t.sumStyle||"pro";
     const rowPad=(t.rowPad==null?1:t.rowPad);
     const adv=!!t.advOpen;
+    const colSplit=String(t.colSplit||"off");
+    const colFixed=(t.colFixed==null?1:t.colFixed);
+    const gapU=yGapUnits(t.gapBefore);
     let sumInfo="";
     if(filled && adv){
       const p=prepRows(t);
@@ -1022,6 +1095,21 @@ function renderCards(){
           <input class="hc-input" type="number" min="1" max="5" value="${hc}" data-id="${t.id}"></label>
         <label class="hcrow" style="margin:0;">${tt("space_after")}
           <input class="sp-input hc-input" type="number" min="0" max="40" step="1" value="${t.spaceAfter||0}" data-id="${t.id}"></label>
+        <div class="divider"></div>
+        <label class="hcrow" style="margin-bottom:8px;">${tt("gap_before")}
+          <input class="tt-gap hc-input-gap" type="number" min="0" max="30" step="0.5" placeholder="1" value="${gapU==null?"":gapU}" data-id="${t.id}" style="width:70px;padding:6px 8px;font-size:13px;text-align:center;">
+          <span style="font-weight:400;color:var(--muted);font-size:11px;">${tt("y_gap_unit")}</span></label>
+        <div class="divider"></div>
+        <label class="hcrow" style="margin-bottom:8px;">${tt("col_split")}
+          <select class="tt-colsplit" data-id="${t.id}" style="flex:1;padding:6px 8px;font-size:13px;">
+            <option value="off" ${colSplit==="off"?"selected":""}>${tt("cs_off")}</option>
+            <option value="auto" ${colSplit==="auto"?"selected":""}>${tt("cs_auto")}</option>
+            <option value="2" ${colSplit==="2"?"selected":""}>${tt("cs_n",{n:2})}</option>
+            <option value="3" ${colSplit==="3"?"selected":""}>${tt("cs_n",{n:3})}</option>
+            <option value="4" ${colSplit==="4"?"selected":""}>${tt("cs_n",{n:4})}</option>
+          </select></label>
+        <label class="hcrow" style="margin:0 0 4px;display:${colSplit==="off"?"none":"flex"};">${tt("col_fixed")}
+          <input class="tt-colfixed hc-input" type="number" min="0" max="6" value="${colFixed}" data-id="${t.id}"></label>
         <button class="adv-toggle ${adv?"on":""}" type="button" data-act="adv" data-id="${t.id}">${tt("adv_toggle")} ${adv?"▴":"▾"}</button>
         <div class="tcard-adv" style="display:${adv?"block":"none"};">
           <div class="hcrow" style="margin-bottom:8px;">${tt("tbl_font")}
@@ -1064,11 +1152,11 @@ function renderCards(){
     box.addEventListener("paste", e=>onCardPaste(e, +box.dataset.id));
     box.addEventListener("focus", function(){ if(this.querySelector(".ph")) this.innerHTML=""; });
   });
-  wrap.querySelectorAll(".hc-input:not(.sp-input):not(.tt-font):not(.tt-sumn)").forEach(inp=>{
+  wrap.querySelectorAll(".hc-input:not(.sp-input):not(.tt-font):not(.tt-sumn):not(.tt-colfixed)").forEach(inp=>{
     inp.addEventListener("change", ()=>setHeaderCount(+inp.dataset.id, parseInt(inp.value)||1));
   });
   wrap.querySelectorAll(".tt-name").forEach(inp=>{
-    inp.addEventListener("input", ()=>{ const t=findTable(inp); if(t){ t.title=inp.value; render(); saveLocal(); } });
+    inp.addEventListener("input", ()=>{ const t=findTable(inp); if(t){ t.title=inp.value; renderOrder(); render(); saveLocal(); } });
   });
   wrap.querySelectorAll(".tt-color").forEach(inp=>{
     inp.addEventListener("input", ()=>{ const t=findTable(inp); if(t){ t.titleColor=inp.value; render(); saveLocal(); } });
@@ -1096,6 +1184,18 @@ function renderCards(){
   });
   wrap.querySelectorAll(".tt-sumrep").forEach(inp=>{
     inp.addEventListener("change", ()=>{ const t=findTable(inp); if(t){ t.sumRepeat=inp.checked; render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll(".tt-place").forEach(sel=>{
+    sel.addEventListener("change", ()=>{ const t=findTable(sel); if(t){ t.place=sel.value; render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll(".tt-gap").forEach(sel=>{
+    sel.addEventListener("input", ()=>{ const t=findTable(sel); if(t){ t.gapBefore=sel.value===""?undefined:Math.max(0,parseFloat(sel.value)||0); render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll(".tt-colsplit").forEach(sel=>{
+    sel.addEventListener("change", ()=>{ const t=findTable(sel); if(t){ t.colSplit=sel.value; renderCards(); render(); saveLocal(); } });
+  });
+  wrap.querySelectorAll(".tt-colfixed").forEach(inp=>{
+    inp.addEventListener("input", ()=>{ const t=findTable(inp); if(t){ t.colFixed=Math.max(0,Math.min(6,parseInt(inp.value)||0)); render(); saveLocal(); } });
   });
   wrap.querySelectorAll(".tt-rowpad").forEach(sel=>{
     sel.addEventListener("change", ()=>{ const t=findTable(sel); if(t){ t.rowPad=parseInt(sel.value)||0; render(); saveLocal(); } });
@@ -1136,7 +1236,7 @@ function setCardStatus(id,msg,cls){
 }
 /* the settings of a card belong to the CARD, not to the pasted content —
    a re-paste keeps name, colour, bold, spacing, font size and summary options */
-const CARD_SETTINGS=["title","titleColor","titleBold","spaceAfter","fontPt","sumMode","sumN","sumRepeat","sumStyle","rowPad","breakBefore","breakAfter","headerCountManual","advOpen"];
+const CARD_SETTINGS=["title","titleColor","titleBold","spaceAfter","fontPt","sumMode","sumN","sumRepeat","sumStyle","rowPad","breakBefore","breakAfter","headerCountManual","advOpen","colSplit","colFixed","gapBefore","place"];
 function carryOverSettings(oldT, newT){
   CARD_SETTINGS.forEach(k=>{ if(oldT[k]!==undefined) newT[k]=oldT[k]; });
   if(oldT.headerCountManual && oldT.headerCount){
@@ -1187,9 +1287,9 @@ function renderImages(){
   });
 }
 function clearAllCalc(){
-  if((state.tables.some(t=>t.allRows)||state.images.length) && !confirm(tt("confirm_clear_calc"))) return;
-  state.tables=[{id:blockSeq++}]; state.images=[];
-  renderCards(); renderImages(); render(); saveLocal();
+  if((state.tables.some(t=>t.allRows)||state.images.length||state.yield.variants.some(v=>v.best)) && !confirm(tt("confirm_clear_calc"))) return;
+  state.tables=[{id:blockSeq++}]; state.images=[]; state.yield=yNormalize({fontPt:state.yield.fontPt,rowPad:state.yield.rowPad});
+  renderCards(); renderYield(); renderImages(); render(); saveLocal();
 }
 function setHeaderCount(id, n){
   const t=state.tables.find(x=>x.id===id); if(!t||!t.allRows) return;
@@ -1199,19 +1299,93 @@ function setHeaderCount(id, n){
 }
 
 /* ordered list of calc items for the report (tables first in card order, then images) */
+function tableToItem(t){
+  normTable(t);
+  const p=prepRows(t);
+  return {
+    type:"table", thead:tableHead(t), rows:p.rows, sumStart:p.sumStart,
+    headerCount:t.headerCount, cols:t.cols, total:t.total,
+    title:t.title||"", titleColor:t.titleColor||"#0B2540", titleBold:!!t.titleBold,
+    spaceAfter:t.spaceAfter||0, fontPt:tableFontPt(t), sumRepeat:!!t.sumRepeat, sumStyle:t.sumStyle||"pro",
+    rowPad:(t.rowPad==null?1:t.rowPad), breakBefore:!!t.breakBefore, breakAfter:!!t.breakAfter,
+    colSplit:String(t.colSplit||"off"), colFixed:(t.colFixed==null?1:t.colFixed), gapBefore:yGapNum(t.gapBefore)
+  };
+}
+/* ---- Reihenfolge der Blöcke (normale Tabellen + Varianten) in EINER Liste ---- */
+let ORDER=null;   // array of "t:<id>" / "v:<id>"; persisted with the report
+function orderKeys(){
+  const k=[]; state.yield.variants.forEach(v=>k.push("v:"+v.id));
+  state.tables.forEach(t=>{ if(t.allRows) k.push("t:"+t.id); });
+  return k;
+}
+function syncOrder(){
+  const valid=new Set(orderKeys());
+  if(!Array.isArray(ORDER)){      // first time / old save: derive from the former "Platzierung" setting
+    const at=pl=>state.tables.filter(t=>t.allRows&&t.place===pl).map(t=>"t:"+t.id);
+    const o=at("start");
+    state.yield.variants.forEach(v=>{ o.push(...at(`v:${v.id}:pre`),...at(`v:${v.id}:top`),"v:"+v.id,...at(`v:${v.id}:bot`)); });
+    ORDER=o;
+  }
+  ORDER=ORDER.filter((k,i,a)=>valid.has(k)&&a.indexOf(k)===i);
+  orderKeys().forEach(k=>{ if(!ORDER.includes(k)) ORDER.push(k); });
+  return ORDER;
+}
+function moveOrder(from,to){
+  syncOrder();
+  if(from===to||from<0||to<0||from>=ORDER.length||to>ORDER.length) return;
+  const [it]=ORDER.splice(from,1); ORDER.splice(to>from?to-1:to,0,it);
+  renderOrder(); render(); saveLocal();
+}
+function orderLabel(k){
+  if(k[0]==="v"){
+    const vs=state.yield.variants, vi=vs.findIndex(v=>"v:"+v.id===k), v=vs[vi]; if(!v) return null;
+    const h=(v.heading||"").trim();
+    return {icon:"◆", main:tt("y_variant_n",{n:vi+1})+(h?" – "+h:""), sub:v.best?tt("ord_variant_sub"):tt("ord_variant_empty"), cls:"var"};
+  }
+  const ti=state.tables.findIndex(t=>"t:"+t.id===k), t=state.tables[ti]; if(!t) return null;
+  return {icon:"▦", main:tt("table_n",{n:ti+1})+((t.title||"").trim()?" – "+t.title.trim():""), sub:tt("ord_table_sub",{rows:t.total,cols:t.cols}), cls:"tbl"};
+}
+function renderOrder(){
+  const box=$("orderBox"); if(!box) return;
+  const ord=syncOrder();
+  const rows=ord.map((k,i)=>({k,i,l:orderLabel(k)})).filter(x=>x.l);
+  box.innerHTML=`<div class="tcard-head"><b>${tt("ord_title")}</b></div>
+    <div class="hint" style="padding:8px 11px 4px;margin:0;">${tt("ord_hint")}</div>
+    <div class="ord-list">${rows.map(x=>`<div class="ord-row ${x.l.cls}" data-i="${x.i}">
+      <span class="grip" title="${tt("doc_drag")}">⠿</span>
+      <span class="ord-ic">${x.l.icon}</span>
+      <span class="ord-txt"><b>${esc(x.l.main)}</b><small>${esc(x.l.sub)}</small></span>
+      <button class="icon-btn" data-oact="up" data-i="${x.i}" ${x.i===0?"disabled":""}>▲</button>
+      <button class="icon-btn" data-oact="down" data-i="${x.i}" ${x.i===ord.length-1?"disabled":""}>▼</button></div>`).join("")}</div>`;
+  const list=box.querySelector(".ord-list"); let dragFrom=-1;
+  box.querySelectorAll("[data-oact]").forEach(b=>b.addEventListener("click",()=>{ const i=+b.dataset.i; moveOrder(i,b.dataset.oact==="up"?i-1:i+2); }));
+  list.querySelectorAll(".ord-row").forEach(row=>{
+    const i=+row.dataset.i, grip=row.querySelector(".grip");
+    grip.addEventListener("mousedown",()=>{ row.draggable=true; });
+    grip.addEventListener("touchstart",()=>{ row.draggable=true; },{passive:true});
+    row.addEventListener("dragstart",e=>{ dragFrom=i; row.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; try{ e.dataTransfer.setData("text/plain",String(i)); }catch(_){} });
+    row.addEventListener("dragend",()=>{ row.draggable=false; row.classList.remove("dragging"); list.querySelectorAll(".over-top,.over-bot").forEach(x=>x.classList.remove("over-top","over-bot")); });
+    row.addEventListener("dragover",e=>{ if(dragFrom<0) return; e.preventDefault();
+      const r=row.getBoundingClientRect(), top=e.clientY<r.top+r.height/2;
+      list.querySelectorAll(".over-top,.over-bot").forEach(x=>x.classList.remove("over-top","over-bot")); row.classList.add(top?"over-top":"over-bot"); });
+    row.addEventListener("drop",e=>{ if(dragFrom<0) return; e.preventDefault();
+      const r=row.getBoundingClientRect(), top=e.clientY<r.top+r.height/2; const from=dragFrom; dragFrom=-1; moveOrder(from, top?i:i+1); });
+  });
+}
 function calcItems(){
-  const items=[];
-  state.tables.forEach(t=>{
-    if(!t.allRows) return;
-    normTable(t);
-    const p=prepRows(t);
-    items.push({
-      type:"table", thead:tableHead(t), rows:p.rows, sumStart:p.sumStart,
-      headerCount:t.headerCount, cols:t.cols, total:t.total,
-      title:t.title||"", titleColor:t.titleColor||"#0B2540", titleBold:!!t.titleBold,
-      spaceAfter:t.spaceAfter||0, fontPt:tableFontPt(t), sumRepeat:!!t.sumRepeat, sumStyle:t.sumStyle||"pro",
-      rowPad:(t.rowPad==null?1:t.rowPad), breakBefore:!!t.breakBefore, breakAfter:!!t.breakAfter
-    });
+  const items=[], vs=state.yield.variants;
+  syncOrder().forEach(k=>{
+    if(k[0]==="t"){ const t=state.tables.find(x=>"t:"+x.id===k); if(t&&t.allRows) items.push(tableToItem(t)); return; }
+    const vi=vs.findIndex(x=>"v:"+x.id===k), v=vs[vi]; if(!v) return;
+    const rest=yieldBuildVariant(v).items; if(!rest.length) return;
+    const text=(v.heading||"").trim() || (vs.length>1?"Variante "+(vi+1):"");
+    const g0=yGapNum(v.gap0)==null?40:yGapNum(v.gap0);
+    const seq=[];
+    if(text){ seq.push({type:"heading", text, bold:v.hBold!==false, italic:!!v.hItalic, color:v.hColor||"#0B2540", sizePt:v.hSize||15, gapBefore:g0}); rest[0].gapBefore=8; }
+    rest.forEach(it=>seq.push(it));
+    seq[0].breakBefore=!!v.newPage;
+    if(seq[0].gapBefore==null && items.length) seq[0].gapBefore=g0;
+    seq.forEach(it=>items.push(it));
   });
   state.images.forEach(im=>items.push({type:"image", src:im.src, natW:im.natW, natH:im.natH}));
   return items;
@@ -1231,15 +1405,40 @@ function resolveHref(target){
   if(p.startsWith("/")) return "file://"+p;              // /mnt/...
   return "file:///"+p;                                   // bare folder name
 }
+function moveDocRow(from,to){
+  if(from===to||from<0||to<0||from>=state.docs.length||to>state.docs.length) return;
+  const [it]=state.docs.splice(from,1);
+  state.docs.splice(to>from?to-1:to,0,it);
+  renderDocRows(); render(); saveLocal();
+}
 function renderDocRows(){
   const wrap=$("docRows"); if(!wrap) return; wrap.innerHTML="";
+  let dragFrom=-1;
   state.docs.forEach((d,i)=>{
-    const row=document.createElement("div"); row.className="doc-row";
+    const row=document.createElement("div"); row.className="doc-row"; row.dataset.i=i;
     row.innerHTML=`
+      <span class="grip" title="${tt('doc_drag')}">⠿</span>
       <input data-i="${i}" data-k="label" placeholder="${tt('ph_doc_label')}" value="${esc(d.label)}">
       <input data-i="${i}" data-k="target" placeholder="${tt('ph_doc_target')}" value="${esc(d.target)}">
       <button class="icon-btn" title="${tt('copy_link')}" onclick="copyDocLink(${i},this)">⧉</button>
       <button class="icon-btn x" title="Entfernen" onclick="removeDocRow(${i})">✕</button>`;
+    const grip=row.querySelector(".grip");
+    grip.addEventListener("mousedown",()=>{ row.draggable=true; });
+    grip.addEventListener("touchstart",()=>{ row.draggable=true; },{passive:true});
+    row.addEventListener("dragstart",e=>{ dragFrom=i; row.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; try{ e.dataTransfer.setData("text/plain",String(i)); }catch(_){} });
+    row.addEventListener("dragend",()=>{ row.draggable=false; row.classList.remove("dragging"); wrap.querySelectorAll(".over-top,.over-bot").forEach(x=>x.classList.remove("over-top","over-bot")); });
+    row.addEventListener("dragover",e=>{
+      if(dragFrom<0) return; e.preventDefault();
+      const r=row.getBoundingClientRect(), top=e.clientY<r.top+r.height/2;
+      wrap.querySelectorAll(".over-top,.over-bot").forEach(x=>x.classList.remove("over-top","over-bot"));
+      row.classList.add(top?"over-top":"over-bot");
+    });
+    row.addEventListener("drop",e=>{
+      if(dragFrom<0) return; e.preventDefault();
+      const r=row.getBoundingClientRect(), top=e.clientY<r.top+r.height/2;
+      const from=dragFrom; dragFrom=-1;
+      moveDocRow(from, top?i:i+1);
+    });
     wrap.appendChild(row);
   });
   wrap.querySelectorAll("input").forEach(inp=>{
@@ -1247,29 +1446,6 @@ function renderDocRows(){
       const i=+e.target.dataset.i, k=e.target.dataset.k;
       if(state.docs[i]){ state.docs[i][k]=e.target.value; render(); saveLocal(); }
     });
-  });
-}
-function copyToClipboard(txt, done){
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(txt).then(done).catch(()=>legacyCopy(txt,done));
-  } else legacyCopy(txt,done);
-}
-function legacyCopy(txt, done){          // works on file:// pages, where the clipboard API is blocked
-  const ta=document.createElement("textarea");
-  ta.value=txt; ta.style.cssText="position:fixed;left:-9999px;top:0;";
-  document.body.appendChild(ta); ta.select();
-  let ok=false; try{ ok=document.execCommand("copy"); }catch(e){}
-  ta.remove();
-  if(ok) done(); else window.prompt(tt("copy_link")+":", txt);
-}
-function copyDocLink(i, btn){
-  const d=state.docs[i]; if(!d) return;
-  const txt=resolveHref(d.target) || (d.target||"").trim();
-  if(!txt) return;
-  copyToClipboard(txt, ()=>{
-    const old=btn.textContent, oldTitle=btn.title;
-    btn.textContent="✓"; btn.title=tt("copied");
-    setTimeout(()=>{ btn.textContent=old; btn.title=oldTitle; }, 1200);
   });
 }
 function addDocRow(){ state.docs.push({label:"",target:""}); renderDocRows(); render(); saveLocal(); }
@@ -1516,12 +1692,420 @@ function swapNumFmt(tableEl){
   });
 }
 
+
+/* ============ column split: wide table -> several readable parts ============
+   The columns left of "fixed columns" (e.g. WEA-Bezeichnung) are repeated in every part.
+   Merged header cells (colspan/rowspan) are re-computed per part; breaks prefer the
+   boundaries between header groups so a group is not cut in half. */
+function parseRowsHtml(html){
+  const t=document.createElement("table");
+  t.innerHTML="<tbody>"+html+"</tbody>";
+  return [...t.rows];
+}
+function buildGrid(trs){
+  const occ=[], byRow=trs.map(()=>[]); let maxC=0;
+  trs.forEach((tr,r)=>{
+    occ[r]=occ[r]||[]; let c=0;
+    [...tr.cells].forEach(el=>{
+      while(occ[r][c]) c++;
+      const cs=Math.max(1,el.colSpan||1);
+      const rs=Math.max(1,Math.min(el.rowSpan||1, trs.length-r));
+      for(let dr=0;dr<rs;dr++){ occ[r+dr]=occ[r+dr]||[]; for(let dc=0;dc<cs;dc++) occ[r+dr][c+dc]=true; }
+      byRow[r].push({c,cs,rs,el}); c+=cs; if(c>maxC) maxC=c;
+    });
+  });
+  return {byRow, maxC};
+}
+function sliceCols(trs, grid, keep){
+  const keepSet=new Set(keep);
+  return trs.map((tr,r)=>{
+    const nt=tr.cloneNode(false);
+    grid.byRow[r].forEach(x=>{
+      let n=0; for(let c=x.c;c<x.c+x.cs;c++) if(keepSet.has(c)) n++;
+      if(!n) return;
+      const el=x.el.cloneNode(true);
+      if(n>1) el.colSpan=n; else el.removeAttribute("colspan");
+      nt.appendChild(el);
+    });
+    return nt.outerHTML;
+  });
+}
+function measureColWidths(thead, rows, fontPt, rowPad, host, maxC){
+  const meas=document.createElement("table");
+  meas.className="calc-table hw"; meas.style.fontSize=fontPt+"pt";
+  meas.style.setProperty("--cpad", rowPad+"px");
+  meas.style.visibility="hidden"; meas.style.position="absolute";
+  meas.innerHTML=thead+rows.join("");
+  host.appendChild(meas);
+  const trs=[...meas.querySelectorAll("tr")];
+  const spanOf=tr=>[...tr.cells].reduce((a,c)=>a+(c.colSpan||1),0);
+  let rep=trs[0], best=-1;
+  trs.forEach(tr=>{
+    const plain=[...tr.cells].every(c=>(c.colSpan||1)===1);
+    const sc=spanOf(tr)*10+(plain?1:0);
+    if(sc>best){ best=sc; rep=tr; }
+  });
+  const colW=[];
+  if(rep) [...rep.cells].forEach(c=>{
+    const w=c.getBoundingClientRect().width, k=c.colSpan||1;
+    for(let i=0;i<k;i++) colW.push(w/k);
+  });
+  while(colW.length<maxC) colW.push(colW.length?colW[colW.length-1]:20);
+  host.removeChild(meas);
+  return colW;
+}
+function expandColumnSplits(items, bodyW, host){
+  const out=[];
+  items.forEach(b=>{
+    const mode=b.colSplit||"off";
+    if(b.type!=="table" || mode==="off"){ out.push(b); return; }
+    const hc=parseRowsHtml(b.thead).length;
+    const trs=parseRowsHtml(b.thead + b.rows.join(""));
+    if(!hc || trs.length!==hc+b.rows.length){ out.push(b); return; }
+    const grid=buildGrid(trs), maxC=grid.maxC;
+    const nLead=Math.max(0, Math.min(b.colFixed==null?1:b.colFixed, maxC-1));
+    if(maxC-nLead<2){ out.push(b); return; }
+    const colW=measureColWidths(b.thead, b.rows, b.fontPt, b.rowPad, host, maxC);
+    const wOf=a=>a.reduce((s,c)=>s+(colW[c]||0),0);
+    const lead=[]; for(let c=0;c<nLead;c++) lead.push(c);
+    const leadW=wOf(lead);
+    if(mode==="auto" && wOf(colW.map((_,i)=>i))<=bodyW+0.5){ out.push(b); return; }
+    // may we break between column c and c+1 ? (no header cell may span across)
+    const ok=c=>{
+      for(let r=0;r<hc;r++) for(const x of grid.byRow[r]) if(x.c<=c && x.c+x.cs-1>=c+1) return false;
+      return true;
+    };
+    let parts=[];
+    if(mode==="auto"){
+      let cur=[];
+      for(let c=nLead;c<maxC;c++){
+        while(cur.length && leadW+wOf(cur)+colW[c] > bodyW+0.5){
+          let i=cur.length; while(i>=1 && !ok(cur[i-1])) i--;
+          if(i<1) i=cur.length;                       // no clean boundary: cut where it overflows
+          parts.push(cur.slice(0,i)); cur=cur.slice(i);
+        }
+        cur.push(c);
+      }
+      if(cur.length) parts.push(cur);
+    } else {
+      const N=Math.max(2, parseInt(mode)||2);
+      const rest=[]; for(let c=nLead;c<maxC;c++) rest.push(c);
+      const total=wOf(rest);
+      let cands=rest.slice(0,-1).filter(ok); if(!cands.length) cands=rest.slice(0,-1);
+      const cum={}; let acc=0; rest.forEach(c=>{ acc+=colW[c]; cum[c]=acc; });
+      const cuts=[]; let prev=nLead-1;
+      for(let k=1;k<N;k++){
+        const target=k*total/N; let bestC=-1, bestD=Infinity;
+        cands.forEach(c=>{ if(c>prev){ const d=Math.abs(cum[c]-target); if(d<bestD){ bestD=d; bestC=c; } } });
+        if(bestC<0) break;
+        cuts.push(bestC); prev=bestC;
+      }
+      let from=nLead;
+      cuts.forEach(cut=>{ const a=[]; for(let c=from;c<=cut;c++) a.push(c); parts.push(a); from=cut+1; });
+      const last=[]; for(let c=from;c<maxC;c++) last.push(c); if(last.length) parts.push(last);
+    }
+    if(parts.length<2){ out.push(b); return; }
+    parts.forEach((cols,pi)=>{
+      const sl=sliceCols(trs, grid, lead.concat(cols));
+      const thead=sl.slice(0,hc).join("");
+      let rows=sl.slice(hc), sumStart=b.sumStart;
+      if(sumStart>=0 && rows.slice(sumStart).every(h=>rowCells(h).every(x=>x===""))){
+        rows=rows.slice(0,sumStart); sumStart=-1;   // this part carries no summary values
+      }
+      const cap=`Teil ${pi+1}/${parts.length}`;
+      const last=pi===parts.length-1;
+      out.push(Object.assign({}, b, {
+        thead, rows, sumStart, colSplit:"off", wrapHead:true,
+        title: (b.title&&b.title.trim()) ? `${b.title.trim()} (${cap})` : cap,
+        breakBefore: pi===0 ? b.breakBefore : false,
+        breakAfter:  last ? b.breakAfter : false,
+        spaceAfter:  last ? b.spaceAfter : 0
+      }));
+    });
+  });
+  return out;
+}
+
+/* ============ Ertragsbericht: Best-/Worst-Case -> 3 professionelle Tabellen ============
+   Eine komplette Ergebnistabelle (Excel) wird automatisch zerlegt in
+   1) Anlagendaten & Parkertrag   2) Ertragsverluste (je WEA eine Spalte)   3) Ergebnis.
+   Mit einer zweiten (Worst-Case-)Tabelle werden nur die abweichenden Werte getrennt
+   als "(Best Case)" / "(Worst Case)" ausgewiesen; alles andere erscheint einmal.
+   Summe Ertragsverluste / Nettoertrag / Standortgüte stammen je Fall aus der eigenen Tabelle. */
+function yUid(){ return "v"+Date.now().toString(36)+Math.floor(Math.random()*46656).toString(36); }
+function yNewVariant(){ return {id:yUid(),heading:"",hBold:true,hItalic:false,hColor:"#0B2540",hSize:15,newPage:false,best:null,worst:null,gap0:null,gap1:null,gap2:null}; }
+function yNormalize(y){
+  y=(y&&typeof y==="object")?y:{};
+  if(!Array.isArray(y.variants)){ const v=yNewVariant(); v.best=y.best||null; v.worst=y.worst||null; y.variants=[v]; }
+  delete y.best; delete y.worst;
+  y.variants.forEach(v=>{ if(!v.id) v.id=yUid(); });
+  if(!y.variants.length) y.variants=[yNewVariant()];
+  y.fontPt=y.fontPt||10; if(y.rowPad==null) y.rowPad=3;
+  return y;
+}
+function yGapUnits(x){
+  if(x==null||x==="") return null;
+  if(typeof x==="string"){ const m={"0":0,"20":1,"45":2,"80":4}; if(x in m) return m[x]; }
+  const n=parseFloat(x); return isNaN(n)?null:Math.max(0,n);
+}
+function yGapNum(x){ const u=yGapUnits(x); return u==null?null:u*20; }   // -> px
+state.yield=yNormalize(state.yield);
+function yClean(s){ return String(s==null?"":s).replace(/ /g," ").replace(/\s+/g," ").trim(); }
+function yDehy(s){ return s.replace(/([a-zäöüß])-\s?([a-zäöüß])/g,"$1$2").replace(/deggradation/gi,"degradation"); }
+function yNum(s){ return !!s && /\d/.test(s) && /^[−–\-+(]?\s*[\d.,'\s]+\)?\s*%?$/.test(s); }
+function yParse(blk){
+  if(!blk||!blk.allRows) return null;
+  const trs=parseRowsHtml(blk.allRows.join(""));
+  if(!trs.length) return null;
+  const g=buildGrid(trs), nC=g.maxC;
+  const T=trs.map((tr,r)=>{ const row=Array(nC).fill(""); g.byRow[r].forEach(x=>{ row[x.c]=yClean(x.el.textContent); }); return row; });
+  const hc=T.findIndex(row=>row.filter(yNum).length>=6);
+  if(hc<1) return {error:tt("y_err_nodata")};
+  const cover=[]; for(let r=0;r<hc;r++) cover[r]=Array(nC).fill(null);
+  g.byRow.forEach((cells,r)=>{ if(r>=hc) return;
+    cells.forEach(x=>{ const t=T[r][x.c];
+      for(let dr=0;dr<x.rs&&r+dr<hc;dr++) for(let dc=0;dc<x.cs&&x.c+dc<nC;dc++) cover[r+dr][x.c+dc]={x,text:t}; }); });
+  const meta=[];
+  for(let c=0;c<nC;c++){
+    const seen=new Set(), own=[]; let unit="", grp="";
+    for(let r=0;r<hc;r++){
+      const cv=cover[r][c]; if(!cv||!cv.text||seen.has(cv.x)) continue; seen.add(cv.x);
+      let t=cv.text;
+      if(/genehmigung/i.test(t)){ grp="G"; continue; }
+      if(/technisch/i.test(t) && /verlust/i.test(t)){ grp="T"; continue; }
+      const m=t.match(/^(.*?)\s*(\[[^\]]*\])\s*$/);
+      if(m){ unit=m[2]; t=m[1]; if(!t) continue; }
+      own.push({t:yDehy(t), span:cv.x.cs||1});
+    }
+    let label="", note="";
+    if(own.length>1 && own[0].span>1){ note=own[0].t; label=own.slice(1).map(o=>o.t).join(" "); }
+    else if(own.length>1){ label=`${own[0].t} (${own.slice(1).map(o=>o.t).join(", ")})`; }
+    else if(own.length){ label=own[0].t; }
+    meta.push({label,unit,g:grp,note});
+  }
+  const find=re=>meta.findIndex(m=>re.test(m.label));
+  let park=find(/parkwirkungsgrad/i); if(park<0) park=11;
+  const summe=find(/^summe ertragsverluste/i);
+  if(summe<0) return {error:tt("y_err_nosum")};
+  for(let c=park+1;c<summe;c++){ if(!meta[c].g) meta[c].g="S"; }   // ohne Gruppenüberschrift -> Sonstige
+  const wea=[], sums=[];
+  for(let r=hc;r<T.length;r++){
+    const row=T[r]; if(!row.some(x=>x!=="")) continue;
+    const labs=[]; row.forEach((x,c)=>{ if(x && isSumWord(x)) labs.push({c,text:x}); });
+    if(row[0] && !labs.some(l=>l.c===0)) wea.push({name:row[0], vals:row});
+    else if(labs.length) sums.push({labels:labs, vals:row});
+  }
+  if(!wea.length) return {error:tt("y_err_nowea")};
+  return {hc,nC,meta,park,summe,wea,sums};
+}
+function yVal(M,name,c){ const w=M.wea.find(x=>x.name===name); return w?w.vals[c]:""; }
+function yDiff(B,W,c){ if(!W||W.error) return false; return B.wea.some(w=>yClean(w.vals[c])!==yClean(yVal(W,w.name,c))); }
+function yEsc(s){ return esc(s); }
+function yHdr(m,suffix){
+  const lab=yEsc(m.label)+(suffix?`<br><span style="font-weight:600;color:#0a7c8a">${suffix}</span>`:"");
+  return lab+(m.unit?`<br><span style="font-weight:400">${yEsc(m.unit)}</span>`:"");
+}
+function yTdD(t,style){ return t?yTd(t,style):`<td style="text-align:center;color:#8a97a3;${style||""}">–</td>`; }
+function yTd(t,style){ const al=yNum(t)?"text-align:right;":""; return `<td style="${al}${style||""}">${yEsc(t)}</td>`; }
+function yItem(title,thead,rows,sumStart,extra){
+  return Object.assign({type:"table",thead,rows,sumStart,headerCount:1,cols:0,total:rows.length,
+    title,titleColor:"#0B2540",titleBold:true,spaceAfter:0,fontPt:state.yield.fontPt||10,sumRepeat:false,
+    sumStyle:"pro",rowPad:(state.yield.rowPad==null?3:state.yield.rowPad),breakBefore:false,breakAfter:false,colSplit:"off",colFixed:1},extra||{});
+}
+function yieldBuildVariant(v){
+  const info={wea:0,diffs:[],error:"",warn:[],hasWorst:false};
+  const B=yParse(v.best);
+  if(!B){ return {items:[],info}; }
+  if(B.error){ info.error=tt("y_err_best")+B.error; return {items:[],info}; }
+  let W=v.worst?yParse(v.worst):null;
+  if(W&&W.error){ info.error=tt("y_err_worst")+W.error; W=null; }
+  if(W){ info.hasWorst=true;
+    const miss=B.wea.filter(w=>!W.wea.some(x=>x.name===w.name)).map(w=>w.name);
+    if(miss.length) info.warn.push(tt("y_warn_miss",{list:miss.join(", ")}));
+    if(W.nC!==B.nC) info.warn.push(tt("y_warn_cols"));
+  }
+  info.wea=B.wea.length;
+  const items=[];
+
+  /* ---- 1) Anlagendaten & Parkertrag ---- */
+  {
+    const cols=[]; for(let c=0;c<=B.park;c++) cols.push(c);
+    const thead="<tr>"+cols.map(c=>`<th>${yHdr(B.meta[c])}</th>`).join("")+"</tr>";
+    const rows=B.wea.map(w=>"<tr>"+cols.map(c=>yTd(w.vals[c])).join("")+"</tr>");
+    const sumRows=[];
+    B.sums.forEach(s=>{
+      const lab=s.labels.filter(l=>l.c<=B.park)[0]; if(!lab) return;
+      if(!cols.some(c=>c!==lab.c && s.vals[c])) return;
+      sumRows.push("<tr>"+cols.map(c=>c===lab.c?`<td>${yEsc(lab.text)}</td>`:yTd(s.vals[c])).join("")+"</tr>");
+    });
+    const note=(B.meta.find(m=>m.note)||{}).note;
+    items.push(yItem("Anlagendaten und Parkertrag"+(note?` (${note})`:""),thead,rows.concat(sumRows),sumRows.length?rows.length:-1));
+  }
+
+  /* ---- 2) Ertragsverluste, transponiert: je WEA eine Spalte ---- */
+  {
+    const N=2+B.wea.length;
+    const thead=`<tr><th style="text-align:left">Ertragsverlust</th><th>Einheit</th>${B.wea.map(w=>`<th>${yEsc(w.name)}</th>`).join("")}</tr>`;
+    const rows=[];
+    const rowHtml=(label,unit,vals,o)=>{ o=o||{};
+      const st=(o.bg?`background:${o.bg};`:"")+(o.bold?"font-weight:700;":"")+(o.rule?"border-top:1.8px solid #0B2540;":"");
+      return `<tr><td style="${st}">${yEsc(label)}</td><td style="text-align:center;${st}">${yEsc(unit||"")}</td>${vals.map(v=>yTdD(v,st)).join("")}</tr>`; };
+    const bgW="background:#fdf3e3;";
+    const groupRow=t=>`<tr><td colspan="${N}" style="background:#dbe7f0;font-weight:700;color:#0B2540;text-align:left">${yEsc(t)}</td></tr>`;
+    const valsB=c=>B.wea.map(w=>w.vals[c]);
+    const valsW=c=>B.wea.map(w=>yVal(W,w.name,c));
+    [["G","Genehmigungsrechtliche Ertragsverluste"],["T","Technische Ertragsverluste"],["S","Sonstige Ertragsverluste"]].forEach(([k,title])=>{
+      const out=[];
+      for(let c=B.park+1;c<B.summe;c++){
+        if(B.meta[c].g!==k) continue;
+        const m=B.meta[c], unit=m.unit||"[%]";
+        if(yDiff(B,W,c)){
+          out.push(rowHtml(`${m.label} (Best Case)`,unit,valsB(c)));
+          out.push(rowHtml(`${m.label} (Worst Case)`,unit,valsW(c),{bg:"#fdf3e3"}));
+          info.diffs.push(m.label);
+        } else out.push(rowHtml(m.label,unit,valsB(c)));
+      }
+      if(out.length){ rows.push(groupRow(title)); rows.push(...out); }
+    });
+    const ms=B.meta[B.summe], su=ms.unit||"[kWh/a]";
+    if(yDiff(B,W,B.summe)){
+      rows.push(rowHtml(`${ms.label} (Best Case)`,su,valsB(B.summe),{bold:true,rule:true}));
+      rows.push(rowHtml(`${ms.label} (Worst Case)`,su,valsW(B.summe),{bold:true,bg:"#fdf3e3"}));
+    } else rows.push(rowHtml(ms.label,su,valsB(B.summe),{bold:true,rule:true}));
+    items.push(yItem("Ertragsverluste"+(W?" – Best Case / Worst Case":""),thead,rows,-1,{colSplit:"auto",colFixed:2}));
+  }
+
+  /* ---- 3) Ergebnis ---- */
+  {
+    const defs=[];
+    for(let c=B.summe+1;c<B.nC;c++){
+      if(yDiff(B,W,c)){ defs.push({c,k:"B"}); defs.push({c,k:"W"}); } else defs.push({c,k:""});
+    }
+    const suffix=k=>k==="B"?"Best Case":k==="W"?"Worst Case":"";
+    const thead=`<tr><th style="text-align:left">${yEsc(B.meta[0].label||"WEA")}</th>${defs.map(d=>`<th>${yHdr(B.meta[d.c],suffix(d.k))}</th>`).join("")}</tr>`;
+    const rows=B.wea.map(w=>`<tr>${yTd(w.name)}${defs.map(d=>yTd(d.k==="W"?yVal(W,w.name,d.c):w.vals[d.c], d.k==="W"?"background:#fdf3e3;":"")).join("")}</tr>`);
+    const sumRows=[];
+    B.sums.forEach((s,si)=>{
+      const lab=s.labels.filter(l=>l.c>=B.summe)[0]; if(!lab) return;
+      const ws=W?(W.sums.find(x=>x.labels.some(l=>l.c>=W.summe&&l.text===lab.text))||W.sums[si]):null;
+      const cell=d=>{ const src=d.k==="W"?ws:s; return src?src.vals[d.c]||"":""; };
+      if(!defs.some(d=>cell(d))) return;
+      sumRows.push(`<tr><td>${yEsc(lab.text)}</td>${defs.map(d=>yTd(cell(d),d.k==="W"?"background:#fdf3e3;":"")).join("")}</tr>`);
+    });
+    items.push(yItem("Nettoertrag und Standortgüte"+(W?" – Best Case / Worst Case":""),thead,rows.concat(sumRows),sumRows.length?rows.length:-1));
+  }
+  if(items[1]) items[1].gapBefore=yGapNum(v.gap1);
+  if(items[2]) items[2].gapBefore=yGapNum(v.gap2);
+  return {items,info};
+}
+
+/* ---- Varianten-UI: je Variante Überschrift, Best/Worst-Einfügefelder, Abstände ---- */
+const Y_GAPS=[["0","rh_tight"],["20","rh_normal"],["45","rh_wide"],["80","rh_xwide"]];
+const Y_L='display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:11.5px;font-weight:600;color:var(--ink-2);text-transform:none;letter-spacing:0;';
+function yGapSel(cls,vid,val,def){
+  const u=yGapUnits(val); const cur=u==null?def:u;
+  return `<input class="${cls}" data-vid="${vid}" type="number" min="0" max="30" step="0.5" value="${cur}" style="width:70px;padding:6px 8px;font-size:13px;text-align:center;"> <span style="font-weight:400;color:var(--muted);">${tt("y_gap_unit")}</span>`;
+}
+function yVar(id){ return state.yield.variants.find(v=>v.id===id); }
+function onYieldPaste(e,vid,k){
+  e.preventDefault();
+  const cd=e.clipboardData||window.clipboardData; if(!cd) return;
+  const html=cd.getData("text/html")||"", text=cd.getData("text/plain")||"";
+  let el=null;
+  if(/<table|<tr/i.test(html)){
+    const wrap=document.createElement("div"); wrap.innerHTML=html;
+    const styleHtml=[...wrap.querySelectorAll("style")].map(s=>s.outerHTML).join("");
+    const tb=wrap.querySelector("table"); if(tb) el=captureExcelTable(styleHtml+tb.outerHTML);
+  } else if(text.includes("\t")) el=textToTableEl(text);
+  const blk=el?blockFromTable(el):null, v=yVar(vid);
+  if(!blk||!v){ const s=document.querySelector(`#yieldBox [data-ys="${vid}-${k}"]`); if(s){ s.textContent=tt("no_table"); s.className="tcard-status status warn"; } return; }
+  v[k]={allRows:blk.allRows,cols:blk.cols,total:blk.total};
+  renderYield(); render(); saveLocal();
+}
+function renderYield(){ renderYieldCore(); renderOrder(); }
+function renderYieldCore(){
+  const box=$("yieldBox"); if(!box) return;
+  const y=state.yield, vs=y.variants;
+  const st=b=>b?tt("y_loaded",{total:b.total,cols:b.cols}):tt("card_empty");
+  const varHtml=vs.map((v,i)=>{
+    const inf=yieldBuildVariant(v).info; let infoHtml="";
+    if(inf.error) infoHtml=`<div class="tcard-status status warn">${esc(inf.error)}</div>`;
+    else if(!v.best && v.worst) infoHtml=`<div class="tcard-status status warn">${tt("y_err_nobest")}</div>`;
+    else if(v.best){
+      infoHtml=`<div class="tcard-sum">${tt("y_made",{n:inf.wea})}`+
+        (inf.hasWorst?(inf.diffs.length?esc(tt("y_diffs",{list:inf.diffs.join(", ")})):tt("y_nodiffs")):"")+`</div>`+
+        inf.warn.map(w=>`<div class="tcard-status status warn">${esc(w)}</div>`).join("");
+    }
+    const paste=k=>`
+      <div style="padding:9px 11px 4px;display:flex;align-items:center;gap:8px;"><b style="font-size:12px;color:var(--ink);flex:1;">${k==="best"?tt("y_best"):tt("y_worst")}</b>${v[k]?`<button class="icon-btn x" data-ykill="${k}" data-vid="${v.id}" title="${tt("y_remove")}">✕</button>`:""}</div>
+      <div class="tcard-box" contenteditable="true" data-yk="${k}" data-vid="${v.id}" style="min-height:46px;">${v[k]?"":PASTE_PH}</div>
+      <div class="tcard-status status ${v[k]?"ok":""}" data-ys="${v.id}-${k}">${st(v[k])}</div>`;
+    return `<div class="yvar" style="border:1.5px solid var(--line);border-radius:10px;margin:10px 11px;background:#fff;overflow:hidden;">
+      <div class="tcard-head"><b>${tt("y_variant_n",{n:i+1})}</b>
+        <button class="icon-btn" title="${tt("y_up")}" data-yact="up" data-vid="${v.id}" ${i===0?"disabled":""}>▲</button>
+        <button class="icon-btn" title="${tt("y_down")}" data-yact="down" data-vid="${v.id}" ${i===vs.length-1?"disabled":""}>▼</button>
+        <button class="icon-btn x" title="${tt("y_delvar")}" data-yact="del" data-vid="${v.id}" ${vs.length<2?"disabled":""}>✕</button></div>
+      <div style="padding:4px 11px 2px;">
+        <label style="${Y_L}">${tt("y_heading")}
+          <input class="yv-heading" data-vid="${v.id}" type="text" value="${esc(v.heading||"")}" placeholder="${vs.length>1?tt("y_variant_n",{n:i+1}):tt("y_heading_ph")}" style="flex:1;padding:6px 8px;font-size:13px;"></label>
+        <div style="${Y_L}gap:14px;flex-wrap:wrap;">
+          <label style="${Y_L}margin:0;gap:6px;">${tt("y_color")} <input class="yv-color" data-vid="${v.id}" type="color" value="${v.hColor||"#0B2540"}" style="width:40px;height:28px;padding:2px;cursor:pointer;"></label>
+          <label style="${Y_L}margin:0;gap:6px;cursor:pointer;"><input class="yv-bold" data-vid="${v.id}" type="checkbox" ${v.hBold!==false?"checked":""} style="width:16px;height:16px;accent-color:var(--gust-deep);">${tt("y_bold")}</label>
+          <label style="${Y_L}margin:0;gap:6px;cursor:pointer;"><input class="yv-italic" data-vid="${v.id}" type="checkbox" ${v.hItalic?"checked":""} style="width:16px;height:16px;accent-color:var(--gust-deep);">${tt("y_italic")}</label>
+          <label style="${Y_L}margin:0;gap:6px;">${tt("y_size")} <input class="yv-size" data-vid="${v.id}" type="number" min="9" max="28" step="0.5" value="${v.hSize||15}" style="width:62px;padding:5px 6px;font-size:13px;text-align:center;"> pt</label>
+        </div>
+        <label style="${Y_L}cursor:pointer;"><input class="yv-newpage" data-vid="${v.id}" type="checkbox" ${v.newPage?"checked":""} style="width:16px;height:16px;accent-color:var(--gust-deep);">${tt("y_newpage")}</label>
+      </div>
+      ${paste("worst")}${paste("best")}${infoHtml}
+      <div style="padding:2px 11px 12px;border-top:1px solid var(--line-soft);margin-top:8px;">
+        <label style="${Y_L}">${tt("y_gap0")} ${yGapSel("yv-gap0",v.id,v.gap0,2)}</label>
+        <label style="${Y_L}">${tt("y_gap1")} ${yGapSel("yv-gap1",v.id,v.gap1,1)}</label>
+        <label style="${Y_L}">${tt("y_gap2")} ${yGapSel("yv-gap2",v.id,v.gap2,1)}</label>
+      </div></div>`;
+  }).join("");
+  box.innerHTML=`
+    <div class="tcard-head"><b>${tt("y_title")}</b></div>
+    <div class="hint" style="padding:8px 11px 0;margin:0;">${tt("y_hint")}</div>
+    ${varHtml}
+    <div style="padding:0 11px 10px;"><button class="btn btn-accent block" type="button" id="yAddVar">${tt("y_add")}</button></div>
+    <div class="tcard-foot">
+      <label style="${Y_L}margin:0 0 8px;">${tt("y_font")} <input class="y-font" type="number" min="6" max="16" step="0.5" value="${y.fontPt||10}" style="width:64px;padding:5px 6px;font-size:13px;text-align:center;"> <span style="font-weight:700;">pt</span></label>
+      <label style="${Y_L}margin:0;">${tt("y_rowh")}
+        <select class="y-rowpad" style="flex:1;padding:6px 8px;font-size:13px;">${[[0,tt("rh_tight")],[1,tt("rh_normal")],[3,tt("rh_wide")],[6,tt("rh_xwide")]].map(([n,l])=>`<option value="${n}" ${(y.rowPad==null?3:y.rowPad)===n?"selected":""}>${l}</option>`).join("")}</select></label>
+    </div>`;
+  const upd=(sel,evt,fn)=>box.querySelectorAll(sel).forEach(el=>el.addEventListener(evt,()=>{ const v=yVar(el.dataset.vid); if(v){ fn(v,el); renderOrder(); render(); saveLocal(); } }));
+  box.querySelectorAll(".tcard-box").forEach(b=>{
+    b.addEventListener("paste",e=>onYieldPaste(e,b.dataset.vid,b.dataset.yk));
+    b.addEventListener("focus",function(){ if(this.querySelector(".ph")) this.innerHTML=""; });
+  });
+  box.querySelectorAll("[data-ykill]").forEach(b=>b.addEventListener("click",()=>{ const v=yVar(b.dataset.vid); if(v){ v[b.dataset.ykill]=null; renderYield(); render(); saveLocal(); } }));
+  box.querySelectorAll("[data-yact]").forEach(b=>b.addEventListener("click",()=>{
+    const i=vs.findIndex(v=>v.id===b.dataset.vid); if(i<0) return; const a=b.dataset.yact;
+    if(a==="del"){ if((vs[i].best||vs[i].worst) && !confirm(tt("y_confirm_del"))) return; vs.splice(i,1); }
+    else { const j=i+(a==="up"?-1:1); if(j<0||j>=vs.length) return; [vs[i],vs[j]]=[vs[j],vs[i]]; }
+    renderYield(); renderCards(); render(); saveLocal();
+  }));
+  upd(".yv-heading","input",(v,el)=>{ v.heading=el.value; });
+  box.querySelectorAll(".yv-heading").forEach(el=>el.addEventListener("change",()=>renderCards()));
+  upd(".yv-color","input",(v,el)=>{ v.hColor=el.value; });
+  upd(".yv-bold","change",(v,el)=>{ v.hBold=el.checked; });
+  upd(".yv-italic","change",(v,el)=>{ v.hItalic=el.checked; });
+  upd(".yv-size","input",(v,el)=>{ v.hSize=Math.max(9,Math.min(28,parseFloat(el.value)||15)); });
+  upd(".yv-newpage","change",(v,el)=>{ v.newPage=el.checked; });
+  upd(".yv-gap0","input",(v,el)=>{ v.gap0=el.value===""?null:Math.max(0,parseFloat(el.value)||0); });
+  upd(".yv-gap1","input",(v,el)=>{ v.gap1=el.value===""?null:Math.max(0,parseFloat(el.value)||0); });
+  upd(".yv-gap2","input",(v,el)=>{ v.gap2=el.value===""?null:Math.max(0,parseFloat(el.value)||0); });
+  $("yAddVar").addEventListener("click",()=>{ vs.push(yNewVariant()); renderYield(); renderCards(); render(); saveLocal(); });
+  box.querySelectorAll(".y-font").forEach(i=>i.addEventListener("input",()=>{ y.fontPt=Math.max(6,Math.min(16,parseFloat(i.value)||10)); render(); saveLocal(); }));
+  box.querySelectorAll(".y-rowpad").forEach(i=>i.addEventListener("change",()=>{ y.rowPad=parseInt(i.value)||0; render(); saveLocal(); }));
+}
+
 function paginateCalc(pages){
   const full = $("calcFull").checked;
   const numSwap = $("numFmtDE") ? $("numFmtDE").checked : false;   // EN→DE number swap
   const calcMargin = full ? 14 : MARGIN_PT; // narrow margins in full mode -> more width for the table
   const ROW_GAP   = 8;                       // gap between continuation chunks of the same table
-  const BLOCK_GAP = full ? 30 : 34;          // breathing room between separate tables / images
+  const BLOCK_GAP = 20;          // breathing room between separate tables / images
   const SPACE_UNIT= 20;                      // px added per manual "space" unit chosen after a table
   calcEffPt = null;                          // smallest effective table font this run (for the info chip)
 
@@ -1534,14 +2118,31 @@ function paginateCalc(pages){
     pad=m.pad; body=m.pad.querySelector(".calc-body");
     availH = body.clientHeight; bodyW = body.clientWidth; used=0; isFirst=false;
   }
-  function spaceBeforeBlock(){ if(used>0) used += BLOCK_GAP; }   // add separation before a new item
+  function spaceBeforeBlock(g){
+    if(used<=0) return;
+    const gap=(g==null?BLOCK_GAP:g); if(gap<=0) return;
+    const vis=Math.max(0,Math.min(gap,availH-used));
+    if(vis>0){ const sp=document.createElement("div"); sp.style.cssText=`width:100%;height:${vis}px;flex:none;`; body.appendChild(sp); }
+    used+=gap;
+  }   // add separation before a new item
   let pendingBreak=false;                                        // set by a "break after" / overflowing gap
   openPage();
 
-  const items=calcItems();
+  const items=expandColumnSplits(calcItems(), bodyW, body);
   items.forEach((b, bi)=>{
     if((pendingBreak || b.breakBefore) && used>0) openPage();     // start this block on a fresh page
     pendingBreak=false;
+    if(b.type==="heading"){
+      const d=document.createElement("div");
+      d.style.cssText=`font-family:Archivo,Inter,sans-serif;font-size:${b.sizePt}pt;font-weight:${b.bold?800:400};font-style:${b.italic?"italic":"normal"};color:${b.color};line-height:1.25;margin:0 0 6px;`;
+      d.textContent=b.text;
+      const m=d.cloneNode(true); m.style.cssText+="visibility:hidden;position:absolute;width:"+bodyW+"px;";
+      body.appendChild(m); const h=m.getBoundingClientRect().height+6; body.removeChild(m);
+      spaceBeforeBlock(b.gapBefore);
+      if(used>0 && used+h+160>availH) openPage();     // keep heading together with its first table
+      body.appendChild(d); used+=h;
+      return;
+    }
     if(b.type==="image"){
       const fitW=bodyW, fullH=b.natH*(fitW/b.natW);
       if(fullH<=availH){
@@ -1578,7 +2179,7 @@ function paginateCalc(pages){
     // that version would hand us a column grid with missing columns.
     const rowPad=(b.rowPad==null?1:b.rowPad);          // per-table row height (cell padding, px)
     const meas=document.createElement("table");
-    meas.className="calc-table"; meas.style.fontSize=fontPt+"pt";
+    meas.className="calc-table"+(b.wrapHead?" hw":""); meas.style.fontSize=fontPt+"pt";
     meas.style.setProperty("--cpad", rowPad+"px");
     meas.style.visibility="hidden"; meas.style.position="absolute";
     meas.innerHTML=b.thead + b.rows.join("");
@@ -1610,7 +2211,7 @@ function paginateCalc(pages){
     const sumStyle = b.sumStyle||"pro";
     if(hasSum){
       const meas2=document.createElement("table");
-      meas2.className="calc-table"; meas2.style.fontSize=fontPt+"pt";
+      meas2.className="calc-table"+(b.wrapHead?" hw":""); meas2.style.fontSize=fontPt+"pt";
       meas2.style.setProperty("--cpad", rowPad+"px");
       meas2.style.visibility="hidden"; meas2.style.position="absolute";
       meas2.innerHTML=b.thead + b.rows.join("");
@@ -1644,7 +2245,7 @@ function paginateCalc(pages){
 
     function renderFragment(start, end, appendSum){
       const t=document.createElement("table");
-      t.className="calc-table"; t.style.fontSize=fontPt+"pt"; t.style.tableLayout="fixed"; t.style.width=natW+"px";
+      t.className="calc-table"+(b.wrapHead?" hw":""); t.style.fontSize=fontPt+"pt"; t.style.tableLayout="fixed"; t.style.width=natW+"px";
       t.style.setProperty("--cpad", rowPad+"px");
       const slice=b.rows.slice(start,end);
       const rowsHtml = appendSum ? slice.concat(sumRowsHtml) : slice;
@@ -1678,7 +2279,7 @@ function paginateCalc(pages){
       body.appendChild(d); used += titleH;
     }
 
-    spaceBeforeBlock();
+    spaceBeforeBlock(b.gapBefore);
     const R = availH - used;                         // free space remaining on the current page
 
     if(keep && titleH + H <= R + 0.5){
@@ -1825,7 +2426,7 @@ function saveLocal(){
         docBase:$("docBase").value, docs:state.docs,
         logo:state.logo, logoCustom:state.logoCustom, taskImg:state.taskImg, layout:state.layout,
         layouts:state.layouts, layoutMode:state.layoutMode,
-        tables:state.tables, images:state.images, blockSeq
+        tables:state.tables, images:state.images, yield:state.yield, order:syncOrder(), blockSeq
       };
       ["company","project","subtitle","worked","checked","rdate","status","reportNo","taskText","notes"]
         .forEach(k=>d.fields[k]=$(k).value);
@@ -1857,6 +2458,8 @@ function loadLocal(){
     state.layoutMode=d.layoutMode||"each";
     state.tables=Array.isArray(d.tables)?d.tables:[];
     state.images=Array.isArray(d.images)?d.images:[];
+    state.yield=yNormalize(d.yield);
+    ORDER=Array.isArray(d.order)?d.order:null;
     const ids=[...state.tables,...state.images,...state.layouts].map(x=>x.id||0);
     blockSeq=d.blockSeq||((ids.length?Math.max(...ids):0)+1);
     // migrate a legacy single site plan into the new list
