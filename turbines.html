@@ -389,6 +389,8 @@ body.mapfull{overflow:hidden}
           <button type="button" class="btn" data-act="clear" data-side="1" data-i18n="clr">Clear</button>
         </div>
         <div class="fmt"><span data-i18n="hint1">Typical columns: name, type, hub height, power, easting, northing.</span> <span class="drophint" data-i18n="drop_hint">You can also drop an Excel or CSV file here.</span></div>
+        <label class="hintline crsrow"><span data-i18n="tbl_crs">Coordinate system of this table</span> <select id="crs1" class="crs" aria-label="Coordinate system of table 1"></select></label>
+        <div class="hintline" id="crsHint1"></div>
         <textarea id="t1" spellcheck="false" aria-label="Table 1"></textarea>
         <div class="pfoot" id="f1"></div>
       </div>
@@ -401,6 +403,8 @@ body.mapfull{overflow:hidden}
           <button type="button" class="btn" data-act="clear" data-side="2" data-i18n="clr">Clear</button>
         </div>
         <div class="fmt"><span data-i18n="hint2">Typical columns: name, easting, northing.</span> <span class="drophint" data-i18n="drop_hint">You can also drop an Excel or CSV file here.</span></div>
+        <label class="hintline crsrow"><span data-i18n="tbl_crs">Coordinate system of this table</span> <select id="crs2" class="crs" aria-label="Coordinate system of table 2"></select></label>
+        <div class="hintline" id="crsHint2"></div>
         <textarea id="t2" spellcheck="false" aria-label="Table 2"></textarea>
         <div class="pfoot" id="f2"></div>
       </div>
@@ -423,6 +427,7 @@ body.mapfull{overflow:hidden}
         <input id="sfxl" type="text" value="V###, -F" spellcheck="false" aria-label="Suffix list" data-i18n-aria="sfx_aria">
         <span class="hint" data-i18n="sfx_hint">Separate with commas. # stands for any digit, so V### covers V172 and V199.</span>
       </div>
+      <div class="note" id="crsConv" hidden></div>
       <div class="note" data-i18n="rules_note">Coordinates are read as easting then northing in metres (UTM). Two turbines are the same when their names agree, or when they stand within the tolerance of each other.</div>
     </div>
     <div class="card rbcard" id="rbCard">
@@ -469,7 +474,6 @@ body.mapfull{overflow:hidden}
         <div class="tbar">
           <h3 data-i18n="map_h">Map</h3>
           <div class="tools">
-            <label id="mapCrsWrap"><span data-i18n="map_crs">Coordinates</span> <select id="mapCrs" class="crs" aria-label="Coordinate system"></select></label>
             <label><input type="checkbox" id="mapNames"> <span data-i18n="map_names">Show names</span></label>
             <button type="button" class="btn" id="mapFit" data-i18n="map_fit">Fit all</button>
             <button type="button" class="btn" id="mapKml" data-i18n="map_kml">Download KML</button>
@@ -635,7 +639,7 @@ en:{
   hint1:"Typical columns: name, type, hub height, power, easting, northing. With a header row (e.g. WEA-Bezeichnung, WEA-Typ, Rechtswert, Hochwert, WEA-Status) columns are found by their title.", hint2:"Typical columns: name, easting, northing.",
   s2:"Set the matching rules", s2p:"The defaults suit most wind-farm lists. Results update as you change them.",
   tol:"Position tolerance", sfx:"Ignore name suffixes", sfx_aria:"Suffix list", sfx_hint:"Separate with commas. # stands for any digit, so V### covers V172 and V199.", hubc:"Flag hub height differences",
-  rules_note:"Coordinates are read as easting then northing in metres (UTM). Two turbines are the same when their names agree, or when they stand within the tolerance of each other.",
+  rules_note:"Coordinates are read as easting then northing in metres. Each table has its own coordinate system (e.g. UTM zone 32 and zone 33); table 2 is converted to the system of table 1. Two turbines are the same when their names agree, or when they stand within the tolerance of each other.",
   s3:"Review the results", s3p:"Select a count to filter the table. Turbines that exist in only one table are listed first.",
   ph_h:"Nothing to compare yet", ph_p:"Paste both tables above, or load the example data to see how it works.",
   m1:"Only in Table 1", m2:"Only in Table 2", copy_names:"Copy names",
@@ -682,6 +686,8 @@ en:{
   crs_hint_gk:function(z){return "The eastings look like Gauss-Krüger zone "+z+"."},
   crs_hint_utm:function(z){return "The eastings carry the zone prefix "+z+" (UTM zone "+z+")."},
   crs_hint_utm6:"The eastings look like UTM. Zone 32 covers Germany west of 12° E, zone 33 east of it.",
+  tbl_crs:"Coordinate system of this table",
+  crs_conv:function(a,b){return "Table 2 ("+a+") is converted to the system of table 1 ("+b+") before the positions are compared."},
   crs_use:"Use it", crs_ok:"Positions fall inside Germany.",
   crs_out:function(n){return n+(n===1?" turbine falls":" turbines fall")+" outside Germany with this coordinate system. Please check the selection."},
   sp_need:"Mark at least one planned turbine to run the check.", sp_need_list:"Paste the planned turbines to run the check.",
@@ -739,7 +745,7 @@ de:{
   hint1:"Typische Spalten: Name, Typ, Nabenhöhe, Leistung, Rechtswert, Hochwert. Mit Kopfzeile (z. B. WEA-Bezeichnung, WEA-Typ, Rechtswert, Hochwert, WEA-Status) werden die Spalten am Titel erkannt.", hint2:"Typische Spalten: Name, Rechtswert, Hochwert.",
   s2:"Abgleichregeln festlegen", s2p:"Die Voreinstellungen passen für die meisten Windparklisten. Die Ergebnisse aktualisieren sich sofort.",
   tol:"Positionstoleranz", sfx:"Namenszusätze ignorieren", sfx_aria:"Liste der Zusätze", sfx_hint:"Mit Komma trennen. # steht für eine beliebige Ziffer, V### deckt also V172 und V199 ab.", hubc:"Abweichende Nabenhöhen markieren",
-  rules_note:"Koordinaten werden als Rechtswert, dann Hochwert in Metern gelesen (UTM). Zwei Anlagen gelten als gleich, wenn die Namen übereinstimmen oder sie innerhalb der Toleranz beieinander stehen.",
+  rules_note:"Koordinaten werden als Rechtswert, dann Hochwert in Metern gelesen. Jede Tabelle hat ihr eigenes Koordinatensystem (z. B. UTM Zone 32 und Zone 33); Tabelle 2 wird in das System von Tabelle 1 umgerechnet. Zwei Anlagen gelten als gleich, wenn die Namen übereinstimmen oder sie innerhalb der Toleranz beieinander stehen.",
   s3:"Ergebnisse prüfen", s3p:"Ein Zählfeld filtert die Tabelle. Anlagen, die nur in einer Tabelle stehen, erscheinen zuerst.",
   ph_h:"Noch nichts zu vergleichen", ph_p:"Füge oben beide Tabellen ein oder lade die Beispieldaten, um die Funktion zu sehen.",
   m1:"Nur in Tabelle 1", m2:"Nur in Tabelle 2", copy_names:"Namen kopieren",
@@ -786,6 +792,8 @@ de:{
   crs_hint_gk:function(z){return "Die Rechtswerte sehen nach Gauß-Krüger Zone "+z+" aus."},
   crs_hint_utm:function(z){return "Die Rechtswerte tragen die Zonenkennung "+z+" (UTM Zone "+z+")."},
   crs_hint_utm6:"Die Rechtswerte sehen nach UTM aus. Zone 32 gilt westlich von 12° O, Zone 33 östlich davon.",
+  tbl_crs:"Koordinatensystem dieser Tabelle",
+  crs_conv:function(a,b){return "Tabelle 2 ("+a+") wird vor dem Positionsvergleich in das System von Tabelle 1 ("+b+") umgerechnet."},
   crs_use:"Übernehmen", crs_ok:"Die Positionen liegen in Deutschland.",
   crs_out:function(n){return n+(n===1?" Anlage liegt":" Anlagen liegen")+" mit diesem Koordinatensystem außerhalb Deutschlands. Bitte die Auswahl prüfen."},
   sp_need:"Markiere mindestens eine geplante Anlage, um die Prüfung zu starten.", sp_need_list:"Füge die geplanten Anlagen ein, um die Prüfung zu starten.",
@@ -1024,7 +1032,7 @@ function keyOf(name,ignoreSfx){
   if(ignoreSfx&&SUFFIX_RE){var r=s.replace(SUFFIX_RE,'');if(r)s=r}
   return s;
 }
-function dist(a,b){return Math.hypot(a.e-b.e,a.n-b.n)}
+function dist(a,b){return Math.hypot(a.me-b.me,a.mn-b.mn)} /* me/mn: coordinates in table 1's system, see update() */
 function dupNames(rows,ignoreSfx){
   var seen={},out=[];
   rows.forEach(function(r){var k=keyOf(r.name,ignoreSfx);seen[k]=(seen[k]||0)+1;if(seen[k]===2)out.push(r.name)});
@@ -1117,8 +1125,15 @@ function update(){
   p1.rows.forEach(function(x){x.rb=isRb(x,'1')});
   p2.rows.forEach(function(x){x.rb=isRb(x,'2')});
   rbRender(p1,p2);
+  crsSync(p1,p2);
   if(!any){visibleRows=[];exportRows=[];MAPCTX=null;return}
 
+  var c1=SP.crs['1'],c2=SP.crs['2'];
+  p1.rows.forEach(function(x){x.me=x.e;x.mn=x.n});
+  p2.rows.forEach(function(x){
+    if(c1===c2){x.me=x.e;x.mn=x.n;return}
+    var q=fromGeo(toGeo(x.e,x.n,c2),c1);x.me=q.e;x.mn=q.n;
+  });
   var res=compare(p1.rows,p2.rows,tol,sfx,hubc);
   res.forEach(function(r){r.rb=!!((r.a&&r.a.rb)||(r.b&&r.b.rb))});
   res.sort(function(x,y){
@@ -1291,7 +1306,13 @@ var CRS={
   '32632':{t:'utm',z:32,ell:'wgs84'},'32633':{t:'utm',z:33,ell:'wgs84'},
   '31466':{t:'gk',z:2},'31467':{t:'gk',z:3},'31468':{t:'gk',z:4},'31469':{t:'gk',z:5}
 };
-var CRS_GROUPS=[['crs_g_etrs',['25832','25833']],['crs_g_wgs',['32632','32633']],['crs_g_gk',['31467','31468','31466','31469']]];
+/* any UTM zone can be picked: ETRS89 zones 28-38 (EPSG:25828-25838), WGS 84 north zones 1-60 (EPSG:32601-32660) */
+var ETRS_Z=['25832','25833'],WGS_Z=['32632','32633'];
+for(var zz=28;zz<=38;zz++){var ce='258'+zz;if(!CRS[ce]){CRS[ce]={t:'utm',z:zz,ell:'grs80'};ETRS_Z.push(ce)}}
+for(var zw=1;zw<=60;zw++){var cw='326'+(zw<10?'0':'')+zw;if(!CRS[cw]){CRS[cw]={t:'utm',z:zw,ell:'wgs84'};WGS_Z.push(cw)}}
+ETRS_Z.sort(function(a,b){return CRS[a].z-CRS[b].z});WGS_Z.sort(function(a,b){return CRS[a].z-CRS[b].z});
+function crsLabel(c){return t('crs_'+c)||((CRS[c].ell==='grs80'?'ETRS89':'WGS 84')+' / UTM zone '+CRS[c].z+'N \u00b7 EPSG:'+c)}
+var CRS_GROUPS=[['crs_g_etrs',ETRS_Z],['crs_g_wgs',WGS_Z],['crs_g_gk',['31467','31468','31466','31469']]];
 var D2R=Math.PI/180;
 function tmSetup(ell){
   if(ell._c)return ell._c;
@@ -1341,6 +1362,18 @@ function dhdn2etrs(g){
   var x=geo2ecef(g.lat,g.lon,ELL.bessel),as=D2R/3600,rx=0.202*as,ry=0.045*as,rz=-2.455*as,s=1+6.7e-6;
   return ecef2geo(598.1+s*(x[0]-rz*x[1]+ry*x[2]),73.7+s*(rz*x[0]+x[1]-rx*x[2]),418.2+s*(-ry*x[0]+rx*x[1]+x[2]),ELL.grs80);
 }
+/* inverse of dhdn2etrs (rotation matrix transposed, exact enough for these tiny angles) */
+function etrs2dhdn(g){
+  var x=geo2ecef(g.lat,g.lon,ELL.grs80),as=D2R/3600,rx=0.202*as,ry=0.045*as,rz=-2.455*as,s=1+6.7e-6;
+  var u=(x[0]-598.1)/s,v=(x[1]-73.7)/s,w=(x[2]-418.2)/s;
+  return ecef2geo(u+rz*v-ry*w,-rz*u+v+rx*w,ry*u-rx*v+w,ELL.bessel);
+}
+function fromGeo(g,code){
+  var c=CRS[code]||CRS['25832'],p;
+  if(c.t==='utm'){p=tmFwd(g.lat,g.lon,c.z*6-183,0.9996,ELL[c.ell]);return {e:p.x+500000,n:p.y}}
+  g=etrs2dhdn(g);p=tmFwd(g.lat,g.lon,c.z*3,1,ELL.bessel);
+  return {e:p.x+c.z*1e6+500000,n:p.y};
+}
 function toGeo(e,n,code){
   var c=CRS[code]||CRS['25832'];
   if(c.t==='utm'){if(e>=1e7)e=e%1e6;return tmInv(e-500000,n,c.z*6-183,0.9996,ELL[c.ell])}
@@ -1350,7 +1383,7 @@ function inGermany(g){return g.lat>47&&g.lat<55.3&&g.lon>5.5&&g.lon<15.3}
 function guessCrs(rows){
   if(!rows.length)return null;
   var es=rows.map(function(r){return r.e}).sort(function(a,b){return a-b}),m=es[Math.floor(es.length/2)],z;
-  if(m>=1e7){z=Math.floor(m/1e6);return (z===32||z===33)?{kind:'utm',z:z,code:'258'+z}:null}
+  if(m>=1e7){z=Math.floor(m/1e6);return (z>=28&&z<=38)?{kind:'utm',z:z,code:'258'+z}:null}
   if(m>=1e6){z=Math.floor(m/1e6);return (z>=2&&z<=5)?{kind:'gk',z:z,code:String(31464+z)}:null}
   if(m>=1e5)return {kind:'utm6',code:'25832'};
   return null;
@@ -1386,9 +1419,30 @@ function isPlanned(it){
   return it.status==='plan';
 }
 function fillCrs(sel,val){
-  sel.innerHTML=CRS_GROUPS.map(function(g){return '<optgroup label="'+esc(t(g[0]))+'">'+g[1].map(function(c){return '<option value="'+c+'">'+esc(t('crs_'+c))+'</option>'}).join('')+'</optgroup>'}).join('');
+  sel.innerHTML=CRS_GROUPS.map(function(g){return '<optgroup label="'+esc(t(g[0]))+'">'+g[1].map(function(c){return '<option value="'+c+'">'+esc(crsLabel(c))+'</option>'}).join('')+'</optgroup>'}).join('');
   sel.value=CRS[val]?val:'25832';
 }
+
+/* per-table coordinate systems: selectors, hints, conversion note */
+function crsSync(p1,p2){
+  [['1',p1],['2',p2]].forEach(function(a){
+    var side=a[0],sel=$('crs'+side),code=CRS[SP.crs[side]]?SP.crs[side]:'25832';
+    if(sel._lang!==lang||!sel.options.length){fillCrs(sel,code);sel._lang=lang}else sel.value=code;
+    var bad=0,strict=/^(25832|25833|32632|32633|3146\d)$/.test(code); /* other zones: only check for a plausible position in Europe */
+    a[1].rows.forEach(function(r){var g=toGeo(r.e,r.n,code);if(strict?!inGermany(g):!(g.lat>30&&g.lat<75&&g.lon>-35&&g.lon<50))bad++});
+    crsHint($('crsHint'+side),a[1].rows,code,bad,'t'+side);
+  });
+  var el=$('crsConv'),c1=SP.crs['1'],c2=SP.crs['2'];
+  el.hidden=c1===c2;
+  if(c1!==c2)el.textContent=t('crs_conv','EPSG:'+c2,'EPSG:'+c1);
+}
+['1','2'].forEach(function(n){
+  $('crs'+n).addEventListener('change',function(){SP.crs[n]=this.value;spSave();update();if(spCtx)spRenderConfig()});
+});
+document.querySelector('.two').addEventListener('click',function(ev){
+  var u=ev.target.closest('[data-usecrs]');if(!u)return;
+  SP.crs[u.dataset.target==='t2'?'2':'1']=u.dataset.usecrs;spSave();update();if(spCtx)spRenderConfig();
+});
 
 function spUpdate(res,p1,p2,tol){
   var side=SP.side==='2'?'2':'1',rows=side==='1'?p1.rows:p2.rows;
@@ -1635,12 +1689,11 @@ function mapOptUi(){
   $('mapWrap').hidden=!MAPOPT.show;
   $('mapToggle').textContent=t(MAPOPT.show?'map_hide':'map_show');
   $('mapFullTxt').textContent=t(mapFull?'map_full_off':'map_full');
-  [$('mapCrsWrap'),$('mapNames').closest('label'),$('mapFit')].forEach(function(el){el.hidden=!MAPOPT.show});
+  [$('mapNames').closest('label'),$('mapFit')].forEach(function(el){el.hidden=!MAPOPT.show});
 }
 function mapRender(){
   if(!MAPCTX||$('out').hidden)return;
   mapOptUi();
-  fillCrs($('mapCrs'),SP.crs['1']);
   if(!MAPOPT.show)return;
   needLeaflet().then(drawMap,function(){
     if(LMAP)return;
@@ -1776,7 +1829,7 @@ function drawMap(){
   }
   f+='<div class="hintline" id="mapHint"></div><div class="hintline">'+esc(lls.length?t('map_note'):t('map_empty'))+'</div>';
   $('mapFoot').innerHTML=f;
-  crsHint($('mapHint'),MAPCTX.all,SP.crs['1'],out,'map');
+  (function(h){h.className=out?'hintline bad':'hintline';h.textContent=out?t('crs_out',out):''})($('mapHint'));
 
   if(pendingFocus){var pf=pendingFocus;pendingFocus=null;mapFocus(pf)}
 }
@@ -1804,11 +1857,6 @@ $('miss2').addEventListener('click',function(ev){var s=ev.target.closest('[data-
 $('mapToggle').addEventListener('click',function(){if(mapFull)setMapFull(false);MAPOPT.show=!MAPOPT.show;saveState();mapOptUi();scheduleMap()});
 $('mapNames').addEventListener('change',function(){MAPOPT.names=this.checked;saveState();scheduleMap()});
 $('mapFit').addEventListener('click',function(){mapSig='';scheduleMap()});
-$('mapCrs').addEventListener('change',function(){SP.crs['1']=SP.crs['2']=this.value;spSave();update();if(spCtx)spRenderConfig()});
-$('mapCard').addEventListener('click',function(ev){
-  var u=ev.target.closest('[data-usecrs]');if(!u)return;
-  SP.crs['1']=SP.crs['2']=u.dataset.usecrs;spSave();update();if(spCtx)spRenderConfig();
-});
 
 /* KML for Google Earth: the turbines of the table, one folder per status */
 function kmlEsc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
