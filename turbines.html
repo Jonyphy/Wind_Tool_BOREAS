@@ -522,6 +522,7 @@ body.mapfull{overflow:hidden}
         <label for="xa"><input id="xa" type="checkbox" checked> <span data-i18n="x_type">Type (Anlage)</span></label>
         <label for="xh"><input id="xh" type="checkbox" checked> <span data-i18n="x_hub">Hub height</span></label>
         <label for="xk"><input id="xk" type="checkbox" checked> <span data-i18n="x_kw">Power (kW)</span></label>
+        <label for="xr"><input id="xr" type="checkbox" checked> <span data-i18n="x_rd">Rotor diameter (RD)</span></label>
         <label for="xn"><input id="xn" type="checkbox"> <span data-i18n="x_other">Name in other table</span></label>
         <label for="xs"><input id="xs" type="checkbox"> <span data-i18n="x_status">Status</span></label>
         <label for="xw"><input id="xw" type="checkbox"> <span data-i18n="x_wea">WEA status (Rückbau)</span></label>
@@ -654,7 +655,7 @@ en:{
   none_missing:"None. Every turbine in this table has a partner.",
   search:"Search turbine name", copy_table:"Copy table", dl_csv:"Download CSV",
   s4:"Add turbine types to a table", s4p:"Take the type (Anlage), hub height and power of each matched turbine and write them into one of your tables. Copy the result back into Excel.",
-  x_fill:"Fill in", x_type:"Type (Anlage)", x_hub:"Hub height", x_kw:"Power (kW)", x_other:"Name in other table", x_status:"Status",
+  x_fill:"Fill in", x_type:"Type (Anlage)", x_hub:"Hub height", x_kw:"Power (kW)", x_rd:"Rotor diameter (RD)", c_rd:"RD (m)", x_other:"Name in other table", x_status:"Status",
   foot_right:"Internal engineering tools · all data stays in your browser",
   chip_all:"All turbines", chip_ok:"Matched", chip_far:"Same name, position off", chip_coord:"Same position, other name", chip_only1:"Only in Table 1", chip_only2:"Only in Table 2",
   st_ok:"Matched", st_far:"Position off", st_coord:"Other name", st_only1:"Only in Table 1", st_only2:"Only in Table 2",
@@ -760,7 +761,7 @@ de:{
   none_missing:"Keine. Jede Anlage dieser Tabelle hat einen Partner.",
   search:"Anlagenname suchen", copy_table:"Tabelle kopieren", dl_csv:"CSV herunterladen",
   s4:"Anlagentypen in eine Tabelle übernehmen", s4p:"Übernimm Typ (Anlage), Nabenhöhe und Leistung jeder zugeordneten Anlage in eine deiner Tabellen. Das Ergebnis kannst du zurück in Excel kopieren.",
-  x_fill:"Befüllen:", x_type:"Typ (Anlage)", x_hub:"Nabenhöhe", x_kw:"Leistung (kW)", x_other:"Name in anderer Tabelle", x_status:"Status",
+  x_fill:"Befüllen:", x_type:"Typ (Anlage)", x_hub:"Nabenhöhe", x_kw:"Leistung (kW)", x_rd:"Rotordurchmesser (RD)", c_rd:"RD (m)", x_other:"Name in anderer Tabelle", x_status:"Status",
   foot_right:"Interne Engineering-Werkzeuge · alle Daten bleiben im Browser",
   chip_all:"Alle Anlagen", chip_ok:"Zugeordnet", chip_far:"Gleicher Name, Position weicht ab", chip_coord:"Gleiche Position, anderer Name", chip_only1:"Nur in Tabelle 1", chip_only2:"Nur in Tabelle 2",
   st_ok:"Zugeordnet", st_far:"Position weicht ab", st_coord:"Anderer Name", st_only1:"Nur in Tabelle 1", st_only2:"Nur in Tabelle 2",
@@ -1272,11 +1273,12 @@ function buildExport(res,p1,p2){
       else{partner.set(r.b,r.a);status.set(r.b,r.kind)}
     }
   });
-  var useA=$('xa').checked,useH=$('xh').checked,useK=$('xk').checked,useN=$('xn').checked,useS=$('xs').checked,useW=$('xw').checked;
+  var useA=$('xa').checked,useH=$('xh').checked,useK=$('xk').checked,useR=$('xr').checked,useN=$('xn').checked,useS=$('xs').checked,useW=$('xw').checked;
   var head=[t('c_name'),t('c_e'),t('c_n')];
   if(useA)head.push(t('c_type'));
   if(useH)head.push(t('c_hub'));
   if(useK)head.push(t('c_kw'));
+  if(useR)head.push(t('c_rd'));
   if(useN)head.push(t('c_other',other));
   if(useS)head.push(t('c_status'));
   if(useW)head.push(t('th_wea'));
@@ -1288,6 +1290,7 @@ function buildExport(res,p1,p2){
     if(useA)row.push(model);
     if(useH)row.push(x.hub!=null?x.hub:(o&&o.hub!=null?o.hub:''));
     if(useK)row.push(x.kw!=null?x.kw:(o&&o.kw!=null?o.kw:''));
+    if(useR){var rd=rdOf(x);if(rd==null&&o)rd=rdOf(o);row.push(rd!=null?rd:'')} /* your own value from the spacing check, else read from the type name (V112 → 112) */
     if(useN)row.push(o?o.name:'');
     if(useS)row.push(t('st_'+(status.get(x)||('only'+side))));
     if(useW)row.push(weaOf(x,o));
@@ -1901,7 +1904,7 @@ $('mapKml').addEventListener('click',function(){
 });
 
 /* ---------- wiring ---------- */
-['t1','t2','tol','sfx','sfxl','hubc','xt','xa','xh','xk','xn','xs','xw'].forEach(function(id){
+['t1','t2','tol','sfx','sfxl','hubc','xt','xa','xh','xk','xr','xn','xs','xw'].forEach(function(id){
   $(id).addEventListener('input',update);$(id).addEventListener('change',update);
 });
 $('q').addEventListener('input',function(){query=this.value;update()});
@@ -1989,7 +1992,7 @@ window.addEventListener('drop',function(e){
 var STATE_KEY='wt_match';
 function buildState(){
   return {t1:$('t1').value,t2:$('t2').value,tol:$('tol').value,hubc:$('hubc').checked,sfx:$('sfx').checked,sfxl:$('sfxl').value,
-    x:{xt:$('xt').value,xa:$('xa').checked,xh:$('xh').checked,xk:$('xk').checked,xn:$('xn').checked,xs:$('xs').checked,xw:$('xw').checked},
+    x:{xt:$('xt').value,xa:$('xa').checked,xh:$('xh').checked,xk:$('xk').checked,xr:$('xr').checked,xn:$('xn').checked,xs:$('xs').checked,xw:$('xw').checked},
     spacing:JSON.parse(JSON.stringify(SP)),spList:$('spList').value,rb:JSON.parse(JSON.stringify(RB)),
     map:{show:MAPOPT.show,names:MAPOPT.names,base:MAPOPT.base,who:MAPOPT.who}};
 }
@@ -2008,7 +2011,7 @@ function applyState(st,noUpdate){
   if(st.sfx!=null)$('sfx').checked=!!st.sfx;
   if(st.sfxl!=null){$('sfxl').value=st.sfxl;lsSet('wt_suffixes',st.sfxl)}
   if(st.rb&&typeof st.rb==='object'){for(var rk in RB)if(st.rb[rk]!=null)RB[rk]=st.rb[rk];rbWordsUpdate();rbSave();$('rbWords').value=RB.words}
-  if(st.x){['xa','xh','xk','xn','xs','xw'].forEach(function(k){if(st.x[k]!=null)$(k).checked=!!st.x[k]});if(st.x.xt)$('xt').value=st.x.xt}
+  if(st.x){['xa','xh','xk','xr','xn','xs','xw'].forEach(function(k){if(st.x[k]!=null)$(k).checked=!!st.x[k]});if(st.x.xt)$('xt').value=st.x.xt}
   if(st.spacing&&typeof st.spacing==='object'){for(var k in SP)if(st.spacing[k]!=null)SP[k]=st.spacing[k];spSave()}
   if(st.spList!=null){$('spList').value=st.spList;lsSet('wt_sp_list',st.spList)}
   if(st.map){if(st.map.show!=null)MAPOPT.show=!!st.map.show;if(st.map.names!=null)MAPOPT.names=!!st.map.names;if(st.map.base)MAPOPT.base=st.map.base;if(st.map.who)MAPOPT.who=st.map.who;mapOptUi()}
