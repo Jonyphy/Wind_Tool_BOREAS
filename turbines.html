@@ -202,6 +202,14 @@ td.wrap{white-space:normal}
 .sp-body input[type=number]{width:78px;font-family:var(--mono);background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:5px 9px}
 .sp-body textarea{min-height:120px}
 .hintline{font-size:12.5px;color:var(--text-3)}
+/* ⓘ help bubbles: long help texts stay hidden until clicked */
+.tip{display:inline-block;position:relative;vertical-align:middle;margin-left:4px}
+.tip>summary{list-style:none;cursor:pointer;width:18px;height:18px;border-radius:50%;border:1px solid var(--border-strong);color:var(--text-2);font:italic 600 11px/16px Georgia,serif;text-align:center;user-select:none}
+.tip>summary::-webkit-details-marker{display:none}
+.tip>summary:hover,.tip[open]>summary{color:var(--gust);border-color:var(--gust)}
+.tipbox{position:absolute;z-index:1200;top:24px;left:-8px;width:max-content;max-width:min(320px,80vw);padding:9px 11px;border-radius:10px;background:var(--panel);border:1px solid var(--border-strong);box-shadow:var(--shadow);font-size:12.5px;line-height:1.45;color:var(--text);font-style:normal;white-space:normal}
+.tip.up .tipbox{top:auto;bottom:24px}
+.tip.right .tipbox{left:auto;right:-8px}
 .hintline.warn{color:var(--warn)}
 .hintline.bad{color:var(--bad);font-weight:500}
 .hintline a{color:var(--gust);cursor:pointer;text-decoration:underline}
@@ -420,16 +428,15 @@ body.mapfull{overflow:hidden}
       <div><h2 id="h-s2" data-i18n="s2">Set the matching rules</h2><p data-i18n="s2p">The defaults suit most wind-farm lists. Results update as you change them.</p></div>
     </div>
     <div class="card rules">
-      <label for="tol"><span data-i18n="tol">Position tolerance</span> <input id="tol" type="number" min="0" step="0.5" value="5"> m</label>
+      <label for="tol"><span data-i18n="tol">Position tolerance</span> <input id="tol" type="number" min="0" step="0.5" value="5"> m <details class="tip"><summary aria-label="Info" title="Info">i</summary><div class="tipbox" data-i18n="rules_note">Coordinates are read as easting then northing in metres. Two turbines are the same when their names agree, or when they stand within the tolerance of each other.</div></details></label>
       <label for="hubc"><input id="hubc" type="checkbox"> <span data-i18n="hubc">Flag hub height differences</span></label>
       <div class="sfxrow">
         <label for="sfx"><input id="sfx" type="checkbox" checked> <span data-i18n="sfx">Ignore name suffixes</span></label>
         <input id="sfxl" type="text" value="V###, -F" spellcheck="false" aria-label="Suffix list" data-i18n-aria="sfx_aria">
-        <span class="hint" data-i18n="sfx_hint">Separate with commas. # stands for any digit, so V### covers V172 and V199.</span>
+        <details class="tip"><summary aria-label="Info" title="Info">i</summary><div class="tipbox" data-i18n="sfx_hint">Separate with commas. # stands for any digit, so V### covers V172 and V199.</div></details>
       </div>
       <div class="note" id="crsConv" hidden></div>
-      <div class="note" data-i18n="rules_note">Coordinates are read as easting then northing in metres (UTM). Two turbines are the same when their names agree, or when they stand within the tolerance of each other.</div>
-    </div>
+          </div>
     <div class="card rbcard" id="rbCard">
       <div class="rbhead">
         <span class="rbx" aria-hidden="true">✕</span>
@@ -438,7 +445,7 @@ body.mapfull{overflow:hidden}
       <div class="rbrow1">
         <label for="rbWords" data-i18n="rb_words">Status words that mean Rückbau</label>
         <input id="rbWords" type="text" spellcheck="false">
-        <span class="hint" data-i18n="rb_words_hint">Separate with commas. A status cell that contains one of these words counts as Rückbau, so “Rückbau” also covers “Planung Rückbau”.</span>
+        <details class="tip"><summary aria-label="Info" title="Info">i</summary><div class="tipbox" data-i18n="rb_words_hint">Separate with commas. A status cell that contains one of these words counts as Rückbau, so “Rückbau” also covers “Planung Rückbau”.</div></details>
       </div>
       <div class="rbrow2">
         <div class="picktools"><span class="lab" data-i18n="rb_pick">Or click turbines to mark or unmark them yourself:</span><span style="flex:1"></span><span class="hintline" id="rbInfo"></span><button type="button" class="btn" id="rbReset" data-i18n="rb_reset">Reset to status column</button></div>
@@ -474,6 +481,7 @@ body.mapfull{overflow:hidden}
         <div class="tbar">
           <h3 data-i18n="map_h">Map</h3>
           <div class="tools">
+            <label><span data-i18n="map_who">Show</span> <select id="mapWho" class="crs" aria-label="Map view"></select></label>
             <label><input type="checkbox" id="mapNames"> <span data-i18n="map_names">Show names</span></label>
             <button type="button" class="btn" id="mapFit" data-i18n="map_fit">Fit all</button>
             <button type="button" class="btn" id="mapKml" data-i18n="map_kml">Download KML</button>
@@ -563,9 +571,9 @@ body.mapfull{overflow:hidden}
                 <button type="button" class="btn" data-pick="none" data-i18n="sp_pick_none">None</button>
                 <button type="button" class="btn" data-pick="inv" data-i18n="sp_pick_inv">Invert</button>
                 <span class="hintline" id="spPickInfo"></span>
+                <details class="tip"><summary aria-label="Info" title="Info">i</summary><div class="tipbox" data-i18n="sp_pick_hint">Click a name to mark it as planned.</div></details>
               </div>
-              <div class="hintline" data-i18n="sp_pick_hint" style="margin:6px 0">Click a name to mark it as planned. Tip: a column with “geplant” / “planned” or “Bestand” / “existing” in your Excel table marks the rows for you (shown with a dot).</div>
-              <div class="picks" id="spPicks"></div>
+                            <div class="picks" id="spPicks"></div>
             </div>
 
             <div id="spListPanel" hidden>
@@ -718,7 +726,7 @@ en:{
   map_fail:"The map could not be loaded (no connection to the map library). Everything else on this page works.",
   map_empty:"No turbines to show for this filter.",
   map_osm:"Map", map_sat:"Satellite", map_l_match:"Matching", map_l_circ:"Spacing circles", map_l_pairs:"Spacing pairs",
-  lg_t1:"Table 1", lg_t2:"Table 2 (open)", lg_line:"Same name, position off",
+  lg_t1:"Table 1", lg_t2:"Table 2 (open)", map_who:"Show", map_who_both:"Both tables", map_who_1:"Table 1 only", map_who_2:"Table 2 only", map_who_match:"Match result", lg_line:"Same name, position off",
   lg_plan:"Planned turbine", lg_circ:function(l){return l+" D around planned"}, lg_red:function(l){return "Pair below "+l+" D"}, lg_amb:function(a,b){return "Pair between "+a+" and "+b+" D"},
   tt_dist:function(d){return d+" m apart"}, tt_rd:function(r){return "Rotor "+r+" m"}, tt_circ:function(n,l,r){return n+": "+l+" D = "+r+" m"},
   th_wea:"WEA status", note_rb:"Rückbau – not in the 2 D check.", rb_tag:"Rückbau", rb_manual:"set by hand", rb_kept:"kept by hand",
@@ -824,7 +832,7 @@ de:{
   map_fail:"Die Karte konnte nicht geladen werden (keine Verbindung zur Kartenbibliothek). Alles andere auf dieser Seite funktioniert.",
   map_empty:"Für diesen Filter gibt es keine Anlagen.",
   map_osm:"Karte", map_sat:"Satellit", map_l_match:"Abgleich", map_l_circ:"Abstandskreise", map_l_pairs:"Abstandspaare",
-  lg_t1:"Tabelle 1", lg_t2:"Tabelle 2 (offen)", lg_line:"Gleicher Name, Position weicht ab",
+  lg_t1:"Tabelle 1", lg_t2:"Tabelle 2 (offen)", map_who:"Zeigen", map_who_both:"Beide Tabellen", map_who_1:"Nur Tabelle 1", map_who_2:"Nur Tabelle 2", map_who_match:"Abgleich-Ergebnis", lg_line:"Gleicher Name, Position weicht ab",
   lg_plan:"Geplante Anlage", lg_circ:function(l){return l+" D um geplante"}, lg_red:function(l){return "Paar unter "+l+" D"}, lg_amb:function(a,b){return "Paar zwischen "+a+" und "+b+" D"},
   tt_dist:function(d){return d+" m Abstand"}, tt_rd:function(r){return "Rotor "+r+" m"}, tt_circ:function(n,l,r){return n+": "+l+" D = "+r+" m"},
   th_wea:"WEA-Status", note_rb:"Rückbau – nicht in der 2-D-Prüfung.", rb_tag:"Rückbau", rb_manual:"manuell", rb_kept:"manuell behalten",
@@ -1306,13 +1314,7 @@ var CRS={
   '32632':{t:'utm',z:32,ell:'wgs84'},'32633':{t:'utm',z:33,ell:'wgs84'},
   '31466':{t:'gk',z:2},'31467':{t:'gk',z:3},'31468':{t:'gk',z:4},'31469':{t:'gk',z:5}
 };
-/* any UTM zone can be picked: ETRS89 zones 28-38 (EPSG:25828-25838), WGS 84 north zones 1-60 (EPSG:32601-32660) */
-var ETRS_Z=['25832','25833'],WGS_Z=['32632','32633'];
-for(var zz=28;zz<=38;zz++){var ce='258'+zz;if(!CRS[ce]){CRS[ce]={t:'utm',z:zz,ell:'grs80'};ETRS_Z.push(ce)}}
-for(var zw=1;zw<=60;zw++){var cw='326'+(zw<10?'0':'')+zw;if(!CRS[cw]){CRS[cw]={t:'utm',z:zw,ell:'wgs84'};WGS_Z.push(cw)}}
-ETRS_Z.sort(function(a,b){return CRS[a].z-CRS[b].z});WGS_Z.sort(function(a,b){return CRS[a].z-CRS[b].z});
-function crsLabel(c){return t('crs_'+c)||((CRS[c].ell==='grs80'?'ETRS89':'WGS 84')+' / UTM zone '+CRS[c].z+'N \u00b7 EPSG:'+c)}
-var CRS_GROUPS=[['crs_g_etrs',ETRS_Z],['crs_g_wgs',WGS_Z],['crs_g_gk',['31467','31468','31466','31469']]];
+var CRS_GROUPS=[['crs_g_etrs',['25832','25833']],['crs_g_wgs',['32632','32633']],['crs_g_gk',['31467','31468','31466','31469']]];
 var D2R=Math.PI/180;
 function tmSetup(ell){
   if(ell._c)return ell._c;
@@ -1383,7 +1385,7 @@ function inGermany(g){return g.lat>47&&g.lat<55.3&&g.lon>5.5&&g.lon<15.3}
 function guessCrs(rows){
   if(!rows.length)return null;
   var es=rows.map(function(r){return r.e}).sort(function(a,b){return a-b}),m=es[Math.floor(es.length/2)],z;
-  if(m>=1e7){z=Math.floor(m/1e6);return (z>=28&&z<=38)?{kind:'utm',z:z,code:'258'+z}:null}
+  if(m>=1e7){z=Math.floor(m/1e6);return (z===32||z===33)?{kind:'utm',z:z,code:'258'+z}:null}
   if(m>=1e6){z=Math.floor(m/1e6);return (z>=2&&z<=5)?{kind:'gk',z:z,code:String(31464+z)}:null}
   if(m>=1e5)return {kind:'utm6',code:'25832'};
   return null;
@@ -1419,17 +1421,18 @@ function isPlanned(it){
   return it.status==='plan';
 }
 function fillCrs(sel,val){
-  sel.innerHTML=CRS_GROUPS.map(function(g){return '<optgroup label="'+esc(t(g[0]))+'">'+g[1].map(function(c){return '<option value="'+c+'">'+esc(crsLabel(c))+'</option>'}).join('')+'</optgroup>'}).join('');
+  sel.innerHTML=CRS_GROUPS.map(function(g){return '<optgroup label="'+esc(t(g[0]))+'">'+g[1].map(function(c){return '<option value="'+c+'">'+esc(t('crs_'+c))+'</option>'}).join('')+'</optgroup>'}).join('');
   sel.value=CRS[val]?val:'25832';
 }
 
+document.addEventListener('click',function(ev){document.querySelectorAll('details.tip[open]').forEach(function(d){if(!d.contains(ev.target))d.open=false})});
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape')document.querySelectorAll('details.tip[open]').forEach(function(d){d.open=false})});
 /* per-table coordinate systems: selectors, hints, conversion note */
 function crsSync(p1,p2){
   [['1',p1],['2',p2]].forEach(function(a){
     var side=a[0],sel=$('crs'+side),code=CRS[SP.crs[side]]?SP.crs[side]:'25832';
     if(sel._lang!==lang||!sel.options.length){fillCrs(sel,code);sel._lang=lang}else sel.value=code;
-    var bad=0,strict=/^(25832|25833|32632|32633|3146\d)$/.test(code); /* other zones: only check for a plausible position in Europe */
-    a[1].rows.forEach(function(r){var g=toGeo(r.e,r.n,code);if(strict?!inGermany(g):!(g.lat>30&&g.lat<75&&g.lon>-35&&g.lon<50))bad++});
+    var bad=0;a[1].rows.forEach(function(r){if(!inGermany(toGeo(r.e,r.n,code)))bad++});
     crsHint($('crsHint'+side),a[1].rows,code,bad,'t'+side);
   });
   var el=$('crsConv'),c1=SP.crs['1'],c2=SP.crs['2'];
@@ -1670,7 +1673,7 @@ $('s5').addEventListener('click',function(ev){
 (function(){var v=lsGet('wt_sp_list');if(v)$('spList').value=v})();
 
 /* ---------- map (Leaflet, loaded only when the map is shown) ---------- */
-var MAPOPT={show:true,names:false,base:'osm'};
+var MAPOPT={show:true,names:false,base:'osm',who:'both'};
 var MAPCTX=null,LMAP=null,LL={},MARK=[],mapSig='',mapRaf=0,pendingFocus=null;
 var LEAF_CSS='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',LEAF_JS='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 var leafP=null;
@@ -1686,10 +1689,12 @@ function scheduleMap(){cancelAnimationFrame(mapRaf);mapRaf=requestAnimationFrame
 function cssVar(n){return getComputedStyle(root).getPropertyValue(n).trim()}
 function mapOptUi(){
   $('mapNames').checked=!!MAPOPT.names;
+  var w=$('mapWho');if(w._lang!==lang){w.innerHTML=['both','1','2','match'].map(function(k){return '<option value="'+k+'">'+esc(t('map_who_'+k))+'</option>'}).join('');w._lang=lang}
+  w.value=MAPOPT.who||'both';
   $('mapWrap').hidden=!MAPOPT.show;
   $('mapToggle').textContent=t(MAPOPT.show?'map_hide':'map_show');
   $('mapFullTxt').textContent=t(mapFull?'map_full_off':'map_full');
-  [$('mapNames').closest('label'),$('mapFit')].forEach(function(el){el.hidden=!MAPOPT.show});
+  [$('mapWho').closest('label'),$('mapNames').closest('label'),$('mapFit')].forEach(function(el){el.hidden=!MAPOPT.show});
 }
 function mapRender(){
   if(!MAPCTX||$('out').hidden)return;
@@ -1773,14 +1778,24 @@ function drawMap(){
   var col={ok:cssVar('--ok'),far:cssVar('--warn'),coord:cssVar('--info'),only1:cssVar('--t1'),only2:cssVar('--t2'),bad:cssVar('--bad'),warn:cssVar('--warn'),gust:cssVar('--gust'),ink:cssVar('--ink')};
   var c1=SP.crs['1'],c2=SP.crs['2'],out=0,lls=[],names=!!MAPOPT.names;
   var halo=cssVar('--panel')||'#fff';
-  function marker(ll,cl,filled,label,r){
-    var m=r.rb?L.marker(ll,{icon:crossIcon(cl,halo),keyboard:false}):L.circleMarker(ll,{radius:6,color:cl,weight:2,fillColor:cl,fillOpacity:filled?.85:.12});
+  function marker(ll,cl,filled,label,r,rad){
+    var m=r.rb?L.marker(ll,{icon:crossIcon(cl,halo),keyboard:false}):L.circleMarker(ll,{radius:rad||6,color:cl,weight:2,fillColor:cl,fillOpacity:filled?.85:.12});
     m.bindPopup(popHtml(r));
     if(names)m.bindTooltip(esc(label),{permanent:true,direction:'right',offset:[r.rb?2:7,0],className:'tlab'+(r.rb?' rbl':'')});
     else m.bindTooltip(esc(label)+' · '+esc(t('st_'+r.kind))+(r.rb?' · ✕ '+esc(t('rb_tag')):''),{direction:'top',offset:[0,r.rb?-2:-6]});
     m.addTo(LL.match);lls.push(ll);return m;
   }
+  var who=MAPOPT.who||'both';
   MAPCTX.rows.forEach(function(r,ri){
+    if(who!=='match'){ /* colour by table: table 1 filled dot, table 2 ring around it */
+      var A=r.a&&who!=='2'?rowGeo(r.a,c1):null,B=r.b&&who!=='1'?rowGeo(r.b,c2):null,ee={r:r};
+      if(A&&A.out)out++;if(B&&B.out)out++;
+      if(A&&B&&r.kind==='far')L.polyline([A.ll,B.ll],{color:col.far,weight:2,dashArray:'4 4'}).addTo(LL.match);
+      if(A)ee.m=marker(A.ll,col.only1,true,r.a.name,r);
+      if(B)ee.m2=marker(B.ll,col.only2,false,r.b.name,r,9);
+      if(!ee.m)ee.m=ee.m2;if(!ee.m2)ee.m2=ee.m;
+      MARK[ri]=ee;return;
+    }
     var cl=col[r.kind],ga=r.a?rowGeo(r.a,c1):null,gb=r.b?rowGeo(r.b,c2):null,e={r:r};
     if(ga&&ga.out)out++;if(gb&&gb.out)out++;
     if(r.kind==='ok'||r.kind==='coord'){
@@ -1821,13 +1836,14 @@ function drawMap(){
 
   /* legend + coordinate check */
   var lg=function(c,cls,txt){return '<span class="lg" style="color:'+c+'"><i class="'+cls+'"></i><span style="color:var(--text-2)">'+esc(txt)+'</span></span>'};
-  var f=lg(col.ok,'f',t('st_ok'))+lg(col.far,'f',t('st_far'))+lg(col.coord,'f',t('st_coord'))+lg(col.only1,'f',t('st_only1'))+lg(col.only2,'',t('st_only2'))+
+  var f=who!=='match'?(who!=='2'?lg(col.only1,'f',t('tbl1')):'')+(who!=='1'?lg(col.only2,'',t('tbl2')):'')+(who==='both'?lg(col.far,'ln',t('lg_line')):''):
+    lg(col.ok,'f',t('st_ok'))+lg(col.far,'f',t('st_far'))+lg(col.coord,'f',t('st_coord'))+lg(col.only1,'f',t('st_only1'))+lg(col.only2,'',t('st_only2'))+
     lg(col.ink,'f',t('lg_t1'))+lg(col.ink,'',t('lg_t2'))+lg(col.far,'ln',t('lg_line'));
   if(MAPCTX.rows.some(function(r){return r.rb}))f+='<span class="lg" style="color:'+col.ink+'"><b class="lgx">✕</b><span style="color:var(--text-2)">'+esc(t('lg_rb'))+'</span></span>';
   if(md){
     f+=lg(col.gust,'',t('lg_plan'))+lg(col.bad,'ring',t('lg_circ',String(md.l1)))+lg(col.bad,'ln',t('lg_red',String(md.l1)))+lg(col.warn,'ln',t('lg_amb',String(md.l1),String(md.l2)));
   }
-  f+='<div class="hintline" id="mapHint"></div><div class="hintline">'+esc(lls.length?t('map_note'):t('map_empty'))+'</div>';
+  f+=(lls.length?'<details class="tip up right"><summary aria-label="Info" title="Info">i</summary><div class="tipbox">'+esc(t('map_note'))+'</div></details>':'')+'<div class="hintline" id="mapHint"></div>'+(lls.length?'':'<div class="hintline">'+esc(t('map_empty'))+'</div>');
   $('mapFoot').innerHTML=f;
   (function(h){h.className=out?'hintline bad':'hintline';h.textContent=out?t('crs_out',out):''})($('mapHint'));
 
@@ -1856,6 +1872,7 @@ $('miss1').addEventListener('click',function(ev){var s=ev.target.closest('[data-
 $('miss2').addEventListener('click',function(ev){var s=ev.target.closest('[data-n]');if(s)showOnMap(s.dataset.n,'2')});
 $('mapToggle').addEventListener('click',function(){if(mapFull)setMapFull(false);MAPOPT.show=!MAPOPT.show;saveState();mapOptUi();scheduleMap()});
 $('mapNames').addEventListener('change',function(){MAPOPT.names=this.checked;saveState();scheduleMap()});
+$('mapWho').addEventListener('change',function(){MAPOPT.who=this.value;mapSig='';saveState();scheduleMap()});
 $('mapFit').addEventListener('click',function(){mapSig='';scheduleMap()});
 
 /* KML for Google Earth: the turbines of the table, one folder per status */
@@ -1974,7 +1991,7 @@ function buildState(){
   return {t1:$('t1').value,t2:$('t2').value,tol:$('tol').value,hubc:$('hubc').checked,sfx:$('sfx').checked,sfxl:$('sfxl').value,
     x:{xt:$('xt').value,xa:$('xa').checked,xh:$('xh').checked,xk:$('xk').checked,xn:$('xn').checked,xs:$('xs').checked,xw:$('xw').checked},
     spacing:JSON.parse(JSON.stringify(SP)),spList:$('spList').value,rb:JSON.parse(JSON.stringify(RB)),
-    map:{show:MAPOPT.show,names:MAPOPT.names,base:MAPOPT.base}};
+    map:{show:MAPOPT.show,names:MAPOPT.names,base:MAPOPT.base,who:MAPOPT.who}};
 }
 var stateReady=false;
 function saveState(){
@@ -1994,7 +2011,7 @@ function applyState(st,noUpdate){
   if(st.x){['xa','xh','xk','xn','xs','xw'].forEach(function(k){if(st.x[k]!=null)$(k).checked=!!st.x[k]});if(st.x.xt)$('xt').value=st.x.xt}
   if(st.spacing&&typeof st.spacing==='object'){for(var k in SP)if(st.spacing[k]!=null)SP[k]=st.spacing[k];spSave()}
   if(st.spList!=null){$('spList').value=st.spList;lsSet('wt_sp_list',st.spList)}
-  if(st.map){if(st.map.show!=null)MAPOPT.show=!!st.map.show;if(st.map.names!=null)MAPOPT.names=!!st.map.names;if(st.map.base)MAPOPT.base=st.map.base;mapOptUi()}
+  if(st.map){if(st.map.show!=null)MAPOPT.show=!!st.map.show;if(st.map.names!=null)MAPOPT.names=!!st.map.names;if(st.map.base)MAPOPT.base=st.map.base;if(st.map.who)MAPOPT.who=st.map.who;mapOptUi()}
   if(!noUpdate){update();if(spCtx)spRenderConfig()}
 }
 function projName(){
