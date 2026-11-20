@@ -202,6 +202,14 @@ td.wrap{white-space:normal}
 .sp-body input[type=number]{width:78px;font-family:var(--mono);background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:5px 9px}
 .sp-body textarea{min-height:120px}
 .hintline{font-size:12.5px;color:var(--text-3)}
+/* ⓘ help bubbles: long help texts stay hidden until clicked */
+.tip{display:inline-block;position:relative;vertical-align:middle;margin-left:4px}
+.tip>summary{list-style:none;cursor:pointer;width:18px;height:18px;border-radius:50%;border:1px solid var(--border-strong);color:var(--text-2);font:italic 600 11px/16px Georgia,serif;text-align:center;user-select:none}
+.tip>summary::-webkit-details-marker{display:none}
+.tip>summary:hover,.tip[open]>summary{color:var(--gust);border-color:var(--gust)}
+.tipbox{position:absolute;z-index:1200;top:24px;left:-8px;width:max-content;max-width:min(320px,80vw);padding:9px 11px;border-radius:10px;background:var(--panel);border:1px solid var(--border-strong);box-shadow:var(--shadow);font-size:12.5px;line-height:1.45;color:var(--text);font-style:normal;white-space:normal}
+.tip.up .tipbox{top:auto;bottom:24px}
+.tip.right .tipbox{left:auto;right:-8px}
 .hintline.warn{color:var(--warn)}
 .hintline.bad{color:var(--bad);font-weight:500}
 .hintline a{color:var(--gust);cursor:pointer;text-decoration:underline}
@@ -420,16 +428,15 @@ body.mapfull{overflow:hidden}
       <div><h2 id="h-s2" data-i18n="s2">Set the matching rules</h2><p data-i18n="s2p">The defaults suit most wind-farm lists. Results update as you change them.</p></div>
     </div>
     <div class="card rules">
-      <label for="tol"><span data-i18n="tol">Position tolerance</span> <input id="tol" type="number" min="0" step="0.5" value="5"> m</label>
+      <label for="tol"><span data-i18n="tol">Position tolerance</span> <input id="tol" type="number" min="0" step="0.5" value="5"> m <details class="tip"><summary aria-label="Info" title="Info">i</summary><div class="tipbox" data-i18n="rules_note">Coordinates are read as easting then northing in metres. Two turbines are the same when their names agree, or when they stand within the tolerance of each other.</div></details></label>
       <label for="hubc"><input id="hubc" type="checkbox"> <span data-i18n="hubc">Flag hub height differences</span></label>
       <div class="sfxrow">
         <label for="sfx"><input id="sfx" type="checkbox" checked> <span data-i18n="sfx">Ignore name suffixes</span></label>
         <input id="sfxl" type="text" value="V###, -F" spellcheck="false" aria-label="Suffix list" data-i18n-aria="sfx_aria">
-        <span class="hint" data-i18n="sfx_hint">Separate with commas. # stands for any digit, so V### covers V172 and V199.</span>
+        <details class="tip"><summary aria-label="Info" title="Info">i</summary><div class="tipbox" data-i18n="sfx_hint">Separate with commas. # stands for any digit, so V### covers V172 and V199.</div></details>
       </div>
       <div class="note" id="crsConv" hidden></div>
-      <div class="note" data-i18n="rules_note">Coordinates are read as easting then northing in metres (UTM). Two turbines are the same when their names agree, or when they stand within the tolerance of each other.</div>
-    </div>
+          </div>
     <div class="card rbcard" id="rbCard">
       <div class="rbhead">
         <span class="rbx" aria-hidden="true">✕</span>
@@ -438,7 +445,7 @@ body.mapfull{overflow:hidden}
       <div class="rbrow1">
         <label for="rbWords" data-i18n="rb_words">Status words that mean Rückbau</label>
         <input id="rbWords" type="text" spellcheck="false">
-        <span class="hint" data-i18n="rb_words_hint">Separate with commas. A status cell that contains one of these words counts as Rückbau, so “Rückbau” also covers “Planung Rückbau”.</span>
+        <details class="tip"><summary aria-label="Info" title="Info">i</summary><div class="tipbox" data-i18n="rb_words_hint">Separate with commas. A status cell that contains one of these words counts as Rückbau, so “Rückbau” also covers “Planung Rückbau”.</div></details>
       </div>
       <div class="rbrow2">
         <div class="picktools"><span class="lab" data-i18n="rb_pick">Or click turbines to mark or unmark them yourself:</span><span style="flex:1"></span><span class="hintline" id="rbInfo"></span><button type="button" class="btn" id="rbReset" data-i18n="rb_reset">Reset to status column</button></div>
@@ -564,9 +571,9 @@ body.mapfull{overflow:hidden}
                 <button type="button" class="btn" data-pick="none" data-i18n="sp_pick_none">None</button>
                 <button type="button" class="btn" data-pick="inv" data-i18n="sp_pick_inv">Invert</button>
                 <span class="hintline" id="spPickInfo"></span>
+                <details class="tip"><summary aria-label="Info" title="Info">i</summary><div class="tipbox" data-i18n="sp_pick_hint">Click a name to mark it as planned.</div></details>
               </div>
-              <div class="hintline" data-i18n="sp_pick_hint" style="margin:6px 0">Click a name to mark it as planned. Tip: a column with “geplant” / “planned” or “Bestand” / “existing” in your Excel table marks the rows for you (shown with a dot).</div>
-              <div class="picks" id="spPicks"></div>
+                            <div class="picks" id="spPicks"></div>
             </div>
 
             <div id="spListPanel" hidden>
@@ -1418,6 +1425,8 @@ function fillCrs(sel,val){
   sel.value=CRS[val]?val:'25832';
 }
 
+document.addEventListener('click',function(ev){document.querySelectorAll('details.tip[open]').forEach(function(d){if(!d.contains(ev.target))d.open=false})});
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape')document.querySelectorAll('details.tip[open]').forEach(function(d){d.open=false})});
 /* per-table coordinate systems: selectors, hints, conversion note */
 function crsSync(p1,p2){
   [['1',p1],['2',p2]].forEach(function(a){
@@ -1834,7 +1843,7 @@ function drawMap(){
   if(md){
     f+=lg(col.gust,'',t('lg_plan'))+lg(col.bad,'ring',t('lg_circ',String(md.l1)))+lg(col.bad,'ln',t('lg_red',String(md.l1)))+lg(col.warn,'ln',t('lg_amb',String(md.l1),String(md.l2)));
   }
-  f+='<div class="hintline" id="mapHint"></div><div class="hintline">'+esc(lls.length?t('map_note'):t('map_empty'))+'</div>';
+  f+=(lls.length?'<details class="tip up right"><summary aria-label="Info" title="Info">i</summary><div class="tipbox">'+esc(t('map_note'))+'</div></details>':'')+'<div class="hintline" id="mapHint"></div>'+(lls.length?'':'<div class="hintline">'+esc(t('map_empty'))+'</div>');
   $('mapFoot').innerHTML=f;
   (function(h){h.className=out?'hintline bad':'hintline';h.textContent=out?t('crs_out',out):''})($('mapHint'));
 
