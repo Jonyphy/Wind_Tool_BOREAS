@@ -1306,7 +1306,13 @@ var CRS={
   '32632':{t:'utm',z:32,ell:'wgs84'},'32633':{t:'utm',z:33,ell:'wgs84'},
   '31466':{t:'gk',z:2},'31467':{t:'gk',z:3},'31468':{t:'gk',z:4},'31469':{t:'gk',z:5}
 };
-var CRS_GROUPS=[['crs_g_etrs',['25832','25833']],['crs_g_wgs',['32632','32633']],['crs_g_gk',['31467','31468','31466','31469']]];
+/* any UTM zone can be picked: ETRS89 zones 28-38 (EPSG:25828-25838), WGS 84 north zones 1-60 (EPSG:32601-32660) */
+var ETRS_Z=['25832','25833'],WGS_Z=['32632','32633'];
+for(var zz=28;zz<=38;zz++){var ce='258'+zz;if(!CRS[ce]){CRS[ce]={t:'utm',z:zz,ell:'grs80'};ETRS_Z.push(ce)}}
+for(var zw=1;zw<=60;zw++){var cw='326'+(zw<10?'0':'')+zw;if(!CRS[cw]){CRS[cw]={t:'utm',z:zw,ell:'wgs84'};WGS_Z.push(cw)}}
+ETRS_Z.sort(function(a,b){return CRS[a].z-CRS[b].z});WGS_Z.sort(function(a,b){return CRS[a].z-CRS[b].z});
+function crsLabel(c){return t('crs_'+c)||((CRS[c].ell==='grs80'?'ETRS89':'WGS 84')+' / UTM zone '+CRS[c].z+'N \u00b7 EPSG:'+c)}
+var CRS_GROUPS=[['crs_g_etrs',ETRS_Z],['crs_g_wgs',WGS_Z],['crs_g_gk',['31467','31468','31466','31469']]];
 var D2R=Math.PI/180;
 function tmSetup(ell){
   if(ell._c)return ell._c;
@@ -1377,7 +1383,7 @@ function inGermany(g){return g.lat>47&&g.lat<55.3&&g.lon>5.5&&g.lon<15.3}
 function guessCrs(rows){
   if(!rows.length)return null;
   var es=rows.map(function(r){return r.e}).sort(function(a,b){return a-b}),m=es[Math.floor(es.length/2)],z;
-  if(m>=1e7){z=Math.floor(m/1e6);return (z===32||z===33)?{kind:'utm',z:z,code:'258'+z}:null}
+  if(m>=1e7){z=Math.floor(m/1e6);return (z>=28&&z<=38)?{kind:'utm',z:z,code:'258'+z}:null}
   if(m>=1e6){z=Math.floor(m/1e6);return (z>=2&&z<=5)?{kind:'gk',z:z,code:String(31464+z)}:null}
   if(m>=1e5)return {kind:'utm6',code:'25832'};
   return null;
@@ -1413,7 +1419,7 @@ function isPlanned(it){
   return it.status==='plan';
 }
 function fillCrs(sel,val){
-  sel.innerHTML=CRS_GROUPS.map(function(g){return '<optgroup label="'+esc(t(g[0]))+'">'+g[1].map(function(c){return '<option value="'+c+'">'+esc(t('crs_'+c))+'</option>'}).join('')+'</optgroup>'}).join('');
+  sel.innerHTML=CRS_GROUPS.map(function(g){return '<optgroup label="'+esc(t(g[0]))+'">'+g[1].map(function(c){return '<option value="'+c+'">'+esc(crsLabel(c))+'</option>'}).join('')+'</optgroup>'}).join('');
   sel.value=CRS[val]?val:'25832';
 }
 
@@ -1422,7 +1428,8 @@ function crsSync(p1,p2){
   [['1',p1],['2',p2]].forEach(function(a){
     var side=a[0],sel=$('crs'+side),code=CRS[SP.crs[side]]?SP.crs[side]:'25832';
     if(sel._lang!==lang||!sel.options.length){fillCrs(sel,code);sel._lang=lang}else sel.value=code;
-    var bad=0;a[1].rows.forEach(function(r){if(!inGermany(toGeo(r.e,r.n,code)))bad++});
+    var bad=0,strict=/^(25832|25833|32632|32633|3146\d)$/.test(code); /* other zones: only check for a plausible position in Europe */
+    a[1].rows.forEach(function(r){var g=toGeo(r.e,r.n,code);if(strict?!inGermany(g):!(g.lat>30&&g.lat<75&&g.lon>-35&&g.lon<50))bad++});
     crsHint($('crsHint'+side),a[1].rows,code,bad,'t'+side);
   });
   var el=$('crsConv'),c1=SP.crs['1'],c2=SP.crs['2'];
