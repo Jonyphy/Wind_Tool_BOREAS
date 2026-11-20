@@ -1210,6 +1210,7 @@ function update(){
     h+='<td class="note">'+esc(note)+'</td></tr>';
   });
   $('tbl').innerHTML=h+'</tbody>';
+  LASTX={res:res,p1:p1,p2:p2};
   buildExport(res,p1,p2);
   $('s5').hidden=false;
   spUpdate(res,p1,p2,tol,sfx);
@@ -1264,6 +1265,7 @@ $('rbReset').addEventListener('click',function(){
 });
 
 /* ---------- table with turbine types ---------- */
+var LASTX=null; /* last inputs of the fill-in table, so it can refresh when an RD is typed */
 function buildExport(res,p1,p2){
   var side=$('xt').value,own=side==='1'?p1.rows:p2.rows,other=side==='1'?'2':'1';
   var partner=new Map(),status=new Map();
@@ -1662,6 +1664,7 @@ $('spRd').addEventListener('input',function(ev){
   var tr=inp.closest('tr');
   if(tr&&g){tr.className=v===''&&g.auto==null?'miss':'';tr.querySelector('.src').textContent=rdSrc(g,SP.rd[k]!=null,v===''?(g.auto!=null?g.auto:''):num(v))}
   spRenderResults();
+  if(LASTX)buildExport(LASTX.res,LASTX.p1,LASTX.p2); /* RD column of the fill-in table follows right away */
 });
 $('s5').addEventListener('click',function(ev){
   var u=ev.target.closest('[data-usecrs]');
